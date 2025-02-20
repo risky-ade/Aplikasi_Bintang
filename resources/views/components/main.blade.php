@@ -30,10 +30,10 @@
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-  <!-- Preloader -->
+  {{-- <!-- Preloader -->
   <div class="preloader flex-column justify-content-center align-items-center">
     <img class="animation__shake" src="img/logo.jpg" alt="B4Logo" height="60" width="60">
-  </div>
+  </div> --}}
 
   <!-- Navbar -->
 @include('components.navbar')
@@ -42,48 +42,9 @@
   <!-- Main Sidebar Container -->
 @include('components.sidebar')
 
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0">List Produk</h1>
-          </div><!-- /.col -->
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">List Produk</li>
-            </ol>
-          </div><!-- /.col -->
-        </div><!-- /.row -->
-      </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
-
-    <!-- Main content -->
-    <section class="content">
-      
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
-  <footer class="main-footer">
-    <strong>Copyright &copy; 2024-2025 <a href="#">CV.Bintang Empat</a>.</strong>
-    All rights reserved.
-    <div class="float-right d-none d-sm-inline-block">
-      <b>Version</b> 1.0
-    </div>
-  </footer>
-
-  <!-- Control Sidebar -->
-  <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
-</div>
-<!-- ./wrapper -->
+<main>
+    @yield('content')
+</main>
 
 <!-- jQuery -->
 <script src="template/plugins/jquery/jquery.min.js"></script>
@@ -121,5 +82,36 @@
 <script src="template/dist/js/pages/dashboard.js"></script>
 {{-- <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> --}}
+<script>
+    $(function () {
+      /* ChartJS
+       * -------
+       * Here we will create a few charts using ChartJS
+       */
+  
+      //-------------
+      //- BAR CHART -
+      //-------------
+      var barChartCanvas = $('#barChart').get(0).getContext('2d')
+      var barChartData = $.extend(true, {}, areaChartData)
+      var temp0 = areaChartData.datasets[0]
+      var temp1 = areaChartData.datasets[1]
+      barChartData.datasets[0] = temp1
+      barChartData.datasets[1] = temp0
+  
+      var barChartOptions = {
+        responsive              : true,
+        maintainAspectRatio     : false,
+        datasetFill             : false
+      }
+  
+      new Chart(barChartCanvas, {
+        type: 'bar',
+        data: barChartData,
+        options: barChartOptions
+      })
+  
+    })
+  </script>
 </body>
 </html>
