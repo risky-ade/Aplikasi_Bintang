@@ -83,19 +83,19 @@
               <li class="nav-item">
                 <a href="/sales_order" class="nav-link">
                     <i class="nav-icon fas fa-clipboard-list"></i>
-                  <p>Pesanan Penjualan</p>
+                  <p>Faktur Penjualan</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="/delivery_order" class="nav-link">
                   <i class="nav-icon fas fa-copy"></i>
-                  <p>Pengiriman Pesanan</p>
+                  <p>Retur Penjualan</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="/sales_invoice" class="nav-link">
                   <i class="nav-icon fas fa-copy"></i>
-                  <p>Faktur Penjualan</p>
+                  <p>Histori Harga Penjualan</p>
                 </a>
               </li>
             </ul>
@@ -111,13 +111,19 @@
               <li class="nav-item">
                 <a href="/purchases_receive" class="nav-link">
                     <i class="nav-icon fas fa-clipboard-list"></i>
-                  <p>Penerimaan Pembelian</p>
+                  <p>Faktur Pembelian</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="/purchases_invoice" class="nav-link">
                   <i class="nav-icon fas fa-copy"></i>
-                  <p>Faktur Pembelian</p>
+                  <p>Retur Pembelian</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/purchases_invoice" class="nav-link">
+                  <i class="nav-icon fas fa-copy"></i>
+                  <p>Histori Harga Pembelian</p>
                 </a>
               </li>
             </ul>
@@ -147,7 +153,7 @@
           <li class="nav-item">
             <a href="#" class="nav-link">
                 <i class="fas fa-solid fa-user-plus"></i>
-              <p class="mx-2">Pihak</p>
+              <p class="mx-2">Daftar Pihak</p>
                 <i class="fas fa-angle-left right"></i>
             
             </a>
@@ -155,13 +161,13 @@
               <li class="nav-item">
                 <a href="/customers" class="nav-link">
                     <i class="nav-icon fas fa-solid fa-users"></i>
-                  <p>Pelanggan</p>
+                  <p>Daftar Pelanggan</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="/suppliers" class="nav-link">
                     <i class="nav-icon fas fa-solid fa-users"></i>
-                  <p>Pemasok</p>
+                  <p>Daftar Pemasok</p>
                 </a>
               </li>
             </ul>
