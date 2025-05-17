@@ -1,15 +1,32 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+
+Route::get('/login', function () 
+{
+    return view('login.index');
+});
+
+// Route::get('/login', [LoginController::class, 'index'])->name('login');
+// Route::post('/login', [LoginController::class, 'authenticate']);
+// Route::post('/logout', [LoginController::class, 'logout']);
 
 Route::get('/', function () {
     return view('dashboard');
 });
+Route::get('/dashboard', function () {
+    return view('dashboard');
+});
 Route::get('/items', function(){
-    return view('items.items');
+    return view('items.index');
+});
+Route::get('/add_items', function(){
+    return view('items.create');
 });
 Route::get('/categories', function(){
-    return view('categories.categories');
+    return view('categories.index');
 });
 Route::get('/sales_invoice', function(){
     return view('sales.sales_invoices.index');
@@ -17,11 +34,17 @@ Route::get('/sales_invoice', function(){
 Route::get('/sales_retur', function(){
     return view('sales.sales_retur.index');
 });
+Route::get('/sales_histories', function(){
+    return view('sales.sales_histories.index');
+});
 Route::get('/purchases_retur', function(){
     return view('purchases.purchases_retur.index');
 });
 Route::get('/purchases_invoice', function(){
     return view('purchases.purchases_invoices.index');
+});
+Route::get('/purchases_histories', function(){
+    return view('purchases.purchases_histories.index');
 });
 Route::get('/unit', function(){
     return view('units.unit');
@@ -33,13 +56,13 @@ Route::get('/purchases_report', function(){
     return view('reports.purchases_report');
 });
 Route::get('/customers', function(){
-    return view('customers.customers');
+    return view('customers.index');
 });
 Route::get('/suppliers', function(){
     return view('suppliers.suppliers');
 });
 Route::get('/users', function(){
-    return view('users.users');
+    return view('users.index');
 });
 Route::get('/profile', function(){
     return view('profiles.profile');

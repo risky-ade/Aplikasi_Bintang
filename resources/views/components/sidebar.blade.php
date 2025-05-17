@@ -54,7 +54,7 @@
               <li class="nav-item">
                 <a href="/items" class="nav-link">
                     <i class="nav-icon fas fa-clipboard-list"></i>
-                  <p>List Produk</p>
+                  <p>Daftar Produk</p>
                 </a>
               </li>
               <li class="nav-item">
@@ -81,19 +81,19 @@
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="/sales_order" class="nav-link">
+                <a href="/sales_invoice" class="nav-link">
                     <i class="nav-icon fas fa-clipboard-list"></i>
                   <p>Faktur Penjualan</p>
                 </a>
               </li>
               <li class="nav-item">
-                <a href="/delivery_order" class="nav-link">
+                <a href="/sales_retur" class="nav-link">
                   <i class="nav-icon fas fa-copy"></i>
                   <p>Retur Penjualan</p>
                 </a>
               </li>
               <li class="nav-item">
-                <a href="/sales_invoice" class="nav-link">
+                <a href="/sales_histories" class="nav-link">
                   <i class="nav-icon fas fa-copy"></i>
                   <p>Histori Harga Penjualan</p>
                 </a>
@@ -121,7 +121,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a href="/purchases_invoice" class="nav-link">
+                <a href="/purchases_histories" class="nav-link">
                   <i class="nav-icon fas fa-copy"></i>
                   <p>Histori Harga Pembelian</p>
                 </a>

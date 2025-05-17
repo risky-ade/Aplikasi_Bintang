@@ -36,7 +36,8 @@
   </div> --}}
 
   <!-- Navbar -->
-@include('components.navbar')
+{{-- @include('components.navbar') --}}
+<x-navbar></x-navbar>
   <!-- /.navbar -->
 
   <!-- Main Sidebar Container -->
