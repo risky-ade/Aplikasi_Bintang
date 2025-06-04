@@ -55,6 +55,16 @@
           <i class="fas fa-expand-arrows-alt"></i>
         </a>
       </li>
+      <li class="nav-item">
+        <form action="/logout" method="post">
+          @csrf
+          <button type="submit" class="nav-link">Logout <i class="fas fa-sign-out-alt"></i></button>
+        </form>
+        {{-- <a class="nav-link" href="#" role="button">
+          Logout
+          <i class="fas fa-sign-out-alt"></i>
+        </a> --}}
+      </li>
       {{-- <li class="nav-item">
         <a class="nav-link" data-widget="control-sidebar" data-controlsidebar-slide="true" href="#" role="button">
           <i class="fas fa-th-large"></i>

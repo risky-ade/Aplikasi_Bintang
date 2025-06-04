@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- Tempusdominus Bootstrap 4 -->
   <link rel="stylesheet" href="template/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
   <!-- iCheck -->
   <link rel="stylesheet" href="template/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
   <!-- JQVMap -->
@@ -28,6 +29,19 @@
   {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"> --}}
 </head>
 <body class="hold-transition login-page bg-secondary">
+   @if (session()->has('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        @endif
+
+        @if (session()->has('loginError'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('loginError') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
 <div class="login-box">
   <!-- /.login-logo -->
   <div class="card card-outline card-primary">
@@ -40,12 +54,17 @@
       <form action="/login" method="post">
         @csrf
         <div class="input-group mb-3">
-          <input type="username" name="username" class="form-control" id="username" placeholder="Username" autofocus required>
+          <input type="username" name="username" class="form-control @error('username') is-invalid @enderror" id="username" placeholder="Username" autofocus required value="{{ old('username') }}">
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-user"></span>
             </div>
           </div>
+          @error('username')
+          <div class="invalid-feedback">
+            {{ $message }}
+          </div>
+          @enderror
         </div>
 
         <div class="input-group mb-3">
@@ -62,7 +81,7 @@
             <button type="submit" class="btn btn-primary btn-block">Login</button>
           </div>
           <!-- /.col -->
-          
+
       </form>
 
       {{-- <p class="mb-1">
@@ -78,6 +97,7 @@
 </div>
 <!-- /.login-box -->
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 <!-- DataTables  & Plugins -->
   <script src="template/plugins/datatables/jquery.dataTables.min.js"></script>
   <script src="template/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
