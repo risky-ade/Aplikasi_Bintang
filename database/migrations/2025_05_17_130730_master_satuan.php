@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('master_satuan', function (Blueprint $table) {
-            $table->bigIncrements('id_master_satuan')->unique();
+            $table->bigIncrements('master_satuan_id')->unique();
             $table->string('jenis_satuan')->unique();
             $table->string('keterangan_satuan');
             $table->timestamp('created_at')->nullable();

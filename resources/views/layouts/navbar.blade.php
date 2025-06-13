@@ -5,7 +5,7 @@
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="index3.html" class="nav-link">Home</a>
+        <a href="#" class="nav-link">Home</a>
       </li>
     </ul>
 
@@ -58,7 +58,7 @@
       <li class="nav-item">
         <form action="/logout" method="post">
           @csrf
-          <button type="submit" class="nav-link">Logout <i class="fas fa-sign-out-alt"></i></button>
+          <button type="submit" class="nav-link bg-transparent border-transparent">Logout <i class="fas fa-sign-out-alt"></i></button>
         </form>
         {{-- <a class="nav-link" href="#" role="button">
           Logout

@@ -1,4 +1,4 @@
-@extends('components.main')
+@extends('layouts.main')
 @section('content')
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
@@ -226,4 +226,5 @@
     <!-- /.control-sidebar -->
     </div>
     <!-- ./wrapper -->
+
 @endsection

@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MasterProduk extends Model
 {
+    use HasFactory;
     public $timestamps = false;
     public $table = "master_produk";
-    protected $primaryKey = 'id_master_produk';
+    // protected $primaryKey = 'master_produk_id';
     protected $fillable = [
         'nama_produk',
         'deskripsi',
@@ -17,14 +19,19 @@ class MasterProduk extends Model
         'update_at',
     ];
 
-    public function getMasterProduk()
+    // public function getMasterProduk()
+    // {
+    //     $query = MasterKategori::query()
+    //         ->select('nama_produk', 'deskripsi', 'harga', 'master_produk_id')
+    //         ->where('status', '=', '1')
+    //         ->orderBy('master_produk_id', 'ASC')
+    //         ->get();
+    //     // dd($a);
+    //     return $query;
+    // }
+
+    public function Produk()
     {
-        $query = MasterKategori::query()
-            ->select('nama_produk', 'deskripsi', 'harga', 'id_master_produk')
-            ->where('status', '=', '1')
-            ->orderBy('id_master_produk', 'ASC')
-            ->get();
-        // dd($a);
-        return $query;
+        return $this->hasMany(Produk::class);
     }
 }

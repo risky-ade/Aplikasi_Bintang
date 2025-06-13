@@ -1,4 +1,4 @@
-@extends('components.main')
+@extends('layouts.main')
 @section('content')
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
@@ -12,7 +12,7 @@
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="#">Home</a></li>
-                            <li class="breadcrumb-item active">Daftar Produk</li>
+                            <li class="breadcrumb-item active">Master Produk</li>
                         </ol>
                     </div><!-- /.col -->
                 </div><!-- /.row -->
@@ -34,7 +34,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <a href="/tambah-produk">
+                                    <a href="/master_produk/create">
                                         <button class="btn btn-primary me-md-2" type="button"><i
                                                 class="fas fa-solid fa-plus"></i>Tambah Data</button>
                                     </a>
@@ -47,26 +47,26 @@
                                         <tr>
                                             <th>Item Id</th>
                                             <th>Nama Produk</th>
-                                            <th>Harga Satuan</th>
-                                            <th>Kategori</th>
-                                            <th>Satuan</th>
-                                            <th>Stok</th>
+                                            <th>Deskripsi</th>
+                                            <th>Harga</th>
+                                            {{-- <th>Status</th> --}}
+                                            {{-- <th>Stok</th> --}}
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($data as $row)
+                                        @foreach ($items as $row)
                                             <tr>
                                                 <th scope="row">{{ $loop->iteration }}</th>
                                                 <td>{{ $row->nama_produk }}</td>
+                                                <td>{{ $row->deskripsi }}</td>
                                                 <td>{{ $row->harga }}</td>
-                                                <td>{{ $row->nama_kategori }}</td>
-                                                <td>{{ $row->jenis_satuan }}</td>
-                                                <td>{{ $row->stok }}</td>
+                                                {{-- <td>{{ $row->status }}</td> --}}
+                                                {{-- <td>{{ $row->stok }}</td> --}}
                                                 <td class="text-center">
-                                                    <a href="{{ url('/edit-produk') }}" class="btn btn-info"
+                                                    <a href="{{ url('/edit') }}" class="btn btn-info"
                                                         type="button"><i class="fa fa-edit"></i> </a>
-                                                    <a href="{{ url('/delete-produk') }}" class="btn btn-danger "
+                                                    <a href="{{ url('/delete') }}" class="btn btn-danger "
                                                         type="button"><i class="fa fa-trash"></i> </a>
                                                     {{-- <a href="javascript:;" data-id="<?= $row->id ?>" class="btn btn-warning " id="editKelas"
                                         type="button"> <i class="icon-copy fa fa-edit" aria-hidden="true"></i> </a>

@@ -3,7 +3,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MasterKategoriController;
+use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\MasterSatuanController;
 use App\Http\Controllers\ProdukController;
+use App\Models\MasterKategori;
+use App\Models\MasterSatuan;
 
 Route::get('/login', function () {
     return view('login.index');
@@ -15,20 +20,23 @@ Route::post('/logout', [LoginController::class, 'logout']);
 
 Route::get('/', function () {
     return view('dashboard');
-});
+})->middleware('auth');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
-});
-Route::get('/master_produk', function () {
-    return view('master_produk.master_produk');
-});
-Route::get('/items', [ProdukController::class, 'getProduk'])->name('getProduk');
-Route::get('/tambah-produk', [ProdukController::class, 'tambahProduk'])->name('tambahProduk');
-Route::get('/edit-produk', [ProdukController::class, 'editProduk'])->name('editProduk');
+})->middleware('auth');
 
-Route::get('/categories', function () {
-    return view('categories.index');
-});
+Route::resource('/master_produk', MasterProdukController::class)->middleware('auth');
+// Route::get('/master_produk', [MasterProdukController::class,'index'])->middleware('auth');
+// Route::get('/master_produk', [MasterProdukController::class,'create'])->middleware('auth');
+// Route::get('/master_produk', [MasterProdukController::class,'edit'])->middleware('auth');
+
+Route::resource('/products', ProdukController::class)->middleware('auth');
+// Route::get('/products', [ProdukController::class, 'index'])->middleware('auth');
+// Route::get('/products', [ProdukController::class, 'create'])->middleware('auth');
+// Route::get('/edit-produk', [ProdukController::class, 'editProduk'])->name('editProduk');
+
+Route::get('/categories', [MasterKategoriController::class, 'index'])->middleware('auth');
 Route::get('/sales_invoice', function () {
     return view('sales.sales_invoices.index');
 });
@@ -47,9 +55,7 @@ Route::get('/purchases_invoice', function () {
 Route::get('/purchases_histories', function () {
     return view('purchases.purchases_histories.index');
 });
-Route::get('/unit', function () {
-    return view('units.unit');
-});
+Route::get('/units', [MasterSatuanController::class, 'index'])->middleware('auth');
 Route::get('/sales_report', function () {
     return view('reports.sales_report');
 });

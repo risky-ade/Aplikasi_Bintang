@@ -2,23 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Produk;
-use App\Models\MasterSatuan;
-use Illuminate\Http\Request;
 use App\Models\MasterKategori;
 use App\Models\MasterProduk;
+use App\Models\MasterSatuan;
+use Illuminate\Http\Request;
 
-class ProdukController extends Controller
+class MasterProdukController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('products.index',[
-            'produk'=> Produk::all(),
-            'kategori'=>MasterKategori::all(),
-            'satuan'=> MasterSatuan::all()
+        return view('master_produk.index',[
+            'items' => MasterProduk::all()
         ]);
     }
 
@@ -27,9 +24,7 @@ class ProdukController extends Controller
      */
     public function create()
     {
-        return view('products.create',[
-            'm_produk'=>MasterProduk::all()
-        ]);
+      return view('master_produk.create');
     }
 
     /**
@@ -51,10 +46,10 @@ class ProdukController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Produk $produk)
+    public function edit(MasterProduk $m_produk)
     {
         return view('master_produk.edit',[
-            'produk'=>$produk,
+            'm_produk'=>$m_produk,
             'kategori'=> MasterKategori::all(),
             'satuan'=> MasterSatuan::all()
         ]);

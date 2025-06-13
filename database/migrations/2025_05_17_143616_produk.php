@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('produk', function (Blueprint $table) {
-            $table->bigIncrements('id_produk');
-            $table->foreignId('id_master_produk');
-            $table->foreignId('id_master_kategori');
-            $table->foreignId('id_master_satuan');
+            $table->id();
+            $table->foreignId('master_produk_id');
+            $table->foreignId('master_kategori_id');
+            $table->foreignId('master_satuan_id');
             $table->integer('stok');
             $table->timestamp('created_at');
             $table->timestamp('updated_at');
