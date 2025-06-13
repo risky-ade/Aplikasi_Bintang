@@ -4,16 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MasterProduk extends Model
 {
     use HasFactory;
+    // protected $with = ['master_kategori'];
     public $timestamps = false;
     public $table = "master_produk";
     // protected $primaryKey = 'master_produk_id';
     protected $fillable = [
         'nama_produk',
         'deskripsi',
+        'master_kategori_id',
         'harga',
         'status',
         'update_at',
@@ -30,8 +33,12 @@ class MasterProduk extends Model
     //     return $query;
     // }
 
-    public function Produk()
+    // public function Produk()
+    // {
+    //     return $this->hasOne(Produk::class);
+    // }
+    public function masterKategori()
     {
-        return $this->hasMany(Produk::class);
+        return $this->belongsTo(MasterKategori::class, 'master_kategori_id');
     }
 }

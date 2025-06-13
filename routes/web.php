@@ -10,9 +10,9 @@ use App\Http\Controllers\ProdukController;
 use App\Models\MasterKategori;
 use App\Models\MasterSatuan;
 
-Route::get('/login', function () {
-    return view('login.index');
-});
+// Route::get('/login', function () {
+//     return view('login.index');
+// });
 
 Route::get('/login', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate']);
@@ -31,10 +31,10 @@ Route::resource('/master_produk', MasterProdukController::class)->middleware('au
 // Route::get('/master_produk', [MasterProdukController::class,'create'])->middleware('auth');
 // Route::get('/master_produk', [MasterProdukController::class,'edit'])->middleware('auth');
 
-Route::resource('/products', ProdukController::class)->middleware('auth');
-// Route::get('/products', [ProdukController::class, 'index'])->middleware('auth');
+// Route::resource('/products', ProdukController::class)->middleware('auth');
+Route::get('/products', [ProdukController::class, 'getProduk'])->name('getProduk')->middleware('auth');
 // Route::get('/products', [ProdukController::class, 'create'])->middleware('auth');
-// Route::get('/edit-produk', [ProdukController::class, 'editProduk'])->name('editProduk');
+// Route::put('/edit-produk', [ProdukController::class, 'update'])->middleware('auth');
 
 Route::get('/categories', [MasterKategoriController::class, 'index'])->middleware('auth');
 Route::get('/sales_invoice', function () {
@@ -56,6 +56,8 @@ Route::get('/purchases_histories', function () {
     return view('purchases.purchases_histories.index');
 });
 Route::get('/units', [MasterSatuanController::class, 'index'])->middleware('auth');
+Route::put('/units/{id}', [MasterSatuanController::class, 'update'])->middleware('auth');
+
 Route::get('/sales_report', function () {
     return view('reports.sales_report');
 });

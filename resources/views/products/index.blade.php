@@ -47,7 +47,7 @@
                                         <tr>
                                             <th>Item Id</th>
                                             <th>Nama Produk</th>
-                                            <th>Harga Satuan</th>
+                                            <th>Harga Satuan (Rp)</th>
                                             <th>Kategori</th>
                                             <th>Satuan</th>
                                             <th>Stok</th>
@@ -58,10 +58,10 @@
                                         @foreach ($produk as $row)
                                             <tr>
                                                 <th scope="row">{{ $loop->iteration }}</th>
-                                                <td>{{ $row->master_produk->nama_produk ??'Null' }}</td>
-                                                <td>{{ $row->master_produk }}</td>
-                                                <td>{{ $row->master_kategori }}</td>
-                                                <td>{{ $row->master_satuan }}</td>
+                                                <td>{{ $row->masterProduk->nama_produk ??'Null' }}</td>
+                                                <td>{{ $row->masterProduk->harga ??'Null' }}</td>
+                                                <td>{{ $row->masterKategori->nama_kategori ??'Null' }}</td>
+                                                <td>{{ $row->masterSatuan->jenis_satuan ??'Null' }}</td>
                                                 <td>{{ $row->stok }}</td>
                                                 <td class="text-center">
                                                     <a href="{{ url('/edit-produk') }}" class="btn btn-info"

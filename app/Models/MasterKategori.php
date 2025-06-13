@@ -22,13 +22,19 @@ class MasterKategori extends Model
     protected $fillable = ['kode_kategori','nama_kategori','update_at'];
 
 
-    public function getKategori()
+    // public function getKategori()
+    // {
+    //     $query = MasterKategori::query()
+    //         ->select('kode_kategori', 'nama_kategori', 'master_kategori_id')
+    //         ->orderBy('master_kategori_id', 'ASC')
+    //         ->get();
+    //     // dd($a);
+    //     return $query;
+    // }
+
+    public function MasterProduk()
     {
-        $query = MasterKategori::query()
-            ->select('kode_kategori', 'nama_kategori', 'master_kategori_id')
-            ->orderBy('master_kategori_id', 'ASC')
-            ->get();
-        // dd($a);
-        return $query;
+        return $this->hasMany(MasterProduk::class, 'master_kategori_id','id');
     }
+
 }

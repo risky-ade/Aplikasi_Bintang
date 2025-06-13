@@ -15,13 +15,17 @@ class MasterSatuan extends Model
         'update_at',
     ];
 
-    public function getSatuan()
+        public function MasterProduk()
     {
-        $query = MasterKategori::query()
-            ->select('jenis_satuan', 'keterangan_satuan', 'master_satuan_id')
-            ->orderBy('master_kategori_id', 'ASC')
-            ->get();
-        // dd($a);
-        return $query;
+        return $this->hasMany(MasterProduk::class, 'master_kategori_id','id');
     }
+    // public function getSatuan()
+    // {
+    //     $query = MasterKategori::query()
+    //         ->select('jenis_satuan', 'keterangan_satuan', 'master_satuan_id')
+    //         ->orderBy('master_kategori_id', 'ASC')
+    //         ->get();
+    //     // dd($a);
+    //     return $query;
+    // }
 }

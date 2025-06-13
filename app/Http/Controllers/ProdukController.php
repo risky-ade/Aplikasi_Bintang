@@ -10,16 +10,25 @@ use App\Models\MasterProduk;
 
 class ProdukController extends Controller
 {
+    private $model;
+
+    public function __construct()
+    {
+        $this->model = new Produk();
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function getProduk()
     {
         return view('products.index',[
             'produk'=> Produk::all(),
             'kategori'=>MasterKategori::all(),
             'satuan'=> MasterSatuan::all()
         ]);
+        // $produk = $this->model->getProduk();
+        // return view('products.index', compact('produk'));
+
     }
 
     /**

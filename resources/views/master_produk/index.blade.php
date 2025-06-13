@@ -47,6 +47,7 @@
                                         <tr>
                                             <th>Item Id</th>
                                             <th>Nama Produk</th>
+                                            <th>Kategori</th>
                                             <th>Deskripsi</th>
                                             <th>Harga</th>
                                             {{-- <th>Status</th> --}}
@@ -60,6 +61,7 @@
                                                 <th scope="row">{{ $loop->iteration }}</th>
                                                 <td>{{ $row->nama_produk }}</td>
                                                 <td>{{ $row->deskripsi }}</td>
+                                                <td>{{ $row->masterKategori->nama_kategori ??'Null' }}</td>
                                                 <td>{{ $row->harga }}</td>
                                                 {{-- <td>{{ $row->status }}</td> --}}
                                                 {{-- <td>{{ $row->stok }}</td> --}}
