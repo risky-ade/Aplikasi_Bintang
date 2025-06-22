@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class MasterSatuan extends Model
 {
-    public $timestamps = false;
+    // public $timestamps = false;
     public $table = "master_satuan";
-    protected $primaryKey = 'master_satuan_id';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'jenis_satuan',
         'keterangan_satuan',

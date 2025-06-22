@@ -30,6 +30,7 @@
     <!-- summernote -->
     <link rel="stylesheet" href="{{ asset('template/plugins/summernote/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+     <script src="{{ asset('template/plugins/jquery/jquery.min.js') }}"></script>
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -55,7 +56,7 @@
         <!-- jQuery -->
         <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
         
-        <script src="{{ asset('template/plugins/jquery/jquery.min.js') }}"></script>
+       
         <!-- jQuery UI 1.11.4 -->
         <script src="{{ asset('template/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
         <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->

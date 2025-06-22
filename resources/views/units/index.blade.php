@@ -62,15 +62,14 @@
                                                 <td>{{ $row->jenis_satuan }}</td>
                                                 <td>{{ $row->keterangan_satuan }}</td>
                                                 <td class="text-center">
-                                                    <a href="{{ url('/edit-produk') }}" class="btn btn-info" type="button" data-toggle="modal" data-target="#modal-update"><i class="fa fa-edit"></i> </a>
+                                                    {{-- <a href="{{ url('/edit-produk') }}" class="btn btn-info" type="button" data-toggle="modal" data-target="#modal-update"><i class="fa fa-edit"></i> </a> --}}
+                                                      <a href="javascript:;" data-id="<?= $row->id ?>" class="btn btn-warning btn-edit " data-toggle="modal" id="edit" type="button"><i class="fa fa-edit"></i> </a> 
+
                                                     <a href="{{ url('/delete-produk') }}" class="btn btn-danger "
                                                         type="button"><i class="fa fa-trash"></i> </a>
-                                                    {{-- <a href="javascript:;" data-id="<?= $row->id ?>" class="btn btn-warning " id="editKelas"
-                                        type="button"> <i class="icon-copy fa fa-edit" aria-hidden="true"></i> </a>
-                                    <a href="javascript:;" data-id="<?= $row->id ?>" id="btn-hapus"
-                                        class="btn btn-danger"><i class="fa fa-trash"></i>
-                                        </a> --}}
+                                                        
                                                 </td>
+
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -91,15 +90,17 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form>
+                <form method="post" action="/units" enctype="multipart/form-data">
+            
+                    @csrf
                 <div class="card-body">
                   <div class="form-group">
                     <label for="#">Jenis Satuan</label>
-                    <input type="text" class="form-control" id="#" placeholder="Masukkan jenis satuan">
+                    <input type="text" class="form-control" id="#" placeholder="Masukkan jenis satuan" name="jenis_satuan"> 
                   </div>
                   <div class="form-group">
                     <label for="#">Keterangan Satuan</label>
-                    <input type="text" class="form-control" id="#" placeholder="Masukkan keterangan satuan">
+                    <input type="text" class="form-control" id="#" placeholder="Masukkan keterangan satuan" name="keterangan_satuan">
                   </div>
                 </div>
                 <!-- /.card-body -->
@@ -125,17 +126,18 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="" enctype="multipart/form-data">
-                    {{ method_field('put') }}
+                <form method="post" action="{{ url('/units/update') }}" enctype="multipart/form-data">
+
                     @csrf
+                <input type="text" id="idSatuan" name="idSatuan" hidden>
                 <div class="card-body">
                   <div class="form-group">
                     <label for="#">Jenis Satuan</label>
-                    <input type="text" class="form-control" id="jenis_satuan" name="jenis_satuan" placeholder="Masukkan jenis satuan">
+                    <input type="text" class="form-control" id="jenis_satuan_up" name="jenis_satuan_up" placeholder="Masukkan jenis satuan">
                   </div>
                   <div class="form-group">
                     <label for="#">Keterangan Satuan</label>
-                    <input type="text" class="form-control" id="keterangan_satuan" name="keterangan_satuan" placeholder="Masukkan keterangan satuan">
+                    <input type="text" class="form-control" id="keterangan_satuan_up" name="keterangan_satuan_up" placeholder="Masukkan keterangan satuan">
                   </div>
                 </div>
                 <!-- /.card-body -->
@@ -171,4 +173,29 @@
     <!-- /.control-sidebar -->
     </div>
     <!-- ./wrapper -->
+
+     <script>
+        // Edit Data
+        $(document).on('click', '.btn-edit', function() { //edit ada di class
+            // alert('test');
+            var id = $(this).data(
+                'id'
+            ); //data dan id diperoleh dari button "data-id" baris 38. serta di controller $response['data'] = $kur;
+            $.ajax({
+                // console.log(id);
+                url: "{{ url('/units/edit') }}" + '/' + id,
+                type: 'get',
+                dataType: 'json',
+                data: {},
+                beforeSend: function() {},
+                success: function(data) {
+                    // console.log(data.data)
+                    $('#modal-update').modal('show'); //menampilkan modal
+                    $('#jenis_satuan_up').val(data.data.jenis_satuan);
+                    $('#keterangan_satuan_up').val(data.data.keterangan_satuan);
+                    $('#idSatuan').val(data.data.id);
+                }
+            });
+        });
+    </script>
 @endsection

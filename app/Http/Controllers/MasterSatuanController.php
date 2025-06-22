@@ -30,7 +30,13 @@ class MasterSatuanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request -> validate([
+            'jenis_satuan'=>'required',
+            'keterangan_satuan'=> 'required'
+        ]);
+        MasterSatuan::create($request->all());
+
+        return redirect('/units')->with('sukses', 'satuan berhasil dibuat');
     }
 
     /**
@@ -49,17 +55,33 @@ class MasterSatuanController extends Controller
         
     }
 
+    public function getById($id)
+    {
+        $ks = MasterSatuan::find($id);
+        $response['success'] = true;
+        $response['data'] = $ks;
+        // dd($response);
+        return response()->json($response);
+    }
+
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, MasterSatuan $unit)
     {
-        $validatedData= $request -> validate([
-            'jenis_satuan'=>'required',
-            'keterangan_satuan'=>'required',
+        // $request -> validate([
+        //     'jenis_satuan'=>'required',
+        //     'keterangan_satuan'=>'required',
+        // ]);
+
+        $id = $request->idSatuan;
+        $data = MasterSatuan::find($id)->update([
+            'id'=>$request->idSatuan,
+            'jenis_satuan'=> $request->jenis_satuan_up,
+            'keterangan_satuan'=>$request->keterangan_satuan_up
         ]);
 
-        MasterSatuan::where('id',$unit->id)->update($validatedData);
+        
         return redirect('/units')->with('sukses', 'Satuan telah diupdate');
     }
 

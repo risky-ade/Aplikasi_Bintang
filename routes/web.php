@@ -55,8 +55,13 @@ Route::get('/purchases_invoice', function () {
 Route::get('/purchases_histories', function () {
     return view('purchases.purchases_histories.index');
 });
+
 Route::get('/units', [MasterSatuanController::class, 'index'])->middleware('auth');
-Route::put('/units/{id}', [MasterSatuanController::class, 'update'])->middleware('auth');
+Route::post('/units', [MasterSatuanController::class, 'store'])->middleware('auth');
+// Route::put('/units/{id}', [MasterSatuanController::class, 'update'])->middleware('auth');
+Route::get('/units/edit/{id}', [MasterSatuanController::class, 'getById'])->name('edit');
+Route::post('/units/update', [MasterSatuanController::class, 'update'])->name('update');
+// Route::resource('/units',MasterSatuanController::class)->middleware('auth');
 
 Route::get('/sales_report', function () {
     return view('reports.sales_report');
