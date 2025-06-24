@@ -30,6 +30,11 @@
     <!-- summernote -->
     <link rel="stylesheet" href="{{ asset('template/plugins/summernote/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="{{ asset('template/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
+    <!-- Toastr -->
+    <link rel="stylesheet" href="{{ asset('template/plugins/toastr/toastr.min.css') }}">
+    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous"> --}}
      <script src="{{ asset('template/plugins/jquery/jquery.min.js') }}"></script>
 </head>
 
@@ -41,54 +46,57 @@
     <img class="animation__shake" src="img/logo.jpg" alt="B4Logo" height="60" width="60">
   </div> --}}
 
-        <!-- Navbar -->
-        @include('layouts.navbar')
-        {{-- <x-navbar></x-navbar> --}}
-        <!-- /.navbar -->
+    <!-- Navbar -->
+    @include('layouts.navbar')
+    {{-- <x-navbar></x-navbar> --}}
+    <!-- /.navbar -->
 
-        <!-- Main Sidebar Container -->
-        @include('layouts.sidebar')
+    <!-- Main Sidebar Container -->
+    @include('layouts.sidebar')
 
-        <main>
-            @yield('content')
-        </main>
+    <main>
+        @yield('content')
+    </main>
 
-        <!-- jQuery -->
-        <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
-        
-       
-        <!-- jQuery UI 1.11.4 -->
-        <script src="{{ asset('template/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
-        <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-        <script>
-            $.widget.bridge('uibutton', $.ui.button)
-        </script>
-        <!-- Bootstrap 4 -->
-        <script src="{{ asset('template/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-        <!-- ChartJS -->
-        <script src="{{ asset('template/plugins/chart.js/Chart.min.js') }}"></script>
-        <!-- Sparkline -->
-        <script src="{{ asset('template/plugins/sparklines/sparkline.js') }}"></script>
-        <!-- JQVMap -->
-        <script src="template/plugins/jqvmap/jquery.vmap.min.js"></script>
-        <script src="template/plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
-        <!-- jQuery Knob Chart -->
-        <script src="{{ asset('template/plugins/jquery-knob/jquery.knob.min.js') }}"></script>
-        <!-- daterangepicker -->
-        <script src="{{ asset('template/plugins/moment/moment.min.js') }}"></script>
-        <script src="{{ asset('template/plugins/daterangepicker/daterangepicker.js') }}"></script>
-        <!-- Tempusdominus Bootstrap 4 -->
-        <script src="{{ asset('template/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
-        <!-- Summernote -->
-        <script src="{{ asset('template/plugins/summernote/summernote-bs4.min.js') }}"></script>
-        <!-- overlayScrollbars -->
-        <script src="{{ asset('template/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
-        <!-- AdminLTE App -->
-        <script src="{{ asset('template/dist/js/adminlte.js') }}"></script>
-        <!-- AdminLTE for demo purposes -->
-        {{-- <script src="template/dist/js/demo.js"></script> --}}
-        <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-        <script src="{{ asset('template/dist/js/pages/dashboard.js') }}"></script>
+    <!-- jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="{{ asset('template/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+    <!-- Toastr -->
+    <script src="{{ asset('template/plugins/toastr/toastr.min.js') }}"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="{{ asset('template/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+        $.widget.bridge('uibutton', $.ui.button)
+    </script>
+    <!-- Bootstrap 4 -->
+    <script src="{{ asset('template/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <!-- ChartJS -->
+    <script src="{{ asset('template/plugins/chart.js/Chart.min.js') }}"></script>
+    <!-- Sparkline -->
+    <script src="{{ asset('template/plugins/sparklines/sparkline.js') }}"></script>
+    <!-- JQVMap -->
+    <script src="template/plugins/jqvmap/jquery.vmap.min.js"></script>
+    <script src="template/plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
+    <!-- jQuery Knob Chart -->
+    <script src="{{ asset('template/plugins/jquery-knob/jquery.knob.min.js') }}"></script>
+    <!-- daterangepicker -->
+    <script src="{{ asset('template/plugins/moment/moment.min.js') }}"></script>
+    <script src="{{ asset('template/plugins/daterangepicker/daterangepicker.js') }}"></script>
+    <!-- Tempusdominus Bootstrap 4 -->
+    <script src="{{ asset('template/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+    <!-- Summernote -->
+    <script src="{{ asset('template/plugins/summernote/summernote-bs4.min.js') }}"></script>
+    <!-- overlayScrollbars -->
+    <script src="{{ asset('template/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+    <!-- AdminLTE App -->
+    <script src="{{ asset('template/dist/js/adminlte.js') }}"></script>
+    <!-- AdminLTE for demo purposes -->
+    {{-- <script src="template/dist/js/demo.js"></script> --}}
+    <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+    <script src="{{ asset('template/dist/js/pages/dashboard.js') }}"></script>
         {{-- <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> --}}
         <script>
@@ -121,6 +129,7 @@
                 })
 
             })
+            
         </script>
         <!-- DataTables  & Plugins -->
         <script src="{{ asset('template/plugins/datatables/jquery.dataTables.min.js') }}"></script>

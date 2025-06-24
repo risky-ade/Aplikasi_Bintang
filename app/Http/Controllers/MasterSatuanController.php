@@ -36,7 +36,8 @@ class MasterSatuanController extends Controller
         ]);
         MasterSatuan::create($request->all());
 
-        return redirect('/units')->with('sukses', 'satuan berhasil dibuat');
+        return redirect('/units');
+        // ->with('success', 'satuan berhasil dibuat');
     }
 
     /**
@@ -50,16 +51,12 @@ class MasterSatuanController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(MasterSatuan $unit)
-    {
-        
-    }
 
     public function getById($id)
     {
-        $ks = MasterSatuan::find($id);
+        $ms = MasterSatuan::find($id);
         $response['success'] = true;
-        $response['data'] = $ks;
+        $response['data'] = $ms;
         // dd($response);
         return response()->json($response);
     }
@@ -69,27 +66,44 @@ class MasterSatuanController extends Controller
      */
     public function update(Request $request, MasterSatuan $unit)
     {
-        // $request -> validate([
-        //     'jenis_satuan'=>'required',
-        //     'keterangan_satuan'=>'required',
-        // ]);
 
         $id = $request->idSatuan;
-        $data = MasterSatuan::find($id)->update([
+        // dd($request->all());
+
+        $unit = MasterSatuan::find($id)->update([
             'id'=>$request->idSatuan,
             'jenis_satuan'=> $request->jenis_satuan_up,
             'keterangan_satuan'=>$request->keterangan_satuan_up
         ]);
 
         
-        return redirect('/units')->with('sukses', 'Satuan telah diupdate');
+        return redirect('/units');
+        // ->with('sukses', 'Satuan telah diupdate');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $unit = MasterSatuan::find($id);
+        if (!$unit){
+           return response()->json([
+            'status' => 'error',
+            'message' => 'Data satuan tidak ditemukan.'
+        ], 404);
+        }
+        if ($unit->produk()->exists()) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Satuan tidak dapat dihapus karena masih digunakan dalam data produk.'
+        ], 400);
+        }
+        $unit->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Satuan berhasil dihapus.'
+        ]);
     }
 }

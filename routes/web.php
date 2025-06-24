@@ -36,7 +36,8 @@ Route::get('/products', [ProdukController::class, 'getProduk'])->name('getProduk
 // Route::get('/products', [ProdukController::class, 'create'])->middleware('auth');
 // Route::put('/edit-produk', [ProdukController::class, 'update'])->middleware('auth');
 
-Route::get('/categories', [MasterKategoriController::class, 'index'])->middleware('auth');
+
+
 Route::get('/sales_invoice', function () {
     return view('sales.sales_invoices.index');
 });
@@ -55,12 +56,17 @@ Route::get('/purchases_invoice', function () {
 Route::get('/purchases_histories', function () {
     return view('purchases.purchases_histories.index');
 });
+Route::get('/categories', [MasterKategoriController::class, 'index'])->middleware('auth');
+Route::post('/categories', [MasterKategoriController::class, 'store'])->middleware('auth');
+Route::get('/categories/edit/{id}', [MasterKategoriController::class, 'edit'])->name('categories.edit')->middleware('auth');
+Route::post('/categories/update', [MasterKategoriController::class, 'update'])->name('categories.update')->middleware('auth');
+Route::delete('/categories/{id}', [MasterKategoriController::class, 'destroy'])->name('categories.destroy')->middleware('auth');
 
 Route::get('/units', [MasterSatuanController::class, 'index'])->middleware('auth');
 Route::post('/units', [MasterSatuanController::class, 'store'])->middleware('auth');
-// Route::put('/units/{id}', [MasterSatuanController::class, 'update'])->middleware('auth');
-Route::get('/units/edit/{id}', [MasterSatuanController::class, 'getById'])->name('edit');
-Route::post('/units/update', [MasterSatuanController::class, 'update'])->name('update');
+Route::get('/units/edit/{id}', [MasterSatuanController::class, 'getById'])->name('edit')->middleware('auth');
+Route::post('/units/update', [MasterSatuanController::class, 'update'])->name('units.update')->middleware('auth');
+Route::delete('/units/{id}', [MasterSatuanController::class, 'destroy'])->name('units.destroy')->middleware('auth');
 // Route::resource('/units',MasterSatuanController::class)->middleware('auth');
 
 Route::get('/sales_report', function () {

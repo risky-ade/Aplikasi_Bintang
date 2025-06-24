@@ -19,6 +19,10 @@ class MasterSatuan extends Model
     {
         return $this->hasMany(MasterProduk::class, 'master_kategori_id','id');
     }
+    public function Produk()
+    {
+        return $this->hasMany(Produk::class);
+    }
     // public function getSatuan()
     // {
     //     $query = MasterKategori::query()
