@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_satuan', function (Blueprint $table) {
-            $table->id();
-            $table->string('jenis_satuan')->unique();
-            $table->string('keterangan_satuan');
-            $table->timestamp('created_at')->nullable();
-            $table->timestamp('updated_at')->nullable();
+        Schema::table('master_produk', function (Blueprint $table) {
+            $table->string('gambar')->nullable();
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_satuan');
+        Schema::table('master_produk', function (Blueprint $table) {
+            //
+        });
     }
 };

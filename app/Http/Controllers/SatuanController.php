@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MasterSatuan;
+use App\Models\Satuan;
 use Illuminate\Http\Request;
 
-class MasterSatuanController extends Controller
+class SatuanController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +13,7 @@ class MasterSatuanController extends Controller
     public function index()
     {
         return view('units.index',[
-            'unit' => MasterSatuan::all()
+            'unit' => Satuan::all()
         ]);
     }
 
@@ -34,7 +34,7 @@ class MasterSatuanController extends Controller
             'jenis_satuan'=>'required',
             'keterangan_satuan'=> 'required'
         ]);
-        MasterSatuan::create($request->all());
+        Satuan::create($request->all());
 
         return redirect('/units');
         // ->with('success', 'satuan berhasil dibuat');
@@ -54,7 +54,7 @@ class MasterSatuanController extends Controller
 
     public function getById($id)
     {
-        $ms = MasterSatuan::find($id);
+        $ms = Satuan::find($id);
         $response['success'] = true;
         $response['data'] = $ms;
         // dd($response);
@@ -64,13 +64,13 @@ class MasterSatuanController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, MasterSatuan $unit)
+    public function update(Request $request, Satuan $unit)
     {
 
         $id = $request->idSatuan;
         // dd($request->all());
 
-        $unit = MasterSatuan::find($id)->update([
+        $unit = Satuan::find($id)->update([
             'id'=>$request->idSatuan,
             'jenis_satuan'=> $request->jenis_satuan_up,
             'keterangan_satuan'=>$request->keterangan_satuan_up
@@ -86,7 +86,7 @@ class MasterSatuanController extends Controller
      */
     public function destroy($id)
     {
-        $unit = MasterSatuan::find($id);
+        $unit = Satuan::find($id);
         if (!$unit){
            return response()->json([
             'status' => 'error',

@@ -22,7 +22,14 @@
 
         <!-- Main content -->
         <section class="content">
-
+        <div class="container">
+            <form action="{{ url('/master_produk') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @include('master_produk.form', ['master_produk' => null])
+                <button type="submit" class="btn btn-primary">Simpan</button>
+                <a href="{{ url('/master_produk') }}" class="btn btn-secondary">Batal</a>
+            </form>
+        </div>
         </section>
         {{-- /Main content --}}
 @endsection

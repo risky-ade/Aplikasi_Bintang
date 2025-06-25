@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('produk', function (Blueprint $table) {
+        Schema::create('satuan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('master_produk_id');
-            $table->foreignId('master_kategori_id');
-            $table->foreignId('master_satuan_id');
-            $table->integer('stok');
-            $table->timestamp('created_at');
-            $table->timestamp('updated_at');
+            $table->string('jenis_satuan')->unique();
+            $table->string('keterangan_satuan');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('produk');
+        Schema::dropIfExists('satuan');
     }
 };

@@ -10,13 +10,13 @@ class MasterKategori extends Model
     use HasFactory;
 
     protected $table = "master_kategori";
-    protected $guarded = ["id"];
+    // protected $guarded = ["id"];
     protected $fillable = ['kode_kategori','nama_kategori','update_at'];
 
 
-    public function MasterProduk()
+    public function masterProduk()
     {
-        return $this->hasMany(MasterProduk::class, 'master_kategori_id','id');
+        return $this->hasMany(MasterProduk::class, 'master_kategori_id');
     }
     public function Produk()
     {

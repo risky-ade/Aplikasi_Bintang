@@ -46,35 +46,44 @@
                                     <thead>
                                         <tr>
                                             <th>Item Id</th>
+                                            <th>Gambar</th>
                                             <th>Nama Produk</th>
-                                            <th>Kategori</th>
                                             <th>Deskripsi</th>
-                                            <th>Harga</th>
+                                            <th>Kategori</th>
+                                            <th>Satuan</th>
+                                            <th>Harga Dasar</th>
+                                            <th>Stok</th>
                                             {{-- <th>Status</th> --}}
-                                            {{-- <th>Stok</th> --}}
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($items as $row)
+                                        @foreach ($masterProduk as $row)
                                             <tr>
                                                 <th scope="row">{{ $loop->iteration }}</th>
+                                                <td>
+                                                @if($row->gambar)
+                                                    <img src="{{ asset('storage/'.$row->gambar) }}" width="60" alt="gambar">
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
                                                 <td>{{ $row->nama_produk }}</td>
                                                 <td>{{ $row->deskripsi }}</td>
                                                 <td>{{ $row->masterKategori->nama_kategori ??'Null' }}</td>
-                                                <td>{{ $row->harga }}</td>
-                                                {{-- <td>{{ $row->status }}</td> --}}
+                                                <td>{{ $row->satuan->jenis_satuan ??'Null' }}</td>
+                                                <td>{{ number_format($row->harga_dasar, 0, ',','.') }}</td>
+                                                <td>{{ $row->stok }}</td>
                                                 {{-- <td>{{ $row->stok }}</td> --}}
                                                 <td class="text-center">
-                                                    <a href="{{ url('/edit') }}" class="btn btn-info"
+                                                    <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-info"
                                                         type="button"><i class="fa fa-edit"></i> </a>
-                                                    <a href="{{ url('/delete') }}" class="btn btn-danger "
-                                                        type="button"><i class="fa fa-trash"></i> </a>
-                                                    {{-- <a href="javascript:;" data-id="<?= $row->id ?>" class="btn btn-warning " id="editKelas"
-                                        type="button"> <i class="icon-copy fa fa-edit" aria-hidden="true"></i> </a>
-                                    <a href="javascript:;" data-id="<?= $row->id ?>" id="btn-hapus"
-                                        class="btn btn-danger"><i class="fa fa-trash"></i>
-                                        </a> --}}
+                                                    <form action="{{ url('/master_produk/'.$row->id) }}" method="POST" style="display:inline">
+                                                        @csrf @method('delete')
+                                                        <button type="submit" onclick="return confirm('Yakin ingin hapus?')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></button>
+                                                    </form>
+                                                    {{-- <a href="{{ url('/delete') }}" class="btn btn-danger "type="button"><i class="fa fa-trash"></i> </a> --}}
+                                        
                                                 </td>
                                             </tr>
                                         @endforeach

@@ -59,7 +59,7 @@
     </main>
 
     <!-- jQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script> --}}
 
     <!-- SweetAlert2 -->
     <script src="{{ asset('template/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
@@ -78,8 +78,8 @@
     <!-- Sparkline -->
     <script src="{{ asset('template/plugins/sparklines/sparkline.js') }}"></script>
     <!-- JQVMap -->
-    <script src="template/plugins/jqvmap/jquery.vmap.min.js"></script>
-    <script src="template/plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
+    <script src="{{ asset('template/plugins/jqvmap/jquery.vmap.min.js') }}"></script>
+    <script src="{{ asset('template/plugins/jqvmap/maps/jquery.vmap.usa.js') }}"></script>
     <!-- jQuery Knob Chart -->
     <script src="{{ asset('template/plugins/jquery-knob/jquery.knob.min.js') }}"></script>
     <!-- daterangepicker -->

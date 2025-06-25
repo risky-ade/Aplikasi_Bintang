@@ -91,7 +91,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="/sales_invoice" class="nav-link">
+                            <a href="/sales/sales_invoices" class="nav-link">
                                 <i class="nav-icon fas fa-clipboard-list"></i>
                                 <p>Faktur Penjualan</p>
                             </a>

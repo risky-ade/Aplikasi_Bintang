@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MasterSatuan extends Model
+class Satuan extends Model
 {
     // public $timestamps = false;
-    public $table = "master_satuan";
+    public $table = "satuan";
     protected $primaryKey = 'id';
     protected $fillable = [
         'jenis_satuan',
@@ -15,9 +15,9 @@ class MasterSatuan extends Model
         'update_at',
     ];
 
-        public function MasterProduk()
+        public function masterProduk()
     {
-        return $this->hasMany(MasterProduk::class, 'master_kategori_id','id');
+        return $this->hasMany(MasterProduk::class, 'master_satuan_id');
     }
     public function Produk()
     {

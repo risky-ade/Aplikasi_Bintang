@@ -17,8 +17,13 @@ class MasterProduk extends Model
         'nama_produk',
         'deskripsi',
         'master_kategori_id',
-        'harga',
-        'status',
+        'satuan_id',
+        'harga_dasar',
+        'harga_jual',
+        'include_pajak',
+        'stok',
+        'stok_minimal',
+        'gambar',
         'update_at',
     ];
 
@@ -40,5 +45,10 @@ class MasterProduk extends Model
     public function masterKategori()
     {
         return $this->belongsTo(MasterKategori::class, 'master_kategori_id');
+    }
+
+    public function satuan()
+    {
+        return $this->belongsTo(Satuan::class, 'satuan_id');
     }
 }

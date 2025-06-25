@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\MasterKategori;
 use App\Models\MasterProduk;
-use App\Models\MasterSatuan;
+use App\Models\Satuan;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+
+use function PHPUnit\Framework\returnSelf;
 
 class MasterProdukController extends Controller
 {
@@ -14,9 +18,11 @@ class MasterProdukController extends Controller
      */
     public function index()
     {
-        return view('master_produk.index',[
-            'items' => MasterProduk::all()
-        ]);
+        // return view('master_produk.index',[
+        //     'items' => MasterProduk::all()
+        // ]);
+        $masterProduk = MasterProduk::with(['masterKategori', 'satuan'])->get();
+        return view('master_produk.index', compact('masterProduk'));
     }
 
     /**
@@ -24,7 +30,9 @@ class MasterProdukController extends Controller
      */
     public function create()
     {
-      return view('master_produk.create');
+        $masterKategori = MasterKategori::all();
+        $satuan = Satuan::all();
+      return view('master_produk.create', compact('masterKategori','satuan'));
     }
 
     /**
@@ -32,7 +40,31 @@ class MasterProdukController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_produk' =>'required',
+            'master_kategori_id' =>'required',
+            'satuan_id' =>'required',
+            'harga_dasar' =>'required|numeric',
+            'harga_jual' =>'required|numeric',
+            'include_pajak' =>'required',
+            'stok' =>'required|integer',
+            'gambar'=>'nullable|image|max:2048'
+        ]);
+        $data = $request->all();
+
+        if ($request->hasFile('gambar')) {
+            $data['gambar'] = $request->file('gambar')->store('gambar_produk', 'public');
+        }
+        // if($file=$request->file('gambar')
+        // {
+        //     $destinationPatch = 'produk_img/';
+        //     $imageName=time().'_'.$file->getClientOriginalName();
+        //     $file->move($destinationPatch, $imageName);
+        //     $data['gambar'] = $imageName;
+        // });
+
+        MasterProduk::create($data);
+        return redirect('/master_produk')->with('success', 'Produk berhasil ditambahkan');
     }
 
     /**
@@ -46,21 +78,41 @@ class MasterProdukController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(MasterProduk $m_produk)
+    public function edit($id)
     {
-        return view('master_produk.edit',[
-            'm_produk'=>$m_produk,
-            'kategori'=> MasterKategori::all(),
-            'satuan'=> MasterSatuan::all()
-        ]);
+        $masterProduk = MasterProduk::findOrFail($id);
+        $masterKategori = MasterKategori::all();
+        $satuan = Satuan::all();
+        return view('master_produk.edit', compact('masterProduk', 'masterKategori', 'satuan'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $masterProduk = MasterProduk::findOrFail($id);
+        $request->validate([
+            'nama_produk' =>'required',
+            'master_kategori_id' =>'required',
+            'satuan_id' =>'required',
+            'harga_dasar' =>'required|numeric',
+            'harga_jual' =>'required|numeric',
+            'include_pajak' =>'required',
+            'stok' =>'required|integer',
+            'gambar'=>'nullable|image|max:2048'
+        ]);
+        $data = $request->all();
+        if ($request->hasFile('gambar')) {
+        // Hapus gambar lama jika ada
+        if ($masterProduk->gambar) {
+            Storage::disk('public')->delete($masterProduk->gambar);
+        }
+
+        $data['gambar'] = $request->file('gambar')->store('gambar_produk', 'public');
+    }
+    $masterProduk->update($data);
+        return redirect('/master_produk')->with('success', 'Produk berhasil diperbarui');
     }
 
     /**
@@ -68,6 +120,14 @@ class MasterProdukController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $data = MasterProduk::findOrFail($id);
+        //hapus gambar jika ada
+
+        if($data->gambar && Storage::disk('public')->exists($data->gambar)){
+            Storage::disk('public')->delete($data->gambar);
+        }
+        $data->delete();
+
+        return redirect('/master_produk')->with('success', 'Produk berhasil dihapus');
     }
 }

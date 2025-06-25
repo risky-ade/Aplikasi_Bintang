@@ -11,7 +11,7 @@
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item"><a href="/">Home</a></li>
               <li class="breadcrumb-item active">Faktur Penjualan</li>
             </ol>
           </div><!-- /.col -->
@@ -22,7 +22,58 @@
 
     <!-- Main content -->
     <section class="content">
-      
+                  <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="/sales/sales_invoices/create">
+                                        <button class="btn btn-primary me-md-2" type="button"><i
+                                                class="fas fa-solid fa-plus"></i>Tambah Data</button>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <table id="example2" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Faktur Id</th>
+                                            <th>No Faktur</th>
+                                            <th>Tanggal</th>
+                                            <th>Pelanggan</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($penjualan as $row)
+                                            <tr>
+                                                <th scope="row">{{ $loop->iteration }}</th>
+                                                <td>{{ $row->no_faktur }}</td>
+                                                <td>{{ $row->tanggal }}</td>
+                                                <td>{{ $row->pelanggan_id->nama ??'Null' }}</td>
+                                                <td class="text-center">
+                                                    <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-info"
+                                                        type="button"><i class="fa fa-edit"></i> </a>
+                                                    <form action="{{ url('/master_produk/'.$row->id) }}" method="POST" style="display:inline">
+                                                        @csrf @method('delete')
+                                                        <button type="submit" onclick="return confirm('Yakin ingin hapus?')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></button>
+                                                    </form>
+                                                    {{-- <a href="{{ url('/delete') }}" class="btn btn-danger "type="button"><i class="fa fa-trash"></i> </a> --}}
+                                        
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                </div>
+            </div>
     </section>
     <!-- /.content -->
   </div>
