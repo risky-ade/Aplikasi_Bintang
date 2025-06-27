@@ -33,22 +33,30 @@
         </div>
       </li>
 
-      <!-- Notifications Dropdown Menu -->
+      <!-- Notifikasi Stok Minimum -->
       <li class="nav-item dropdown">
-        <a class="nav-link" data-toggle="dropdown" href="#">
-          <i class="far fa-bell"></i>
-          <span class="badge badge-warning navbar-badge">3</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-          <span class="dropdown-item dropdown-header">3 Notifications</span>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-file mr-2"></i> 3 new reports
-            <span class="float-right text-muted text-sm">2 days</span>
+          <a class="nav-link" data-toggle="dropdown" href="#">
+              <i class="far fa-bell"></i>
+              @if ($produk_stok_minim->count() > 0)
+                  <span class="badge badge-warning navbar-badge">{{ $produk_stok_minim->count() }}</span>
+              @endif
           </a>
-          <div class="dropdown-divider"></div>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+              <span class="dropdown-item dropdown-header">
+                  {{ $produk_stok_minim->count() }} Notifikasi Stok Minimum
+              </span>
 
-        </div>
+              @foreach ($produk_stok_minim as $produk)
+                  <div class="dropdown-divider"></div>
+                  <a href="{{ route('master_produk.index') }}" class="dropdown-item">
+                      <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+                      Stok "{{ $produk->nama_produk }}" hanya {{ $produk->stok }}
+                  </a>
+              @endforeach
+
+              <div class="dropdown-divider"></div>
+              <a href="{{ route('master_produk.index') }}" class="dropdown-item dropdown-footer">Lihat Semua Produk</a>
+          </div>
       </li>
       <li class="nav-item">
         <a class="nav-link" data-widget="fullscreen" href="#" role="button">

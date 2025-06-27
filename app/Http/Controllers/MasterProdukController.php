@@ -130,4 +130,21 @@ class MasterProdukController extends Controller
 
         return redirect('/master_produk')->with('success', 'Produk berhasil dihapus');
     }
+
+    public function search(Request $request)
+    {
+        $term = $request->term;
+        $produk = MasterProduk::where('nama_produk', 'LIKE', "%$term%")->get();
+
+        $results = [];
+        foreach ($produk as $item) {
+            $results[] = [
+                'id' => $item->id,
+                'text' => $item->nama_produk,
+                'harga_jual' => $item->harga_jual
+            ];
+        }
+
+        return response()->json(['results' => $results]);
+    }
 }

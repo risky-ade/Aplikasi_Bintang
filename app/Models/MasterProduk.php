@@ -51,4 +51,8 @@ class MasterProduk extends Model
     {
         return $this->belongsTo(Satuan::class, 'satuan_id');
     }
+        public function penjualanDetail()
+    {
+        return $this->hasMany(PenjualanDetail::class, 'master_produk_id');
+    }
 }

@@ -27,6 +27,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('auth');
 
+Route::get('/master_produk/search', [MasterProdukController::class, 'search'])->name('produk.search')->middleware('auth');
 Route::resource('/master_produk', MasterProdukController::class)->middleware('auth');
 // Route::get('/master_produk', [MasterProdukController::class,'index'])->middleware('auth');
 // Route::get('/master_produk', [MasterProdukController::class,'create'])->middleware('auth');
@@ -42,7 +43,8 @@ Route::resource('/master_produk', MasterProdukController::class)->middleware('au
 // Route::get('/sales_invoice', function () {
 //     // return view('sales.sales_invoices.index');
 // });
-Route::get('/sales/sales_invoices', [PenjualanController::class, 'index'])->middleware('auth');
+
+Route::get('/sales/sales_invoices', [PenjualanController::class, 'index'])->name('penjualan.index')->middleware('auth');
 Route::get('/sales/sales_invoices/create', [PenjualanController::class, 'create'])->name('penjualan.create')->middleware('auth');
 Route::post('/sales/sales_invoices', [PenjualanController::class, 'store'])->name('penjualan.store')->middleware('auth');
 

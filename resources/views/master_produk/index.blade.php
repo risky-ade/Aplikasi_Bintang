@@ -53,7 +53,7 @@
                                             <th>Satuan</th>
                                             <th>Harga Dasar</th>
                                             <th>Stok</th>
-                                            {{-- <th>Status</th> --}}
+                                            <th>Status Stok</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -74,7 +74,11 @@
                                                 <td>{{ $row->satuan->jenis_satuan ??'Null' }}</td>
                                                 <td>{{ number_format($row->harga_dasar, 0, ',','.') }}</td>
                                                 <td>{{ $row->stok }}</td>
-                                                {{-- <td>{{ $row->stok }}</td> --}}
+                                                <td>
+                                                    @if ($row->stok <= $row->stok_minimal)
+                                                        <span class="badge badge-danger ml-2">Stok Minim!</span>
+                                                    @endif
+                                                </td>
                                                 <td class="text-center">
                                                     <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-info"
                                                         type="button"><i class="fa fa-edit"></i> </a>

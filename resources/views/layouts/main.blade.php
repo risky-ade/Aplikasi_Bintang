@@ -34,8 +34,27 @@
     <link rel="stylesheet" href="{{ asset('template/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
     <!-- Toastr -->
     <link rel="stylesheet" href="{{ asset('template/plugins/toastr/toastr.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('template/plugins/select2/css/select2.min.css') }}">
     {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous"> --}}
      <script src="{{ asset('template/plugins/jquery/jquery.min.js') }}"></script>
+     {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> --}}
+     <style>
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-selection--single {
+        height: 38px !important; /* sesuai tinggi form-control Bootstrap */
+    }
+
+    .select2-selection__rendered {
+        line-height: 38px !important;
+    }
+
+    .select2-selection__arrow {
+        height: 38px !important;
+    }
+</style>
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -61,6 +80,9 @@
     <!-- jQuery -->
     {{-- <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script> --}}
 
+    <!-- Select2 -->
+    <script src="{{ asset('template/plugins/select2/js/select2.min.js') }}"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
     <!-- SweetAlert2 -->
     <script src="{{ asset('template/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <!-- Toastr -->

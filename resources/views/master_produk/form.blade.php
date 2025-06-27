@@ -46,7 +46,7 @@
 </div>
 <div class="form-group">
     <label for="stok_minimal">Stok Minimal (peringatan)</label>
-    <input type="number" class="form-control" name="stok_minimal" id="stok_minimal" value="10">
+    <input type="number" class="form-control" name="stok_minimal" id="stok_minimal" value="{{ old('stok', $masterProduk->stok_minimal ?? '') }}">
 </div>
 <div class="form-group">
     <label>Deskripsi</label>

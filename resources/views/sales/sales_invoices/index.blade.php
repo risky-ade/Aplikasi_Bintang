@@ -22,6 +22,12 @@
 
     <!-- Main content -->
     <section class="content">
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show">
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        @endif
                   <div class="container-fluid">
                 <div class="row">
                     <div class="col-12">
@@ -39,30 +45,44 @@
                                 <table id="example2" class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Faktur Id</th>
+                                            <th>NO</th>
                                             <th>No Faktur</th>
                                             <th>Tanggal</th>
                                             <th>Pelanggan</th>
+                                            <th>Total</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($penjualan as $row)
+                                        @foreach ($penjualans as $index => $jual)
                                             <tr>
-                                                <th scope="row">{{ $loop->iteration }}</th>
-                                                <td>{{ $row->no_faktur }}</td>
-                                                <td>{{ $row->tanggal }}</td>
-                                                <td>{{ $row->pelanggan_id->nama ??'Null' }}</td>
-                                                <td class="text-center">
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $jual->no_faktur }}</td>
+                                                <td>{{ $jual->tanggal }}</td>
+                                                <td>{{ $jual->pelanggan->nama ?? '-' }}</td>
+                                                <td>Rp {{ number_format($jual->total, 0, ',', '.') }}</td>
+                                                <td>
+                                                    {{-- <a href="{{ route('sales.sales_invoices.show', $jual->id) }}" class="btn btn-info btn-sm">
+                                                        <i class="fa fa-eye"></i> Detail
+                                                    </a>
+                                                    <a href="{{ route('sales.sales_invoices.cetak', $jual->id) }}" class="btn btn-secondary btn-sm" target="_blank">
+                                                        <i class="fa fa-print"></i> Cetak
+                                                    </a> --}}
+                                                    {{-- <form action="{{ route('sales.sales_invoices.destroy', $jual->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus transaksi ini?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Hapus</button>
+                                                    </form> --}}
+                                                </td>
+                                                {{-- <td class="text-center">
                                                     <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-info"
                                                         type="button"><i class="fa fa-edit"></i> </a>
                                                     <form action="{{ url('/master_produk/'.$row->id) }}" method="POST" style="display:inline">
                                                         @csrf @method('delete')
                                                         <button type="submit" onclick="return confirm('Yakin ingin hapus?')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></button>
                                                     </form>
-                                                    {{-- <a href="{{ url('/delete') }}" class="btn btn-danger "type="button"><i class="fa fa-trash"></i> </a> --}}
-                                        
-                                                </td>
+                                                    <a href="{{ url('/delete') }}" class="btn btn-danger "type="button"><i class="fa fa-trash"></i> </a>
+                                                </td> --}}
                                             </tr>
                                         @endforeach
                                     </tbody>
