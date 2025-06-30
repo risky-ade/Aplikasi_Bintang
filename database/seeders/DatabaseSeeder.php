@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             'nama'=>'Risky',
             'email'=>'risky.gmail.com',
             'npwp'=>'12345678',
+            'no_hp'=>'12345678',
             'kota'=>'surabaya',
             'provinsi'=>'Jawa Timur',
             'alamat'=>'jl sby',

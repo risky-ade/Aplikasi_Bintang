@@ -60,9 +60,9 @@
 <body class="hold-transition sidebar-mini layout-fixed">
     <div class="wrapper">
 
-        {{-- <!-- Preloader -->
-  <div class="preloader flex-column justify-content-center align-items-center">
-    <img class="animation__shake" src="img/logo.jpg" alt="B4Logo" height="60" width="60">
+        <!-- Preloader -->
+  {{-- <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__shake" src="img/logo.jpg" alt="B4Logo" height="80" width="80">
   </div> --}}
 
     <!-- Navbar -->

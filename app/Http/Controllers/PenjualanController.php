@@ -37,59 +37,74 @@ class PenjualanController extends Controller
     }
     public function store(Request $request)
     {
-        $request->validate([
-            'no_faktur' => 'required|unique:penjualan,no_faktur',
-            'tanggal' => 'required|date',
-            'pelanggan_id' => 'required',
-            'produk_id' => 'required|array',
-            'produk_id.*' => 'required|exists:master_produk,id',
-            'qty.*' => 'required|integer|min:1',
-            'harga_jual.*' => 'required|numeric|min:0',
-        ]);
-
-        // Simpan ke tabel penjualan
-    $penjualan = Penjualan::create([
-        'no_faktur' => $request->no_faktur,
-        'tanggal' => $request->tanggal,
-        'pelanggan_id' => $request->pelanggan_id,
-        'biaya_kirim' => $request->biaya_kirim,
-        'jatuh_tempo' => $request->jatuh_tempo,
-        'total' => 0, // total sementara, nanti dihitung
-        'created_by' => 1
+       $request->validate([
+        'no_faktur' => 'required|unique:penjualan,no_faktur',
+        'tanggal' => 'required|date',
+        'pelanggan_id' => 'required',
+        'produk_id' => 'required|array',
+        'produk_id.*' => 'required|exists:master_produk,id',
+        'qty.*' => 'required|integer|min:1',
+        'harga_jual.*' => 'required|numeric|min:0',
     ]);
 
-    $total = 0;
+    $subtotal = 0;
+    $totalDiskon = 0;
+
     foreach ($request->produk_id as $index => $produk_id) {
         $qty = $request->qty[$index];
         $harga = $request->harga_jual[$index];
-        $diskon = $request->diskon[$index]?? 0;
-        $subtotal = ($qty * $harga)- $diskon;
+        $diskon = $request->diskon[$index] ?? 0;
+        $sub = ($qty * $harga) - $diskon;
+
+        $subtotal += $sub;
+        $totalDiskon += $diskon;
+    }
+
+    $pajak = $request->pajak ?? 0;
+    $biayaKirim = $request->biaya_kirim ?? 0;
+    $totalPajak = ($subtotal * $pajak) / 100;
+
+    $total = $subtotal + $totalPajak + $biayaKirim;
+
+    // Simpan ke tabel penjualan
+    $penjualan = Penjualan::create([
+        'no_faktur'     => $request->no_faktur,
+        'tanggal'       => $request->tanggal,
+        'pelanggan_id'  => $request->pelanggan_id,
+        'catatan'       => $request->catatan,
+        'pajak'         => $pajak,
+        'biaya_kirim'   => $biayaKirim,
+        'total'         => $total,
+        'jatuh_tempo'   => $request->jatuh_tempo,
+        'created_by'    => 1
+    ]);
+
+    // Proses detail penjualan & stok
+    foreach ($request->produk_id as $index => $produk_id) {
+        $qty = $request->qty[$index];
+        $harga = $request->harga_jual[$index];
+        $diskon = $request->diskon[$index] ?? 0;
+        $sub = ($qty * $harga) - $diskon;
+
+        // Validasi stok
+        $produk = MasterProduk::find($produk_id);
+        if ($produk->stok < $qty) {
+            return back()->with('error', 'Stok produk "' . $produk->nama_produk . '" tidak mencukupi. Tersedia: ' . $produk->stok);
+        }
 
         // Simpan detail
         PenjualanDetail::create([
-            'penjualan_id' => $penjualan->id,
-            'master_produk_id' => $produk_id,
-            'qty' => $qty,
-            'harga_jual' => $harga,
-            'diskon' => $diskon,
-            'subtotal' => $subtotal,
+            'penjualan_id'      => $penjualan->id,
+            'master_produk_id'  => $produk_id,
+            'qty'               => $qty,
+            'harga_jual'        => $harga,
+            'diskon'            => $diskon,
+            'subtotal'          => $sub,
         ]);
-        // Kurangi stok produk
-        $produk = MasterProduk::find($produk_id);
 
-        if ($produk->stok < $qty) {      
-            return back()->with('error', 'Stok produk "' . $produk->nama_produk . '" tidak mencukupi. Tersedia: ' . $produk->stok);
-        }else{
-            $produk->decrement('stok', $qty);
-        }
-
-        $total += $subtotal;
+        // Kurangi stok
+        $produk->decrement('stok', $qty);
     }
-    // Tambahkan biaya kirim
-    $total += $request->biaya_kirim;
-
-    // Update total
-    $penjualan->update(['total' => $total]);
 
     return redirect()->route('penjualan.index')->with('success', 'Transaksi penjualan berhasil disimpan.');
 

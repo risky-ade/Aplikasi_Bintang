@@ -12,8 +12,12 @@ class Penjualan extends Model
         'no_faktur',
         'tanggal',
         'pelanggan_id',
+        'catatan',
+        'pajak',
+        'biaya_kirim',
         'total',
-        'created_by'
+        'jatuh_tempo',
+        'created_by',
     ];
 
     public function detail()
