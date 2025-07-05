@@ -1,6 +1,6 @@
 @extends('layouts.main')
 @section('content')
-  <!-- Content Wrapper. Contains page content -->
+
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <div class="content-header">
@@ -80,6 +80,17 @@
                     <!-- Tambahan Info -->
                     <div class="row mb-3">
                         <div class="col-md-6">
+                            <label>No PO</label>
+                            <input type="text" name="no_po" class="form-control" placeholder="Masukkan nomor PO (jika ada)">
+                        </div>
+                        <div class="col-md-6">
+                            <label>Status Pembayaran</label>
+                            <select name="status_pembayaran" class="form-control" required>
+                                <option value="Belum Lunas" selected>Belum Lunas</option>
+                                <option value="Lunas">Lunas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
                             <label>Biaya Pengiriman</label>
                             <input type="number" name="biaya_kirim" class="form-control" value="0">
                         </div>
@@ -90,7 +101,7 @@
                     </div>
 
             <div class="row">
-            <!-- 🧾 Tabel Produk -->
+            <!-- Tabel Produk -->
             <div class="mb-4">
                 <table class="table table-bordered">
                     <thead>
@@ -118,7 +129,6 @@
                 </table>
             </div>
 
-            <!-- 📝 Catatan & 💰 Ringkasan -->
                 <!-- Kolom Catatan -->
                 <div class="col-md-6">
                     <div class="form-group">
@@ -188,49 +198,6 @@
   </aside>
   <!-- /.control-sidebar -->
 
-
-{{-- <script>
-function initSelect2() {
-    $('.produk-select').select2({
-        placeholder: 'Cari Produk...',
-        ajax: {
-            url: '{{ route("produk.search") }}',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return { term: params.term };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            }
-        }
-    }).on('select2:select', function (e) {
-        const data = e.params.data;
-        const row = $(this).closest('tr');
-        row.find('.harga').val(data.harga_jual);
-        row.find('.qty').val(1).trigger('input');
-    });
-}
-
-function tambahProduk() {
-    let row = `
-    <tr>
-        <td>
-            <select name="produk_id[]" class="form-control produk-select" required></select>
-        </td>
-        <td><input type="number" name="qty[]" class="form-control qty" value="1" required></td>
-        <td><input type="number" name="harga_jual[]" class="form-control harga" required></td>
-        <td><input type="number" name="diskon[]" class="form-control diskon" value="0"></td>
-        <td><input type="text" class="form-control subtotal" readonly></td>
-        <td><button type="button" class="btn btn-danger btn-sm" onclick="hapusBaris(this)">X</button></td>
-    </tr>`;
-    $('#produk-body').append(row);
-    initSelect2();
-}
-
-</script> --}}
 <script>
     function initSelect2() {
         $('.produk-select').select2({

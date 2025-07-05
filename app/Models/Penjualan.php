@@ -10,6 +10,8 @@ class Penjualan extends Model
 
     protected $fillable = [
         'no_faktur',
+        'no_po',
+        'no_surat_jalan',
         'tanggal',
         'pelanggan_id',
         'catatan',
