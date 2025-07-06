@@ -12,9 +12,8 @@ class SatuanController extends Controller
      */
     public function index()
     {
-        return view('units.index',[
-            'unit' => Satuan::all()
-        ]);
+        $satuans = Satuan::all();
+        return view('units.index', compact('satuans'));
     }
 
     /**
@@ -30,14 +29,13 @@ class SatuanController extends Controller
      */
     public function store(Request $request)
     {
-        $request -> validate([
-            'jenis_satuan'=>'required',
-            'keterangan_satuan'=> 'required'
+        $request->validate([
+            'jenis_satuan' => 'required|unique:satuan,jenis_satuan',
+            'keterangan_satuan' => 'nullable|string',
         ]);
-        Satuan::create($request->all());
 
-        return redirect('/units');
-        // ->with('success', 'satuan berhasil dibuat');
+        Satuan::create($request->all());
+        return redirect()->back()->with('success_add', 'Satuan berhasil ditambahkan.');
     }
 
     /**
@@ -47,38 +45,21 @@ class SatuanController extends Controller
     {
         //
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-
-    public function getById($id)
-    {
-        $ms = Satuan::find($id);
-        $response['success'] = true;
-        $response['data'] = $ms;
-        // dd($response);
-        return response()->json($response);
-    }
+    
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Satuan $unit)
+    public function update(Request $request, $id)
     {
-
-        $id = $request->idSatuan;
-        // dd($request->all());
-
-        $unit = Satuan::find($id)->update([
-            'id'=>$request->idSatuan,
-            'jenis_satuan'=> $request->jenis_satuan_up,
-            'keterangan_satuan'=>$request->keterangan_satuan_up
+        $satuan = Satuan::findOrFail($id);
+        $request->validate([
+            'jenis_satuan' => 'required|unique:satuan,jenis_satuan,' . $id,
+            'keterangan_satuan' => 'nullable|string',
         ]);
 
-        
-        return redirect('/units');
-        // ->with('sukses', 'Satuan telah diupdate');
+        $satuan->update($request->all());
+        return redirect()->back()->with('success_update', 'Satuan berhasil diperbarui.');
     }
 
     /**

@@ -19,6 +19,7 @@ class Penjualan extends Model
         'biaya_kirim',
         'total',
         'jatuh_tempo',
+        'status_pembayaran',
         'created_by',
     ];
 

@@ -26,15 +26,15 @@ class DatabaseSeeder extends Seeder
             
         ]);
 
-        Satuan::create([
-            'jenis_satuan'=>'PAC',
-            'keterangan_satuan'=>'Paket/sap',
-        ]);
+        // Satuan::create([
+        //     'jenis_satuan'=>'PAC',
+        //     'keterangan_satuan'=>'Paket/sap',
+        // ]);
 
-        MasterKategori::create([
-            'kode_kategori'=>'ATK001',
-            'nama_kategori'=>'Kertas',
-        ]);
+        // MasterKategori::create([
+        //     'kode_kategori'=>'ATK001',
+        //     'nama_kategori'=>'Kertas',
+        // ]);
 
         Pelanggan::create([
             'nama'=>'Risky',

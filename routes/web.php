@@ -1,15 +1,13 @@
 <?php
 
-
-use App\Models\MasterSatuan;
-use App\Models\MasterKategori;
+use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\ProdukController;
+
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
-use App\Http\Controllers\MasterKategoriController;
+
 
 // Route::get('/login', function () {
 //     return view('login.index');
@@ -46,6 +44,8 @@ Route::resource('/master_produk', MasterProdukController::class)->middleware('au
 
 
 Route::get('/sales/sales_invoices/{id}/surat-jalan', [PenjualanController::class, 'suratJalan'])->name('sales.sales_invoices.surat-jalan');
+Route::get('/sales/sales_invoices/{id}/print-surat-jalan', [PenjualanController::class, 'printSuratJalan'])->name('penjualan.print-surat-jalan');
+Route::get('/sales/sales_invoices/{id}/surat-jalan-pdf', [PenjualanController::class, 'suratJalanPdf'])->name('penjualan.surat-jalan-pdf');
     // Route::resource('sales_invoices', PenjualanController::class)->middleware('auth');
 Route::get('/sales/sales_invoices', [PenjualanController::class, 'index'])->name('penjualan.index')->middleware('auth');
 Route::get('/sales/sales_invoices/create', [PenjualanController::class, 'create'])->name('penjualan.create')->middleware('auth');
@@ -55,6 +55,9 @@ Route::put('/sales/sales_invoices/{id}', [PenjualanController::class, 'update'])
 Route::get('sales/sales_invoices/{id}', [PenjualanController::class, 'show'])->name('penjualan.show')->middleware('auth');
 Route::get('sales_invoices/{id}/print', [PenjualanController::class, 'print'])->name('penjualan.print')->middleware('auth');
 Route::delete('sales/sales_invoices/{id}', [PenjualanController::class, 'destroy'])->name('penjualan.destroy')->middleware('auth');
+Route::get('sales/sales_invoices/{id}/print-pdf', [PenjualanController::class, 'printPdf'])->name('penjualan.print-pdf');
+Route::put('sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve');
+// Route::patch('/sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve');
 
     
 
@@ -74,18 +77,20 @@ Route::get('/purchases_invoice', function () {
 Route::get('/purchases_histories', function () {
     return view('purchases.purchases_histories.index');
 });
-Route::get('/categories', [MasterKategoriController::class, 'index'])->middleware('auth');
-Route::post('/categories', [MasterKategoriController::class, 'store'])->middleware('auth');
-Route::get('/categories/edit/{id}', [MasterKategoriController::class, 'edit'])->name('categories.edit')->middleware('auth');
-Route::post('/categories/update', [MasterKategoriController::class, 'update'])->name('categories.update')->middleware('auth');
-Route::delete('/categories/{id}', [MasterKategoriController::class, 'destroy'])->name('categories.destroy')->middleware('auth');
+Route::resource('categories', KategoriController::class)->except(['create','show','edit']);
+// Route::get('/categories', [KategoriController::class, 'index'])->middleware('auth');
+Route::post('/categories', [KategoriController::class, 'store'])->middleware('auth');
+// Route::get('/categories/edit/{id}', [KategoriController::class, 'edit'])->name('categories.edit')->middleware('auth');
+// Route::post('/categories/update', [KategoriController::class, 'update'])->name('categories.update')->middleware('auth');
+Route::delete('/categories/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy')->middleware('auth');
 
-Route::get('/units', [SatuanController::class, 'index'])->middleware('auth');
-Route::post('/units', [SatuanController::class, 'store'])->middleware('auth');
-Route::get('/units/edit/{id}', [SatuanController::class, 'getById'])->name('edit')->middleware('auth');
-Route::post('/units/update', [SatuanController::class, 'update'])->name('units.update')->middleware('auth');
-Route::delete('/units/{id}', [SatuanController::class, 'destroy'])->name('units.destroy')->middleware('auth');
-// Route::resource('/units',MasterSatuanController::class)->middleware('auth');
+// Route::get('/units', [SatuanController::class, 'index'])->middleware('auth');
+Route::resource('/units',SatuanController::class)->middleware('auth');
+// Route::post('/units', [SatuanController::class, 'store'])->name('satuan.store')->middleware('auth');
+// Route::get('/units/edit/{id}', [SatuanController::class, 'edit'])->name('edit')->middleware('auth');
+// Route::post('/units/update', [SatuanController::class, 'update'])->name('satuan.update')->middleware('auth');
+// Route::delete('/units/{id}', [SatuanController::class, 'destroy'])->name('units.destroy')->middleware('auth');
+
 
 Route::get('/sales_report', function () {
     return view('reports.sales_report');

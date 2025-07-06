@@ -22,123 +22,75 @@
 
     <!-- Main content -->
     <section class="content">
-        <div class="container-fluid">
-          <div class="row">
-              <div class="col-12">
-                  <div class="card">
-                      <div class="card-header">
-                          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-create"><i class="fas fa-solid fa-plus"></i>
-                                  Tambah Data
-                              </button>
-                          </div>
-                      </div>
-                      <!-- /.card-header -->
-                      <div class="card-body">
-                          <table id="example2" class="table table-bordered table-striped">
-                              <thead>
-                                  <tr>
-                                      <th>Kategori Id</th>
-                                      <th>Kode Kategori</th>
-                                      <th>Nama Kategori</th>
-                                      <th>Aksi</th>
-                                  </tr>
-                              </thead>
-                              <tbody>
-                                  @foreach ($category as $row)
-                                      <tr>
-                                          <th scope="row">{{ $loop->iteration }}</th>
-                                          <td>{{ $row->kode_kategori }}</td>
-                                          <td>{{ $row->nama_kategori }}</td>
-                                          <td class="text-center">
-                                              <a href="javascript:;" data-id="<?= $row->id ?>" class="btn btn-info btn-edit " data-toggle="modal" id="edit" type="button"><i class="fa fa-edit"></i> </a>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button class="btn btn-primary me-md-2" onclick="showCreateModal()">
+                                <i class="fas fa-solid fa-plus"></i>Tambah Kategori</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                    <table class="table table-bordered" id="kategoriTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Kode</th>
+                                <th>Nama Kategori</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($kategori as $item)
+                                <tr>
+                                    <td scope="item">{{ $loop->iteration }}</td>
+                                    <td>{{ $item->kode_kategori }}</td>
+                                    <td>{{ $item->nama_kategori }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="editKategori({{ $item }})">Edit</button>
+                                        <button class="btn btn-danger btn-sm" type="button" onclick="konfirmasiHapus({{ $item->id }}, '{{ $item->nama_kategori }}')"><i class="fa fa-trash"></i> </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>       
+    </div>
 
-                                             <button class="btn btn-danger btn-sm" type="button" onclick="konfirmasiHapus({{ $row->id }}, '{{ $row->nama_kategori }}')"><i class="fa fa-trash"></i> </button>
-
-                                          </td>
-                                      </tr>
-                                  @endforeach
-                              </tbody>
-                          </table>
-                      </div>
-                      <!-- /.card-body -->
-                  </div>
-                  <!-- /.card -->
-              </div>
-          </div>
-      </div>
-          <!-- Modal tambah -->
-    <div class="modal fade" id="modal-create">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h4 class="modal-title">Tambah Kategori</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+    <!-- Modal Form -->
+    <div class="modal fade" id="kategoriModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="kategoriForm">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title">Form Kategori</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="post" action="/categories" enctype="multipart/form-data">
-                    @csrf
-                <div class="card-body">
-                  <div class="form-group">
-                    <label for="#">Kode Kategori</label>
-                    <input type="text" class="form-control" id="#" placeholder="Masukkan Kode Kategori" name="kode_kategori"> 
-                  </div>
-                  <div class="form-group">
-                    <label for="#">Nama Kategori</label>
-                    <input type="text" class="form-control" id="#" placeholder="Masukkan Nama Kategori" name="nama_kategori">
-                  </div>
+                @csrf
+                <input type="hidden" id="kategori_id">
+                <div class="mb-3">
+                    <label>Kode Kategori</label>
+                    <input type="text" class="form-control" id="kode_kategori" name="kode_kategori" readonly>
                 </div>
-                <!-- /.card-body -->
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary toastrDefaultSuccessadd">Simpan</button>
+                <div class="mb-3">
+                    <label>Nama Kategori</label>
+                    <input type="text" class="form-control" name="nama_kategori" id="nama_kategori" required>
                 </div>
-              </form>
+            </div>
+            <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Simpan</button>
             </div>
         </div>
-        <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
+        </form>
     </div>
-    <!-- /.modal -->
-    {{-- modal edit --}}
-    <div class="modal fade" id="modal-update">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h4 class="modal-title">Edit Kategori</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form method="post" action="{{ url('/categories/update') }}" enctype="multipart/form-data">
-                    @csrf
-                <input type="text" id="idKategori" name="idKategori" hidden>
-                <div class="card-body">
-                  <div class="form-group">
-                    <label for="#">Kode Kategori</label>
-                    <input type="text" class="form-control" id="kode_kategori_up" name="kode_kategori_up" placeholder="Masukkan kode kategori">
-                  </div>
-                  <div class="form-group">
-                    <label for="#">Nama Kategori</label>
-                    <input type="text" class="form-control" id="nama_kategori_up" name="nama_kategori_up" placeholder="Masukkan nama kategori">
-                  </div>
-                </div>
-                <!-- /.card-body -->
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary toastrDefaultSuccessedit">Simpan</button>
-                </div>
-              </form>
-            </div>
-        </div>
-        <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
     </div>
+
     <!-- Modal konfirmasi hapus -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -178,57 +130,55 @@
 </div>
 <!-- ./wrapper -->
 
-    <script>
-        $(function() {
-            var Toast = Swal.mixin({
-            toast: true,
-            position: 'top',
-            showConfirmButton: false,
-            timer: 6000
-            });
+<!-- SweetAlert & Modal Logic -->
+{{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
+<script>
+function showCreateModal() {
+    $('#kategoriForm')[0].reset();
+    $('#kategori_id').val('');
+    $('#kode_kategori').val('Auto'); // tampilkan "Auto" sebagai placeholder
+    $('#kategoriModal').modal('show');
+}
 
-            $('.toastrDefaultSuccessadd').click(function() {
-            toastr.success('Sukses, Kategori Berhasil Ditambahkan.')
-            });
-            $('.toastrDefaultSuccessedit').click(function() {
-            toastr.success('Sukses, Kategori Berhasil Diupdate.')
-            });
-            $('.toastrDefaultInfo').click(function() {
-            toastr.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr.')
-            });
-            $('.toastrDefaultError').click(function() {
-            toastr.error('Lorem ipsum dolor sit amet, consetetur sadipscing elitr.')
-            });
-            $('.toastrDefaultWarning').click(function() {
-            toastr.warning('Lorem ipsum dolor sit amet, consetetur sadipscing elitr.')
-            });
+function editKategori(data) {
+    $('#kategori_id').val(data.id);
+    $('#kode_kategori').val(data.kode_kategori);
+    $('#nama_kategori').val(data.nama_kategori);
+    $('#kategoriModal').modal('show');
+}
+
+$('#kategoriForm').on('submit', function(e) {
+    e.preventDefault();
+    let id = $('#kategori_id').val();
+    let url = id ? `/categories/${id}` : '/categories';
+    let method = id ? 'PUT' : 'POST';
+
+    $.ajax({
+        url: url,
+        type: method,
+        data: $('#kategoriForm').serialize(),
+        success: function(response) {
+            Swal.fire('Sukses!', response.message, 'success').then(() => location.reload());
+        },
+       error: function(xhr) {
+        let msg = 'Terjadi kesalahan';
+        if (xhr.responseJSON && xhr.responseJSON.errors) {
+            msg = Object.values(xhr.responseJSON.errors).join('<br>');
+        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+            msg = xhr.responseJSON.message;
+        }
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            html: msg,
         });
-    </script>
-     <script>
-        // Edit Data
-        $(document).on('click', '.btn-edit', function() { //edit ada di class
-            // alert('test');
-            var id = $(this).data(
-                'id'
-            ); //data dan id diperoleh dari button "data-id" baris 38. serta di controller $response['data'] = $kur;
-            $.ajax({
-                // console.log(id);
-                url: "{{ url('/categories/edit') }}" + '/' + id,
-                type: 'get',
-                dataType: 'json',
-                data: {},
-                beforeSend: function() {},
-                success: function(data) {
-                    // console.log(data.data)
-                    $('#modal-update').modal('show'); //menampilkan modal
-                    $('#kode_kategori_up').val(data.data.kode_kategori);
-                    $('#nama_kategori_up').val(data.data.nama_kategori);
-                    $('#idKategori').val(data.data.id);
-                }
-            });
-        });
-    </script>
-     {{-- script delete --}}
+    }
+    });
+});
+</script>
+
+{{-- script delete --}}
     <script>
         function konfirmasiHapus(id, nama_kategori) {
             Swal.fire({

@@ -15,21 +15,10 @@ class Satuan extends Model
         'update_at',
     ];
 
-        public function masterProduk()
+        public function produk()
     {
-        return $this->hasMany(MasterProduk::class, 'master_satuan_id');
+        return $this->hasMany(MasterProduk::class, 'satuan_id');
     }
-    public function Produk()
-    {
-        return $this->hasMany(Produk::class);
-    }
-    // public function getSatuan()
-    // {
-    //     $query = MasterKategori::query()
-    //         ->select('jenis_satuan', 'keterangan_satuan', 'master_satuan_id')
-    //         ->orderBy('master_kategori_id', 'ASC')
-    //         ->get();
-    //     // dd($a);
-    //     return $query;
-    // }
+
+
 }

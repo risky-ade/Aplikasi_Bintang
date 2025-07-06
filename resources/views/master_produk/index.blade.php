@@ -8,26 +8,20 @@
                 <div class="row mb-2">
                     <div class="col-sm-6">
                         <h1 class="m-0">Daftar Produk</h1>
-                    </div><!-- /.col -->
+                    </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="#">Home</a></li>
                             <li class="breadcrumb-item active">Master Produk</li>
                         </ol>
-                    </div><!-- /.col -->
-                </div><!-- /.row -->
+                    </div>
+                </div>
             </div><!-- /.container-fluid -->
         </div>
         <!-- /.content-header -->
 
         <!-- Main content -->
         <section class="content">
-
-            {{-- @if (session()->has('success'))
-    <div class="alert alert-success col-lg-8" role="alert">
-      {{ session('success') }}
-    </div>
-  @endif --}}
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-12">
@@ -70,7 +64,7 @@
                                             </td>
                                                 <td>{{ $row->nama_produk }}</td>
                                                 <td>{{ $row->deskripsi }}</td>
-                                                <td>{{ $row->masterKategori->nama_kategori ??'Null' }}</td>
+                                                <td>{{ $row->kategori->nama_kategori ??'Null' }}</td>
                                                 <td>{{ $row->satuan->jenis_satuan ??'Null' }}</td>
                                                 <td>{{ number_format($row->harga_dasar, 0, ',','.') }}</td>
                                                 <td>{{ $row->stok }}</td>

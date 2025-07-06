@@ -16,7 +16,7 @@ class MasterProduk extends Model
     protected $fillable = [
         'nama_produk',
         'deskripsi',
-        'master_kategori_id',
+        'kategori_id',
         'satuan_id',
         'harga_dasar',
         'harga_jual',
@@ -27,24 +27,9 @@ class MasterProduk extends Model
         'update_at',
     ];
 
-    // public function getMasterProduk()
-    // {
-    //     $query = MasterKategori::query()
-    //         ->select('nama_produk', 'deskripsi', 'harga', 'master_produk_id')
-    //         ->where('status', '=', '1')
-    //         ->orderBy('master_produk_id', 'ASC')
-    //         ->get();
-    //     // dd($a);
-    //     return $query;
-    // }
-
-    // public function Produk()
-    // {
-    //     return $this->hasOne(Produk::class);
-    // }
-    public function masterKategori()
+    public function kategori()
     {
-        return $this->belongsTo(MasterKategori::class, 'master_kategori_id');
+        return $this->belongsTo(Kategori::class, 'kategori_id');
     }
 
     public function satuan()

@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MasterKategori;
-use App\Models\MasterProduk;
 use App\Models\Satuan;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Kategori;
+use App\Models\MasterProduk;
 use Illuminate\Http\Request;
+use App\Models\MasterKategori;
 use Illuminate\Support\Facades\File;
 
+use Illuminate\Support\Facades\Storage;
 use function PHPUnit\Framework\returnSelf;
 
 class MasterProdukController extends Controller
@@ -21,7 +22,7 @@ class MasterProdukController extends Controller
         // return view('master_produk.index',[
         //     'items' => MasterProduk::all()
         // ]);
-        $masterProduk = MasterProduk::with(['masterKategori', 'satuan'])->get();
+        $masterProduk = MasterProduk::with(['kategori', 'satuan'])->get();
         return view('master_produk.index', compact('masterProduk'));
     }
 
@@ -30,9 +31,9 @@ class MasterProdukController extends Controller
      */
     public function create()
     {
-        $masterKategori = MasterKategori::all();
+        $kategori = Kategori::all();
         $satuan = Satuan::all();
-      return view('master_produk.create', compact('masterKategori','satuan'));
+      return view('master_produk.create', compact('satuan','kategori'));
     }
 
     /**
@@ -42,7 +43,7 @@ class MasterProdukController extends Controller
     {
         $request->validate([
             'nama_produk' =>'required',
-            'master_kategori_id' =>'required',
+            'kategori_id' =>'required|exists:kategori,id',
             'satuan_id' =>'required',
             'harga_dasar' =>'required|numeric',
             'harga_jual' =>'required|numeric',
@@ -81,9 +82,9 @@ class MasterProdukController extends Controller
     public function edit($id)
     {
         $masterProduk = MasterProduk::findOrFail($id);
-        $masterKategori = MasterKategori::all();
+        $masterKategori = Kategori::all();
         $satuan = Satuan::all();
-        return view('master_produk.edit', compact('masterProduk', 'masterKategori', 'satuan'));
+        return view('master_produk.edit', compact('masterProduk', 'kategori', 'satuan'));
     }
 
     /**
@@ -94,7 +95,7 @@ class MasterProdukController extends Controller
         $masterProduk = MasterProduk::findOrFail($id);
         $request->validate([
             'nama_produk' =>'required',
-            'master_kategori_id' =>'required',
+            'kategori_id' =>'required|exists:kategori,id',
             'satuan_id' =>'required',
             'harga_dasar' =>'required|numeric',
             'harga_jual' =>'required|numeric',

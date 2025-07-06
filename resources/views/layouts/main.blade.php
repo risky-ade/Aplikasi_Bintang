@@ -79,12 +79,13 @@
 
     <!-- jQuery -->
     {{-- <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script> --}}
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Select2 -->
     <script src="{{ asset('template/plugins/select2/js/select2.min.js') }}"></script>
     {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
     <!-- SweetAlert2 -->
     <script src="{{ asset('template/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('template/plugins/sweetalert2/sweetalert2.js') }}"></script>
     <!-- Toastr -->
     <script src="{{ asset('template/plugins/toastr/toastr.min.js') }}"></script>
     <!-- jQuery UI 1.11.4 -->

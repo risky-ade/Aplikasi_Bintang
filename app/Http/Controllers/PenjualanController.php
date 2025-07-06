@@ -9,13 +9,42 @@ use App\Models\MasterProduk;
 use Illuminate\Http\Request;
 use App\Models\PenjualanDetail;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class PenjualanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $penjualans = Penjualan::with('pelanggan')->orderBy('tanggal', 'desc')->get();
-        return view('sales.sales_invoices.index', compact('penjualans'));
+        $query = Penjualan::with('pelanggan');
+
+    if ($request->filled('no_faktur')) {
+        $query->where('no_faktur', 'like', '%' . $request->no_faktur . '%');
+    }
+
+    if ($request->filled('no_po')) {
+        $query->where('no_po', 'like', '%' . $request->no_po . '%');
+    }
+
+    if ($request->filled('tanggal')) {
+        $query->whereDate('tanggal', $request->tanggal);
+    }
+
+    if ($request->filled('pelanggan')) {
+        $query->whereHas('pelanggan', function ($q) use ($request) {
+            $q->where('nama', 'like', '%' . $request->pelanggan . '%');
+        });
+    }
+    if ($request->filled('status_pembayaran')) {
+    $query->where('status_pembayaran', $request->status_pembayaran);
+    }
+
+    $penjualans = $query->latest()->get();
+
+    return view('sales.sales_invoices.index', compact('penjualans'));
+    
+        // $penjualans = Penjualan::with('pelanggan')->orderBy('tanggal', 'desc')->get();
+        // return view('sales.sales_invoices.index', compact('penjualans'));
     }
 
     public function create()
@@ -80,7 +109,7 @@ class PenjualanController extends Controller
         'biaya_kirim'   => $biayaKirim,
         'total'         => $total,
         'jatuh_tempo'   => $request->jatuh_tempo,
-        'status_pembayaran' => $request->status_pembayaran,
+        'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
         'created_by'    => 1
     ]);
 
@@ -223,13 +252,49 @@ class PenjualanController extends Controller
         $penjualan = Penjualan::with('detail.produk', 'pelanggan')->findOrFail($id);
         return view('sales.sales_invoices.surat_jalan', compact('penjualan'));
     }
+    public function printSuratJalan($id)
+    {
+        
+        $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+
+        return view('sales.sales_invoices.print_surat_jalan', compact('penjualan'));
+        // $pdf = PDF::loadView('penjualan.print_surat_jalan', compact('penjualan'));
+        // return $pdf->stream('surat-jalan-' . $penjualan->no_faktur . '.pdf');
+    }
+    public function suratJalanPdf($id)
+    {
+        $penjualan = Penjualan::with(['pelanggan', 'detail.produk.satuan'])->findOrFail($id);
+        $pdf = Pdf::loadView('sales.sales_invoices.print_surat_jalan', compact('penjualan'))->setPaper('A4', 'portrait');
+        $filename = 'surat-jalan-' .preg_replace('/[^A-Za-z0-9\-]/', '-', $penjualan->no_faktur) . '.pdf';
+        return $pdf->download($filename);
+    }
 
     public function print($id)
     {
         $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
-        return view('penjualan.print', compact('penjualan'));
+        return view('sales.sales_invoices.print', compact('penjualan'));
 
         // $pdf = PDF::loadView('penjualan.print', compact('penjualan'));
         // return $pdf->download('invoice-'.$penjualan->no_faktur.'.pdf');
+    }
+
+    public function printPdf($id)
+    {
+        $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+
+        $pdf = Pdf::loadView('sales.sales_invoices.print', compact('penjualan'))->setPaper('A4', 'portrait');
+
+        $filename = 'Invoice-' . preg_replace('/[^A-Za-z0-9\-]/', '-', $penjualan->no_faktur) . '.pdf';
+        return $pdf->download($filename);
+        // return $pdf->stream('invoice-' . $penjualan->no_faktur . '.pdf');
+        //Gunakan stream() untuk menampilkan langsung di browser, atau download() jika ingin mengunduh otomatis.
+    }
+
+    public function approve($id)
+    {
+        $penjualan = Penjualan::findOrFail($id);
+        $penjualan->update(['status_pembayaran' => 'Lunas']);
+        return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas.');
+        
     }
 }

@@ -1,6 +1,9 @@
 @extends('layouts.main')
 @section('content')
-
+@php
+    use App\Helpers\Helper;
+    use Illuminate\Support\Str;
+@endphp
 <div class="content-wrapper">
   <div class="content-header">
     <div class="container-fluid">
@@ -42,7 +45,7 @@
           <div class="col-md-4">
             <p><strong>Pelanggan:</strong> {{ $penjualan->pelanggan->nama }}</p>
             <p><strong>Alamat:</strong> {{ $penjualan->pelanggan->alamat ?? '-' }}</p>
-            <p><strong>Telepon:</strong> {{ $penjualan->pelanggan->no_hp ?? '-' }}</p>
+            {{-- <p><strong>Telepon:</strong> {{ $penjualan->pelanggan->no_hp ?? '-' }}</p> --}}
           </div>
         </div>
 
@@ -68,9 +71,9 @@
                 <td>{{ $i+1 }}</td>
                 <td>{{ $item->produk->nama_produk ?? '-' }}</td>
                 <td class="text-right">{{ $item->qty }}</td>
-                <td class="text-right">{{ number_format($item->harga_jual, 0) }}</td>
-                <td class="text-right">{{ number_format($item->diskon, 0) }}</td>
-                <td class="text-right">{{ number_format($item->subtotal, 0) }}</td>
+                <td class="text-right">{{ rupiah($item->harga_jual) }}</td>
+                <td class="text-right">{{ rupiah($item->diskon) }}</td>
+                <td class="text-right">{{ rupiah($item->subtotal) }}</td>
               </tr>
               @php
                 $total += $item->subtotal;
@@ -86,34 +89,43 @@
             <table class="table table-sm table-borderless">
               <tr>
                 <th class="text-right">Subtotal</th>
-                <td class="text-right">{{ number_format($total, 0) }}</td>
+                <td class="text-right">{{ rupiah($total) }}</td>
               </tr>
               <tr>
                 <th class="text-right">Total Diskon</th>
-                <td class="text-right">{{ number_format($total_diskon, 0) }}</td>
+                <td class="text-right">{{ rupiah($total_diskon) }}</td>
               </tr>
               <tr>
                 <th class="text-right">Pajak ({{ $penjualan->pajak }}%)</th>
                 <td class="text-right">
                   @php $nilai_pajak = ($total * $penjualan->pajak) / 100; @endphp
-                  {{ number_format($nilai_pajak, 0) }}
+                  {{ rupiah($nilai_pajak) }}
                 </td>
               </tr>
               <tr>
                 <th class="text-right">Biaya Kirim</th>
-                <td class="text-right">{{ number_format($penjualan->biaya_kirim, 0) }}</td>
+                <td class="text-right">{{ rupiah($penjualan->biaya_kirim) }}</td>
               </tr>
               <tr class="font-weight-bold">
                 <th class="text-right">Total Bayar</th>
-                <td class="text-right">{{ number_format($penjualan->total, 0) }}</td>
+                <td class="text-right">{{ rupiah($penjualan->total) }}</td>
               </tr>
             </table>
           </div>
         </div>
 
         <div class="text-right mt-3">
-          <a href="{{ route('penjualan.index') }}" class="btn btn-secondary">Kembali</a>
-          <a href="{{ route('penjualan.print', $penjualan->id) }}" class="btn btn-info" target="_blank"><i class="fas fa-print"></i> Cetak</a>
+          <a href="{{ route('penjualan.index') }}" class="btn btn-secondary btn-sm">Kembali</a>
+          <a href="{{ route('penjualan.print-surat-jalan', $penjualan->id) }}" class="btn btn-info btn-sm" target="_blank">
+              <i class="fas fa-print"></i> Print Surat Jalan
+          </a>
+          <a href="{{ route('penjualan.surat-jalan-pdf', $penjualan->id) }}" class="btn btn-danger btn-sm" target="_blank">
+              <i class="fas fa-file-pdf"></i> PDF Surat Jalan
+          </a>
+          <a href="{{ route('penjualan.print-pdf', $penjualan->id) }}" class="btn btn-sm btn-danger" target="_blank">
+              <i class="fas fa-file-pdf"></i> PDF Invoice
+          </a>
+          <a href="{{ route('penjualan.print', $penjualan->id) }}" class="btn btn-info btn-sm" target="_blank"><i class="fas fa-print"></i> Print Invoice</a>
         </div>
 
       </div>

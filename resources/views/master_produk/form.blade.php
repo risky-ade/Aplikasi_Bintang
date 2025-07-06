@@ -5,9 +5,9 @@
 
 <div class="form-group">
     <label>Kategori</label>
-    <select name="master_kategori_id" class="form-control" required>
-        @foreach($masterKategori as $k)
-            <option value="{{ $k->id }}" {{ isset($masterProduk) && $masterProduk->master_kategori_id == $k->id ? 'selected' : '' }}>
+    <select name="kategori_id" class="form-control" required>
+        @foreach($kategori as $k)
+            <option value="{{ $k->id }}" {{ isset($masterProduk) && $masterProduk->kategori_id == $k->id ? 'selected' : '' }}>
                 {{ $k->nama_kategori }}
             </option>
         @endforeach
