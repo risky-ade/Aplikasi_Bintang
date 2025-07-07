@@ -111,11 +111,15 @@
                     <tr>
                       <td>
                         <select name="produk_id[]" class="form-control produk-select" required>
+                          {{-- <select name="produk_id[]" class="form-control produk-select" {{ $isReturExists ? 'disabled' : '' }}> --}}
                           <option value="{{ $detail->master_produk_id }}" selected>{{ $detail->produk->nama_produk }}</option>
                         </select>
                       </td>
-                      <td><input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control qty" required></td>
-                      <td><input type="number" name="harga_jual[]" value="{{ $detail->harga_jual }}" class="form-control harga" required></td>
+                      <td>
+                        {{-- <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control qty" required {{ $isReturExists ? 'readonly' : '' }}> --}}
+                        <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control qty" required>
+                      </td>
+                      <td><input type="number" name="harga_jual[]" value="{{ $detail->harga_jual }}" class="form-control harga" required {{ $isReturExists ? 'readonly' : '' }}></td>
                       <td><input type="number" name="diskon[]" value="{{ $detail->diskon }}" class="form-control diskon"></td>
                       <td><input type="number" name="subtotal[]" value="{{ $detail->subtotal }}" class="form-control subtotal" readonly></td>
                       <td><button type="button" class="btn btn-danger btn-sm" onclick="hapusBaris(this)">x</button></td>

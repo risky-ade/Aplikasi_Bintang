@@ -119,11 +119,21 @@
                                               @if($jual->status_pembayaran == 'Belum Lunas')
                                               <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalApprove{{ $jual->id }}">Approve</button>
                                               @endif
+
+                                              @if($jual->status_pembayaran === 'Lunas')
+                                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalUnapprove{{ $jual->id }}">Batalkan Lunas</button>
+                                              @endif
+
+                                              @if ($jual->status_pembayaran !== 'Lunas')
                                               <form action="{{ route('penjualan.destroy', $jual->id) }}" method="POST" onsubmit="return confirm('Yakin ingin hapus?')" style="display:inline;">
                                                   @csrf
                                                   @method('DELETE')
                                                   <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
                                               </form>
+                                              @else
+                                                {{-- <button class="btn btn-secondary btn-sm" disabled title="Sudah lunas">Edit</button> --}}
+                                                <button class="btn btn-danger btn-sm" disabled title="Tidak bisa hapus karena sudah lunas"><i class="fas fa-trash"></i></button>
+                                              @endif
 
                                           </td>
                                       </tr>
@@ -145,6 +155,28 @@
                                             </div>
                                             <div class="modal-footer">
                                               <button type="submit" class="btn btn-success">Ya, Tandai Lunas</button>
+                                            </div>
+                                          </div>
+                                        </form>
+                                      </div>
+                                    </div>
+                                    <!-- Modal Unapprove -->
+                                    <div class="modal fade" id="modalUnapprove{{ $jual->id }}" tabindex="-1">
+                                      <div class="modal-dialog">
+                                        <form method="POST" action="{{ route('penjualan.unapprove', $jual->id) }}">
+                                          @csrf
+                                          @method('PUT')
+                                          <div class="modal-content">
+                                            <div class="modal-header">
+                                              <h5 class="modal-title">Konfirmasi Pembatalan Lunas</h5>
+                                              <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            </div>
+                                            <div class="modal-body">
+                                              Pembatalan pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
+                                              dengan total <strong>{{ rupiah($jual->total) }}</strong>
+                                            </div>
+                                            <div class="modal-footer">
+                                              <button type="submit" class="btn btn-danger">Ya, Batalkan</button>
                                             </div>
                                           </div>
                                         </form>
@@ -179,26 +211,5 @@
   </aside>
   <!-- /.control-sidebar -->
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
 
-        // SweetAlert Sukses Tambah/Edit
-        @if (session('success'))
-          Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: '{{ session('success') }}',
-            showConfirmButton: false,
-            timer: 2000
-          });
-        @endif
-
-        @if (session('error'))
-          Swal.fire({
-            icon: 'error',
-            title: 'Gagal',
-            text: '{{ session('error') }}'
-          });
-        @endif
-    </script>
 @endsection

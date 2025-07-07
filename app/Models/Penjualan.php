@@ -32,4 +32,9 @@ class Penjualan extends Model
     {
         return $this->belongsTo(Pelanggan::class);
     }
+
+    public function returPenjualan()
+    {
+        return $this->hasMany(ReturPenjualan::class, 'penjualan_id');
+    }
 }

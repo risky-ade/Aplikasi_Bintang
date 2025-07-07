@@ -7,9 +7,11 @@ use App\Models\Pelanggan;
 use App\Models\Penjualan;
 use App\Models\MasterProduk;
 use Illuminate\Http\Request;
+use App\Models\ReturPenjualan;
 use App\Models\PenjualanDetail;
-use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 
 class PenjualanController extends Controller
@@ -43,8 +45,6 @@ class PenjualanController extends Controller
 
     return view('sales.sales_invoices.index', compact('penjualans'));
     
-        // $penjualans = Penjualan::with('pelanggan')->orderBy('tanggal', 'desc')->get();
-        // return view('sales.sales_invoices.index', compact('penjualans'));
     }
 
     public function create()
@@ -52,17 +52,12 @@ class PenjualanController extends Controller
         $produk = MasterProduk::all();
         $pelanggan = Pelanggan::all();
         // Generate No Faktur Otomatis
-        $lastId = Penjualan::max('id') ?? 0;
+        $lastId = Penjualan::where('tanggal',now()->format('Y-m-d'))->count();
+        // dd($lastId);
         $no_faktur = 'FPJ-' . date('Ymd') . '/' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT); // strtoupper(uniqid()); //str_pad($lastId + 1, 5, '0', STR_PAD_LEFT);
         $tanggal = now()->format('Y-m-d'); // atau date('Y-m-d')
 
         return view('sales.sales_invoices.create', compact('produk', 'pelanggan', 'no_faktur', 'tanggal', ));
-        // return view('sales.sales_invoices.create', [
-        //     'master_produk' => MasterProduk::all(),
-        //     'pelanggan' => Pelanggan::all(),
-        //     'no_faktur' => 'FJ-' . now()->format('YmdHis'),
-        //     'tanggal' => now()->toDateString(),
-        // ]);
     }
     public function store(Request $request)
     {
@@ -76,7 +71,9 @@ class PenjualanController extends Controller
         'harga_jual.*' => 'required|numeric|min:0',
         'status_pembayaran' => 'required|in:Belum Lunas,Lunas',
     ]);
-
+        // $test =Auth::id();
+        // dd($test);
+        
     $subtotal = 0;
     $totalDiskon = 0;
 
@@ -110,7 +107,7 @@ class PenjualanController extends Controller
         'total'         => $total,
         'jatuh_tempo'   => $request->jatuh_tempo,
         'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
-        'created_by'    => 1
+        'created_by'    => Auth::id(),
     ]);
 
     // Proses detail penjualan & stok
@@ -153,10 +150,20 @@ class PenjualanController extends Controller
 
     public function edit($id)
     {
-        $penjualan = Penjualan::with('detail', 'pelanggan')->findOrFail($id);
+        $penjualan = Penjualan::with('detail', 'pelanggan','returPenjualan')->findOrFail($id);
         $pelanggan = Pelanggan::all();
+        if ($penjualan->status_pembayaran === 'Lunas') {
+            return redirect()->route('penjualan.index')
+                ->with('error', 'Faktur tidak dapat diedit atau dihapus karena sudah diset sebagai Lunas.');
+        }
+        if ($penjualan->returPenjualan && $penjualan->returPenjualan->count() > 0) {
+            return redirect()->route('penjualan.index')
+                ->with('error', 'Faktur tidak dapat diedit karena memiliki retur penjualan.');
+        }
+        // $isReturExists = ReturPenjualan::where('penjualan_id', $penjualan->id)->exists();
+        $produk = MasterProduk::all();
 
-        return view('sales.sales_invoices.edit', compact('penjualan', 'pelanggan'));
+        return view('sales.sales_invoices.edit', compact('penjualan', 'pelanggan','isReturExists'));
     }
 
     public function update(Request $request, $id)
@@ -230,21 +237,27 @@ class PenjualanController extends Controller
 
     public function destroy($id)
     {
-        $penjualan = Penjualan::with('detail')->findOrFail($id);
-
-        // Kembalikan stok
-        foreach ($penjualan->detail as $item) {
-            $produk = MasterProduk::find($item->master_produk_id);
-            if ($produk) {
-                $produk->increment('stok', $item->qty);
-            }
+        $penjualan = Penjualan::with('returPenjualan')->findOrFail($id);
+        //cek retur sebelum hapus
+        if ($penjualan->returPenjualan && $penjualan->returPenjualan->count() > 0) {
+            return redirect()->route('penjualan.index')
+                ->with('error', 'Faktur tidak dapat dihapus karena sudah memiliki retur penjualan.');
         }
 
-        // Hapus detail & penjualan
-        $penjualan->detail()->delete();
+        if ($penjualan->status_pembayaran === 'Lunas') {
+            return redirect()->route('penjualan.index')
+                ->with('error', 'Faktur tidak dapat diedit atau dihapus karena sudah diset sebagai Lunas.');
+        }
+
+        // Proses hapus detail & stok jika belum ada retur
+        foreach ($penjualan->detail as $detail) {
+            MasterProduk::where('id', $detail->master_produk_id)->increment('stok', $detail->qty);
+            $detail->delete();
+        }
+
         $penjualan->delete();
 
-        return redirect()->route('penjualan.index')->with('success', 'Transaksi berhasil dihapus.');
+        return redirect()->route('penjualan.index')->with('success', 'Transaksi penjualan berhasil dihapus.');
     }
 
     public function suratJalan($id)
@@ -296,5 +309,17 @@ class PenjualanController extends Controller
         $penjualan->update(['status_pembayaran' => 'Lunas']);
         return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas.');
         
+    }
+    public function unapprove($id)
+    {
+        $penjualan = Penjualan::findOrFail($id);
+
+        if ($penjualan->status_pembayaran === 'Belum Lunas') {
+            return back()->with('error', 'Invoice belum lunas.');
+        }
+
+        $penjualan->update(['status_pembayaran' => 'Belum Lunas']);
+
+        return back()->with('success', 'Status pembayaran berhasil dibatalkan.');
     }
 }

@@ -186,6 +186,28 @@
                 });
             });
         </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+
+    // SweetAlert Sukses Tambah/Edit
+    @if (session('success'))
+        Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: '{{ session('success') }}',
+        showConfirmButton: false,
+        timer: 2000
+        });
+    @endif
+
+    @if (session('error'))
+        Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: '{{ session('error') }}'
+        });
+    @endif
+</script>
 </body>
 
 </html>

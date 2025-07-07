@@ -19,4 +19,5 @@ class PenjualanDetail extends Model
     {
         return $this->belongsTo(MasterProduk::class, 'master_produk_id');
     }
+    
 }

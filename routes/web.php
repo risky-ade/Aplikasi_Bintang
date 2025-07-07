@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
-
 use App\Http\Controllers\SatuanController;
+
+use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\ReturPenjualanController;
 
 
 // Route::get('/login', function () {
@@ -57,14 +58,21 @@ Route::get('sales_invoices/{id}/print', [PenjualanController::class, 'print'])->
 Route::delete('sales/sales_invoices/{id}', [PenjualanController::class, 'destroy'])->name('penjualan.destroy')->middleware('auth');
 Route::get('sales/sales_invoices/{id}/print-pdf', [PenjualanController::class, 'printPdf'])->name('penjualan.print-pdf');
 Route::put('sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve');
+Route::put('sales/sales_invoices/{id}/unapprove', [PenjualanController::class, 'unapprove'])->name('penjualan.unapprove');
 // Route::patch('/sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve');
-
+Route::prefix('sales')->group(function () {
+    Route::get('sales_retur', [ReturPenjualanController::class, 'index'])->name('retur-penjualan.index');
+    Route::get('sales_retur/create', [ReturPenjualanController::class, 'create'])->name('retur-penjualan.create');
+    Route::post('sales_retur/store', [ReturPenjualanController::class, 'store'])->name('retur-penjualan.store');
+    Route::get('sales_retur/get-detail/{id}', [ReturPenjualanController::class, 'getDetailPenjualan'])->name('retur-penjualan.get-detail');
+    Route::delete('sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy');
+});
     
 
 
-Route::get('/sales_retur', function () {
-    return view('sales.sales_retur.index');
-});
+// Route::get('/sales_retur', function () {
+//     return view('sales.sales_retur.index');
+// });
 Route::get('/sales_histories', function () {
     return view('sales.sales_histories.index');
 });
