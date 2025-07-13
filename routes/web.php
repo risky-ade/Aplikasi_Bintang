@@ -8,6 +8,7 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\ReturPenjualanController;
+use App\Http\Controllers\HistoriHargaPenjualanController;
 
 
 // Route::get('/login', function () {
@@ -68,14 +69,14 @@ Route::prefix('sales')->group(function () {
     Route::delete('sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy');
 });
     
-
+Route::get('/sales/sales_histories', [HistoriHargaPenjualanController::class, 'index'])->name('histori-harga.index');
 
 // Route::get('/sales_retur', function () {
 //     return view('sales.sales_retur.index');
 // });
-Route::get('/sales_histories', function () {
-    return view('sales.sales_histories.index');
-});
+// Route::get('/sales_histories', function () {
+//     return view('sales.sales_histories.index');
+// });
 Route::get('/purchases_retur', function () {
     return view('purchases.purchases_retur.index');
 });

@@ -40,4 +40,9 @@ class MasterProduk extends Model
     {
         return $this->hasMany(PenjualanDetail::class, 'master_produk_id');
     }
+
+    public function returPenjualanDetail()
+    {
+        return $this->hasMany(ReturPenjualanDetail::class, 'master_produk_id');
+    }
 }

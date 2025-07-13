@@ -12,6 +12,7 @@ use App\Models\PenjualanDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\HistoriHargaPenjualan;
 
 
 class PenjualanController extends Controller
@@ -132,10 +133,37 @@ class PenjualanController extends Controller
             'diskon'            => $diskon,
             'subtotal'          => $sub,
         ]);
+        foreach ($request->produk_id as $i => $produkId) {
+            $hargaTransaksi = $request->harga_jual[$i];
 
+            $produk = MasterProduk::find($produkId);
+            if ($produk) {
+                HistoriHargaPenjualan::create([
+                    'produk_id' => $produkId,
+                    'pelanggan_id' => $penjualan->pelanggan_id,
+                    'harga_lama' => $produk->harga_jual,
+                    'harga_baru' => $hargaTransaksi,
+                    'sumber' => 'penjualan',
+                    'tanggal' => $penjualan->tanggal,
+                    'keterangan' => 'Transaksi ke pelanggan ' . $penjualan->pelanggan->nama,
+                ]);
+            }
+        }
+        // foreach ($penjualan->detail as $detail) {
+        //     HistoriHargaPenjualan::create([
+        //         'produk_id' => $detail->master_produk_id,
+        //         'pelanggan_id' => $penjualan->pelanggan_id,
+        //         'sumber' => 'penjualan',
+        //         'harga_lama' => $penjualan->produk->harga_jual,
+        //         'harga_baru' => $detail->harga_jual,
+        //         'tanggal' => $penjualan->tanggal,
+        //         'keterangan' => 'Harga jual ke pelanggan ' . $penjualan->pelanggan->nama,
+        //     ]);
+        // }
         // Kurangi stok
         $produk->decrement('stok', $qty);
     }
+
 
     return redirect()->route('penjualan.index')->with('success', 'Transaksi penjualan berhasil disimpan.');
 

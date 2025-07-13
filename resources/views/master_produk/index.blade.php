@@ -74,14 +74,11 @@
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
-                                                    <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-info"
+                                                    <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-sm btn-info"
                                                         type="button"><i class="fa fa-edit"></i> </a>
-                                                    <form action="{{ url('/master_produk/'.$row->id) }}" method="POST" style="display:inline">
-                                                        @csrf @method('delete')
-                                                        <button type="submit" onclick="return confirm('Yakin ingin hapus?')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></button>
-                                                    </form>
-                                                    {{-- <a href="{{ url('/delete') }}" class="btn btn-danger "type="button"><i class="fa fa-trash"></i> </a> --}}
-                                        
+                                                    <button class="btn btn-danger btn-sm btn-delete" data-id="{{ $row->id }}" data-nama="{{ $row->nama_produk }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>                                        
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -94,10 +91,11 @@
                     </div>
                 </div>
             </div>
+
         </section>
         <!-- /.content -->
     </div>
-    <!-- /.content-wrapper -->
+  
     <footer class="main-footer">
         <strong>Copyright &copy; 2024-2025 <a href="#">CV.Bintang Empat</a>.</strong>
         All rights reserved.
@@ -112,5 +110,53 @@
     </aside>
     <!-- /.control-sidebar -->
     </div>
-    <!-- ./wrapper -->
+{{-- script delete --}}
+<script>
+  $(document).on('click', '.btn-delete', function (e) {
+    e.preventDefault();
+
+    let id = $(this).data('id');
+    let nama = $(this).data('nama');
+
+    Swal.fire({
+      title: 'Yakin ingin hapus?',
+      text: `Produk "${nama}" akan dihapus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/master_produk/${id}`,
+          type: 'DELETE',
+          data: {
+            _token: '{{ csrf_token() }}'
+          },
+          success: function (res) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: res.message,
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              location.reload();
+            });
+          },
+          error: function (xhr) {
+            let res = xhr.responseJSON;
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: res.message || 'Terjadi kesalahan.',
+            });
+          }
+        });
+      }
+    });
+  });
+</script>
 @endsection
