@@ -54,9 +54,9 @@
                   <td>{{ $retur->penjualan->pelanggan->nama ?? '-' }}</td>
                   <td>Rp {{ number_format($retur->total, 0, ',', '.') }}</td>
                   <td>
-                    {{-- <a href="{{ route('retur-penjualan.show', $retur->id) }}" class="btn btn-sm btn-info">
+                    <a href="{{ route('retur-penjualan.show', $retur->id) }}" class="btn btn-sm btn-info">
                       <i class="fas fa-eye"></i>
-                    </a> --}}
+                    </a>
                     <form action="{{ route('retur-penjualan.destroy', $retur->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus retur ini?')">
                       @csrf
                       @method('DELETE')

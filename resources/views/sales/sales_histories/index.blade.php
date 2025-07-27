@@ -53,13 +53,19 @@
               </select>
             </div>
             <div class="form-group mr-2">
+                <input type="text" name="pelanggan" class="form-control" placeholder="Nama Pelanggan" value="{{ request('pelanggan') }}">
+            </div>
+            {{-- <div class="form-group mr-2">
               <select name="sumber" class="form-control">
                 <option value="">-- Semua Sumber --</option>
                 <option value="produk" {{ request('sumber') == 'produk' ? 'selected' : '' }}>Master Produk</option>
                 <option value="penjualan" {{ request('sumber') == 'penjualan' ? 'selected' : '' }}>Penjualan</option>
               </select>
-            </div>
+            </div> --}}
             <button type="submit" class="btn btn-primary">Filter</button>
+            <div class="col-md-2">
+            <a href="{{ route('histori-harga.index') }}" class="btn btn-secondary">Reset</a>
+          </div>
           </form>
         </div>
 
@@ -72,9 +78,10 @@
                 <th>Produk</th>
                 <th>Harga Lama</th>
                 <th>Harga Baru</th>
-                <th>Sumber</th>
-                <th>Keterangan</th>
-                <th>Tanggal</th>
+                {{-- <th>Sumber</th> --}}
+                {{-- <th>Keterangan</th> --}}
+                <th>Pelanggan</th>
+                <th>Waktu</th>
               </tr>
             </thead>
             <tbody>
@@ -85,7 +92,7 @@
                   <td>{{ $row->produk->nama_produk ?? '-' }}</td>
                   <td>Rp {{ number_format($row->harga_lama, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format($row->harga_baru, 0, ',', '.') }}</td>
-                  <td>
+                  {{-- <td>
                     @if($row->sumber == 'produk')
                       <span class="badge badge-info">Master Produk</span>
                     @elseif($row->sumber == 'penjualan')
@@ -93,9 +100,10 @@
                     @else
                       <span class="badge badge-secondary">{{ $row->sumber }}</span>
                     @endif
-                  </td>
-                  <td>{{ $row->keterangan ?? '-' }}</td>
-                  <td>{{ $row->created_at->format('d-m-Y H:i') }}</td>
+                  </td> --}}
+                  {{-- <td>{{ $row->keterangan ?? '-' }}</td> --}}
+                  <td>{{ $row->pelanggan->nama ?? '-' }}</td>
+                  <td>{{ $row->created_at->setTimezone('Asia/Jakarta')->format(' H:i') }}</td>
                 </tr>
               @empty
                 <tr>

@@ -49,7 +49,7 @@
                                     <td>{{ $item->kode_kategori }}</td>
                                     <td>{{ $item->nama_kategori }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info" onclick="editKategori({{ $item }})">Edit</button>
+                                        {{-- <button class="btn btn-sm btn-info" onclick="editKategori({{ $item }})">Edit</button> --}}
                                         <button class="btn btn-danger btn-sm" type="button" onclick="konfirmasiHapus({{ $item->id }}, '{{ $item->nama_kategori }}')"><i class="fa fa-trash"></i> </button>
                                     </td>
                                 </tr>

@@ -74,8 +74,8 @@
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
-                                                    <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-sm btn-info"
-                                                        type="button"><i class="fa fa-edit"></i> </a>
+                                                    {{-- <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="btn btn-sm btn-info"
+                                                        type="button"><i class="fa fa-edit"></i> </a> --}}
                                                     <button class="btn btn-danger btn-sm btn-delete" data-id="{{ $row->id }}" data-nama="{{ $row->nama_produk }}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>                                        

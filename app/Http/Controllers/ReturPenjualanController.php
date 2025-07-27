@@ -23,6 +23,9 @@ class ReturPenjualanController extends Controller
     public function create()
     {
         $penjualans = Penjualan::with('pelanggan')->latest()->get();
+        // $lastId = ReturPenjualan::where('tanggal_retur',now()->format('Y-m-d'))->count();
+        // $no_retur = 'RTJ-' . date('Ymd') . '/' . str_pad($lastId + 1, 2, '0', STR_PAD_LEFT);
+        // $tanggal_retur = now()->format('Y-m-d');
         return view('sales.sales_retur.create', compact('penjualans'));
     }
 
@@ -40,15 +43,19 @@ class ReturPenjualanController extends Controller
             'qty_retur.*' => 'nullable|integer|min:0'
         ]);
 
+        $last = ReturPenjualan::orderBy('id', 'desc')->first();
+        $nextId = $last ? $last->id + 1 : 1;
+        $noRetur = 'RT-' . date('Ymd') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
         DB::beginTransaction();
         try {
             $retur = ReturPenjualan::create([
+                'no_retur' => $noRetur,
                 'penjualan_id' => $request->penjualan_id,
                 'tanggal_retur' => $request->tanggal_retur,
                 'alasan' => $request->alasan,
                 'total' => 0,
-                'created_by' => 1,
+                'created_by' => Auth::id(),
             ]);
 
             $total = 0;
@@ -106,5 +113,11 @@ class ReturPenjualanController extends Controller
         $retur->delete();
 
         return redirect()->route('retur-penjualan.index')->with('success', 'Retur penjualan berhasil dihapus.');
+    }
+
+    public function show($id)
+    {
+        $retur = ReturPenjualan::with(['penjualan.pelanggan', 'details.produk'])->findOrFail($id);
+        return view('sales.sales_retur.show', compact('retur'));
     }
 }

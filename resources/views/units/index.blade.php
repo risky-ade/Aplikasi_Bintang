@@ -53,9 +53,9 @@
                                         <td>{{ $satuan->keterangan_satuan }}</td>
                                         <td>
                                             <!-- Edit -->
-                                            <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalEdit{{ $satuan->id }}">
+                                            {{-- <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalEdit{{ $satuan->id }}">
                                             <i class="fas fa-edit"></i>
-                                            </button>
+                                            </button> --}}
 
                                             <!-- Hapus -->
                                             <button class="btn btn-danger btn-sm" type="button" onclick="konfirmasiHapus({{ $satuan->id }}, '{{ $satuan->jenis_satuan }}')"><i class="fa fa-trash"></i> </button>

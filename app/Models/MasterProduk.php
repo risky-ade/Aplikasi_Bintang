@@ -43,6 +43,6 @@ class MasterProduk extends Model
 
     public function returPenjualanDetail()
     {
-        return $this->hasMany(ReturPenjualanDetail::class, 'master_produk_id');
+        return $this->hasMany(ReturPenjualanDetail::class, 'produk_id');
     }
 }

@@ -8,7 +8,7 @@ class ReturPenjualan extends Model
 {
     protected $table = 'retur_penjualan';
     protected $fillable = [
-        'penjualan_id', 'tanggal_retur', 'alasan', 'total', 'created_by'
+        'no_retur','penjualan_id', 'tanggal_retur', 'alasan', 'total', 'created_by'
     ];
 
     public function penjualan()

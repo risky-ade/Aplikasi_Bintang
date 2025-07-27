@@ -17,7 +17,7 @@ class HistoriHargaPenjualanController extends Controller
             'produk_id' => 'nullable|exists:master_produk,id',
             'sumber' => 'nullable|in:produk,penjualan'
         ]);
-        $query = HistoriHargaPenjualan::with('produk');
+        $query = HistoriHargaPenjualan::with('produk','pelanggan');
 
         // Filter produk
         if ($request->filled('produk_id')) {
@@ -28,7 +28,11 @@ class HistoriHargaPenjualanController extends Controller
         if ($request->filled('sumber')) {
             $query->where('sumber', $request->sumber);
         }
-
+        if ($request->filled('pelanggan')) {
+            $query->whereHas('pelanggan', function ($q) use ($request) {
+                $q->where('nama', 'like', '%' . $request->pelanggan . '%');
+            });
+        }
         // Filter tanggal
         if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
             $query->whereBetween('tanggal', [$request->tanggal_awal, $request->tanggal_akhir]);

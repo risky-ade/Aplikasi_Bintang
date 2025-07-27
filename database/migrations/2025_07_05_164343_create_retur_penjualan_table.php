@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('retur_penjualan', function (Blueprint $table) {
             $table->id();
+            $table->string('no_retur')->unique();
             $table->unsignedBigInteger('penjualan_id');
             $table->date('tanggal_retur');
             $table->text('alasan')->nullable();

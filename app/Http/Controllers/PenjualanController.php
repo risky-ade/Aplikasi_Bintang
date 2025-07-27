@@ -73,7 +73,7 @@ class PenjualanController extends Controller
         'status_pembayaran' => 'required|in:Belum Lunas,Lunas',
     ]);
         // $test =Auth::id();
-        // dd($test);
+        // dd(now());
         
     $subtotal = 0;
     $totalDiskon = 0;
@@ -133,6 +133,7 @@ class PenjualanController extends Controller
             'diskon'            => $diskon,
             'subtotal'          => $sub,
         ]);
+        
         foreach ($request->produk_id as $i => $produkId) {
             $hargaTransaksi = $request->harga_jual[$i];
 
@@ -149,17 +150,6 @@ class PenjualanController extends Controller
                 ]);
             }
         }
-        // foreach ($penjualan->detail as $detail) {
-        //     HistoriHargaPenjualan::create([
-        //         'produk_id' => $detail->master_produk_id,
-        //         'pelanggan_id' => $penjualan->pelanggan_id,
-        //         'sumber' => 'penjualan',
-        //         'harga_lama' => $penjualan->produk->harga_jual,
-        //         'harga_baru' => $detail->harga_jual,
-        //         'tanggal' => $penjualan->tanggal,
-        //         'keterangan' => 'Harga jual ke pelanggan ' . $penjualan->pelanggan->nama,
-        //     ]);
-        // }
         // Kurangi stok
         $produk->decrement('stok', $qty);
     }
@@ -188,7 +178,7 @@ class PenjualanController extends Controller
             return redirect()->route('penjualan.index')
                 ->with('error', 'Faktur tidak dapat diedit karena memiliki retur penjualan.');
         }
-        // $isReturExists = ReturPenjualan::where('penjualan_id', $penjualan->id)->exists();
+        $isReturExists = ReturPenjualan::where('penjualan_id', $penjualan->id)->exists();
         $produk = MasterProduk::all();
 
         return view('sales.sales_invoices.edit', compact('penjualan', 'pelanggan','isReturExists'));

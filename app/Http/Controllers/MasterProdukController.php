@@ -146,7 +146,7 @@ class MasterProdukController extends Controller
     {
         $produk = MasterProduk::findOrFail($id);
 
-       if ($produk->penjualanDetail()->exists() || $produk->returPenjualanDetail()->exists()) {
+        if ($produk->penjualanDetail()->exists() || $produk->returPenjualanDetail()->exists()) {
             return response()->json([
                 'message' => 'Produk tidak dapat dihapus karena sudah digunakan dalam transaksi.'
             ], 400);
