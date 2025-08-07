@@ -27,13 +27,6 @@
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->
-  <footer class="main-footer">
-    <strong>Copyright &copy; 2024-2025 <a href="#">CV.Bintang Empat</a>.</strong>
-    All rights reserved.
-    <div class="float-right d-none d-sm-inline-block">
-      <b>Version</b> 1.0
-    </div>
-  </footer>
 
   <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">
@@ -43,3 +36,9 @@
 </div>
 <!-- ./wrapper -->
 @endsection
+
+
+{{-- ✅ 5. Filter Faktur Batal dari Laporan (Opsional)
+Jika kamu punya laporan, pastikan hanya mengambil status = 'aktif':
+
+Penjualan::where('status', 'aktif')->get(); --}}

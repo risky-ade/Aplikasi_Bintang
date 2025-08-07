@@ -113,25 +113,10 @@
     </section>
     <!-- /.content -->
   </div>
-  <!-- /.content-wrapper -->
-  <footer class="main-footer">
-    <strong>Copyright &copy; 2024-2025 <a href="#">CV.Bintang Empat</a>.</strong>
-    All rights reserved.
-    <div class="float-right d-none d-sm-inline-block">
-      <b>Version</b> 1.0
-    </div>
-  </footer>
-
-  <!-- Control Sidebar -->
-  <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
 </div>
 <!-- ./wrapper -->
 
-<!-- SweetAlert & Modal Logic -->
-{{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
+
 <script>
 function showCreateModal() {
     $('#kategoriForm')[0].reset();

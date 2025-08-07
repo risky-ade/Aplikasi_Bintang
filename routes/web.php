@@ -60,6 +60,8 @@ Route::delete('sales/sales_invoices/{id}', [PenjualanController::class, 'destroy
 Route::get('sales/sales_invoices/{id}/print-pdf', [PenjualanController::class, 'printPdf'])->name('penjualan.print-pdf')->middleware('auth');
 Route::put('sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve')->middleware('auth');
 Route::put('sales/sales_invoices/{id}/unapprove', [PenjualanController::class, 'unapprove'])->name('penjualan.unapprove')->middleware('auth');
+Route::put('sales/sales_invoices/{id}/batal', [PenjualanController::class, 'batal'])->name('penjualan.batal')->middleware('auth');
+// Route::post('sales/sales_invoices/{id}/cancel-approve', [PenjualanController::class, 'cancelApprove'])->name('penjualan.cancelApprove')->middleware('auth');
 // Route::patch('/sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve');
 Route::prefix('sales')->group(function () {
     Route::get('sales_retur', [ReturPenjualanController::class, 'index'])->name('retur-penjualan.index')->middleware('auth');

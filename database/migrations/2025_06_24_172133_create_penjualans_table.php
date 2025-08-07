@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignId('pelanggan_id')->constrained('pelanggan')->onDelete('cascade');
             $table->decimal('total', 15, 2);
             $table->enum('status_pembayaran', ['Belum Lunas', 'Lunas'])->default('Belum Lunas');
+            $table->timestamp('approved_at')->nullable();
+            $table->enum('status', ['aktif', 'batal'])->default('aktif');
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

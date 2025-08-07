@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Penjualan extends Model
 {
+    const STATUS_AKTIF = 'aktif';
+    const STATUS_BATAL = 'batal';
     protected $table = 'penjualan';
-
+    protected $casts = ['approved_at'=>'datetime',];
     protected $fillable = [
         'no_faktur',
         'no_po',
@@ -20,6 +22,8 @@ class Penjualan extends Model
         'total',
         'jatuh_tempo',
         'status_pembayaran',
+        'approved_at',
+        'status',
         'created_by',
     ];
 

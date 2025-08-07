@@ -138,7 +138,7 @@ class MasterProdukController extends Controller
         $masterProduk->update($data);
         return redirect('/master_produk')->with('success', 'Produk berhasil diperbarui');
     }
-
+ 
     /**
      * Remove the specified resource from storage.
      */

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('master_produk', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_produk');
+            $table->string('nama_produk')->unique();
             $table->foreignId('kategori_id');
             $table->foreignId('satuan_id');
             $table->text('deskripsi')->nullable();
