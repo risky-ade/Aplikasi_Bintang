@@ -44,12 +44,6 @@
 </style>
     <!-- Main content -->
 <section class="content">
-        @if (session('error'))
-            <div class="alert alert-success alert-dismissible fade show">
-                {{ session('error') }}
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-            </div>
-        @endif
 
     {{-- <div class="content-wrapper"> --}}
         <form action="{{ route('penjualan.store') }}" method="POST">
@@ -185,11 +179,7 @@
   </div>
 
 
-  <!-- Control Sidebar -->
-  <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
+
 
 <script>
     function initSelect2() {

@@ -23,6 +23,12 @@
 <!-- Theme style -->
 {{-- <link rel="stylesheet" href="{{ asset('template/dist/css/adminlte.min.css') }}"> --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+
+<!-- DataTables Bootstrap 4 CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css">
+{{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.dataTables.css"> --}}
+{{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.css"> --}}
+{{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap4.css"> --}}
 <!-- SweetAlert2 -->
 <link rel="stylesheet" href="{{ asset('css/sweetalert2.min.css') }}">
 <!-- Toastr -->
@@ -37,7 +43,7 @@
     }
 
     .select2-selection--single {
-        height: 38px !important; /* sesuai tinggi form-control Bootstrap */
+        height: 38px !important; 
     }
 
     .select2-selection__rendered {
@@ -70,7 +76,12 @@
 
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{{ asset('js/jquery.min.js') }}"></script>
+{{-- <script src="{{ asset('js/jquery.min.js') }}"></script> --}}
+{{-- <script src="{{ asset('js/jquery.dataTables.min.js') }}"></script> --}}
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<!-- DataTables Bootstrap 4 JS -->
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
 <script src="{{ asset('js/Chart.min.js') }}"></script>
 <script src="{{ asset('js/jquery.overlayScrollbars.min.js') }}"></script>
 <!-- Select2 -->

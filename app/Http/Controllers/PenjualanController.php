@@ -19,6 +19,10 @@ class PenjualanController extends Controller
 {
     public function index(Request $request)
     {
+         $request->validate([
+            'tanggal_awal' => 'nullable|date',
+            'tanggal_akhir' => 'nullable|date|after_or_equal:tanggal_awal',
+        ]);
         $query = Penjualan::with('pelanggan');
 
     if ($request->filled('no_faktur')) {
@@ -29,8 +33,16 @@ class PenjualanController extends Controller
         $query->where('no_po', 'like', '%' . $request->no_po . '%');
     }
 
-    if ($request->filled('tanggal')) {
-        $query->whereDate('tanggal', $request->tanggal);
+    // if ($request->filled('tanggal')) {
+    //     $query->whereDate('tanggal', $request->tanggal);
+    // }
+    // Filter tanggal
+    if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
+        $query->whereBetween('tanggal', [$request->tanggal_awal, $request->tanggal_akhir]);
+    } elseif ($request->filled('tanggal_awal')) {
+        $query->whereDate('tanggal', '>=', $request->tanggal_awal);
+    } elseif ($request->filled('tanggal_akhir')) {
+        $query->whereDate('tanggal', '<=', $request->tanggal_akhir);
     }
 
     if ($request->filled('pelanggan')) {
@@ -119,7 +131,7 @@ class PenjualanController extends Controller
         // Validasi stok
         $produk = MasterProduk::find($produk_id);
         if ($produk->stok < $qty) {
-            return back()->with('error', 'Stok produk "' . $produk->nama_produk . '" tidak mencukupi. Tersedia: ' . $produk->stok);
+            return back()->with('error', 'Stok produk ' . $produk->nama_produk . ' tidak mencukupi. Tersedia: ' . $produk->stok);
         }
 
         // Simpan detail
@@ -371,8 +383,6 @@ class PenjualanController extends Controller
         }
         // Hitung selisih menit sejak approved
         $selisihMenit = $penjualan->approved_at->diffInMinutes(now());
-
-        // Batas maksimal 1 menit
         $batasMenit = 60 * 24;
 
         if ($selisihMenit > $batasMenit) {

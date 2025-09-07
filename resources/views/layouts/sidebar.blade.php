@@ -140,7 +140,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="/sales_report" class="nav-link">
+                            <a href="/reports/sales_report" class="nav-link">
                                 <i class="nav-icon fas fa-clipboard-list"></i>
                                 <p>Laporan Penjualan</p>
                             </a>

@@ -50,7 +50,7 @@
                   <div class="dropdown-divider"></div>
                   <a href="{{ route('master_produk.index') }}" class="dropdown-item">
                       <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
-                      Stok "{{ $produk->nama_produk }}" hanya {{ $produk->stok }}
+                      Stok "{{ $produk->nama_produk }}" tersisa {{ $produk->stok }}
                   </a>
               @endforeach
 

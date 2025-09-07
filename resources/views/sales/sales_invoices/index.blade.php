@@ -54,12 +54,16 @@
                   <input type="text" name="no_po" class="form-control" placeholder="No PO" value="{{ request('no_po') }}">
                 </div>
                 <div class="col-md-2">
-                  <input type="date" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
+                  <input type="date" name="tanggal_awal" class="form-control" value="{{ request('tanggal_awal') }}">
+                </div>
+                <p class="md-2">s/d</p>
+                <div class="col-md-2">
+                  <input type="date" name="tanggal_akhir" class="form-control" value="{{ request('tanggal_akhir') }}">
                 </div>
                 <div class="col-md-2">
                   <input type="text" name="pelanggan" class="form-control" placeholder="Nama Pelanggan" value="{{ request('pelanggan') }}">
                 </div>
-                <div class="col-md-2">
+                <div class=" col-sm-2">
                   <select name="status_pembayaran" class="form-control">
                     <option value="">-- Status --</option>
                     <option value="Lunas" {{ request('status_pembayaran') == 'Lunas' ? 'selected' : '' }}>Lunas</option>
@@ -72,8 +76,8 @@
                 </div>
               </div>
             </form>
-              <table id="example2" class="table table-bordered table-striped">
-                <thead>
+              <table id="FakturTable" class="table table-bordered table-striped">
+                <thead class="bg-secondary text-white">
                     <tr>
                         <th>NO</th>
                         <th>No Faktur</th>
@@ -82,7 +86,7 @@
                         <th>Pelanggan</th>
                         <th>Total</th>
                         <th>Status Pembayaran</th>
-                        <th>Status</th>
+                        {{-- <th>Status</th> --}}
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -102,13 +106,13 @@
                                   <span class="badge badge-warning">Belum Lunas</span>
                               @endif
                           </td>
-                          <td>
+                          {{-- <td>
                           @if ($jual->status == 'aktif')
                             <span class="badge badge-success">Aktif</span>
                           @else
                             <span class="badge badge-danger">Dibatalkan</span>
                           @endif
-                        </td>
+                        </td> --}}
                           <td>
                             {{-- <a href="{{ route('penjualan.edit',$jual->id) }}" class="btn btn-info btn-sm"
                                       type="button"><i class="fa fa-edit"></i> 
@@ -116,9 +120,9 @@
                               <a href="{{ route('penjualan.show', $jual->id) }}" class="btn btn-info btn-sm">
                                   <i class="fa fa-eye"></i>
                               </a>
-                              <a href="{{ route('penjualan.print', $jual->id) }}" class="btn btn-secondary btn-sm" target="_blank">
+                              {{-- <a href="{{ route('penjualan.print', $jual->id) }}" class="btn btn-secondary btn-sm" target="_blank">
                                   <i class="fa fa-print"></i>
-                              </a>
+                              </a> --}}
                               <a href="{{ route('sales.sales_invoices.surat-jalan', $jual->id) }}" class="btn btn-sm btn-secondary">
                                 <i class="fas fa-file-alt"></i>
                               </a>
@@ -188,7 +192,7 @@
                                 <form action="{{ route('penjualan.batal', $jual->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan faktur ini?')" style="display:inline;">
                                   @csrf
                                   @method('PUT')
-                                  <button class="btn btn-warning btn-sm"><i class="fas fa-times-circle"></i> Batal</button>
+                                  <button class="btn btn-danger btn-sm"><i class="fas fa-times-circle"></i></button>
                                 </form>
                               @endif
 
@@ -222,16 +226,31 @@
                 </tbody>
               </table>
             </div>
-              <!-- /.card-body -->
           </div>
-              <!-- /.card -->
         </div>
     </div>
   </div>
 </section>
-
-  <!-- /.content -->
 </div>
 </div>
-
+<script>
+  $(document).ready(function() {
+    $('#FakturTable').DataTable({
+      "pageLength": 10,
+      "lengthMenu": [10, 15, 25, 50, 100],
+      "language": {
+        "search": "Cari:",
+        "lengthMenu": "Tampilkan _MENU_ baris per halaman",
+        "zeroRecords": "Data tidak ditemukan",
+        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        "infoEmpty": "Tidak ada data",
+        "infoFiltered": "(disaring dari total _MAX_ data)",
+        "paginate": {
+          "next": "Berikutnya",
+          "previous": "Sebelumnya"
+        }
+      },
+    });
+  });
+</script>
 @endsection

@@ -35,6 +35,30 @@ class ReturPenjualanController extends Controller
         return response()->json($penjualan);
     }
 
+    public function searchFaktur(Request $request)
+    {
+        $search = $request->input('q');
+
+        $results = Penjualan::with('pelanggan')
+            ->where(function($query) use ($search) {
+                $query->where('no_faktur', 'like', "%{$search}%")
+                    ->orWhereHas('pelanggan', function($q) use ($search) {
+                        $q->where('nama', 'like', "%{$search}%");
+                    });
+            })
+            ->limit(20)
+            ->get();
+
+        $formatted = $results->map(function($penjualan) {
+            return [
+                'id' => $penjualan->id,
+                'text' => "{$penjualan->no_faktur} - {$penjualan->pelanggan->nama}"
+            ];
+        });
+
+        return response()->json($formatted);
+    }
+
     public function store(Request $request)
     {
         $request->validate([

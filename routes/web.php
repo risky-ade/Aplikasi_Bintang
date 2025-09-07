@@ -8,6 +8,7 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\ReturPenjualanController;
+use App\Http\Controllers\LaporanPenjualanController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
 
 
@@ -71,6 +72,7 @@ Route::prefix('sales')->group(function () {
     Route::delete('sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy')->middleware('auth');
     Route::get('sales_retur/{id}', [ReturPenjualanController::class, 'show'])->name('retur-penjualan.show')->middleware('auth');
 });
+Route::get('/ajax/faktur-search', [ReturPenjualanController::class, 'searchFaktur'])->name('ajax.faktur-search')->middleware('auth');
     
 Route::get('/sales/sales_histories', [HistoriHargaPenjualanController::class, 'index'])->middleware('auth')->name('histori-harga.index');
 
@@ -104,9 +106,11 @@ Route::resource('/units',SatuanController::class)->middleware('auth');
 // Route::delete('/units/{id}', [SatuanController::class, 'destroy'])->name('units.destroy')->middleware('auth');
 
 
-Route::get('/sales_report', function () {
-    return view('reports.sales_report');
-});
+// Route::get('/sales_report', function () {
+//     return view('reports.sales_report');
+// });
+Route::get('/reports/sales_report', [LaporanPenjualanController::class, 'index'])->name('sales_report.index')->middleware('auth');
+Route::get('/reports/sales_pdf', [LaporanPenjualanController::class, 'pdf'])->name('sales_report.sales_pdf')->middleware('auth');
 Route::get('/purchases_report', function () {
     return view('reports.purchases_report');
 });
