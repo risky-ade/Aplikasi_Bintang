@@ -112,7 +112,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="/purchases_receive" class="nav-link">
+                            <a href="/purchases/purchase_inv" class="nav-link">
                                 <i class="nav-icon fas fa-clipboard-list"></i>
                                 <p>Faktur Pembelian</p>
                             </a>

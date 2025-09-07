@@ -33,22 +33,21 @@
 
 <body>
 <div style="width: 100%; margin-bottom: 20px;">
-    <h2 style="text-align: center">SALES INVOICE</h2>
+    <h2 style="text-align: center">PURCHASE INVOICE</h2>
     <table style="width: 100%;">
         <tr>
             <td style="width: 60%;">
-                <strong>No Faktur:</strong> {{ $penjualan->no_faktur }}<br>
-                <strong>Tanggal:</strong> {{ $penjualan->tanggal }}<br>
-                <strong>Jatuh Tempo:</strong> {{ $penjualan->jatuh_tempo }}<br>
-                <strong>No PO:</strong> {{ $penjualan->no_po }}<br>
+                <strong>No Faktur:</strong> {{ $pembelian->no_faktur }}<br>
+                <strong>Tanggal:</strong> {{ $pembelian->tanggal }}<br>
+                <strong>No PO:</strong> {{ $pembelian->no_po }}<br>
             </td>
             <td style="width: 60%;">
                 <table class="summary-box" style="width: 100%;">
                     <tr>
-                        <td><strong>Pelanggan:</strong>
-                        {{ $penjualan->pelanggan->nama }}<br>
+                        <td><strong>Pemasok:</strong>
+                        {{ $pembelian->pemasok->nama }}<br>
                         <strong>Alamat:</strong><br>
-                        {{ $penjualan->pelanggan->alamat }}
+                        {{ $pembelian->pemasok->alamat }}
                         </td>
                     </tr>
                 </table>
@@ -69,7 +68,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($penjualan->detail as $i => $item)
+        @foreach($pembelian->detail as $i => $item)
         <tr>
             <td>{{ $i + 1 }}</td>
             <td>{{ $item->produk->nama_produk }}</td>
@@ -87,28 +86,28 @@
         <tr>
             <td style="width: 50%; vertical-align: top;">
                 <p><strong>Terbilang:</strong></p>
-                <p><em>{{ terbilang($penjualan->total) }} rupiah</em></p>
+                <p><em>{{ terbilang($pembelian->total) }} rupiah</em></p>
                 
-                <p><strong>Rekening Pembayaran:</strong></p>
-                <p>Bank BCA: 123-456-789 a.n. CV. Bintang Empat</p>
+                {{-- <p><strong>Rekening Pembayaran:</strong></p>
+                <p>Bank BCA: 123-456-789 a.n. CV. Bintang Empat</p> --}}
             </td>
             <td style="width: 30%;">
                 <table class="summary-box" style="width: 100%;">
                     <tr>
                         <td><strong>Subtotal</strong></td>
-                        <td style="text-align: right;">@rupiah($penjualan->detail->sum('subtotal'))</td>
+                        <td style="text-align: right;">@rupiah($pembelian->detail->sum('subtotal'))</td>
                     </tr>
                     <tr>
-                        <td><strong>PPN ({{ $penjualan->pajak }}%)</strong></td>
-                        <td style="text-align: right;">@rupiah(($penjualan->pajak/100)*$penjualan->detail->sum('subtotal'))</td>
+                        <td><strong>PPN ({{ $pembelian->pajak }}%)</strong></td>
+                        <td style="text-align: right;">@rupiah(($pembelian->pajak/100)*$pembelian->detail->sum('subtotal'))</td>
                     </tr>
                     <tr>
                         <td><strong>Biaya Kirim</strong></td>
-                        <td style="text-align: right;">@rupiah($penjualan->biaya_kirim)</td>
+                        <td style="text-align: right;">@rupiah($pembelian->biaya_kirim)</td>
                     </tr>
                     <tr>
                         <td><strong>Total</strong></td>
-                        <td style="text-align: right;">@rupiah($penjualan->total)</td>
+                        <td style="text-align: right;">@rupiah($pembelian->total)</td>
                     </tr>
                 </table>
             </td>

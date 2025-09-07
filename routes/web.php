@@ -4,7 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SatuanController;
 
+use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\ReturPenjualanController;
@@ -30,20 +33,7 @@ Route::get('/dashboard', function () {
 
 Route::get('/master_produk/search', [MasterProdukController::class, 'search'])->name('produk.search')->middleware('auth');
 Route::resource('/master_produk', MasterProdukController::class)->middleware('auth');
-// Route::get('/master_produk', [MasterProdukController::class,'index'])->middleware('auth');
-// Route::get('/master_produk', [MasterProdukController::class,'create'])->middleware('auth');
-// Route::get('/master_produk', [MasterProdukController::class,'edit'])->middleware('auth');
 
-// Route::resource('/products', ProdukController::class)->middleware('auth');
-// Route::get('/products', [ProdukController::class, 'getProduk'])->name('getProduk')->middleware('auth');
-// Route::get('/products', [ProdukController::class, 'create'])->middleware('auth');
-// Route::put('/edit-produk', [ProdukController::class, 'update'])->middleware('auth');
-
-
-
-// Route::get('/sales_invoice', function () {
-//     // return view('sales.sales_invoices.index');
-// });
 
 
 Route::get('/sales/sales_invoices/{id}/surat-jalan', [PenjualanController::class, 'suratJalan'])->name('sales.sales_invoices.surat-jalan')->middleware('auth');
@@ -76,18 +66,23 @@ Route::get('/ajax/faktur-search', [ReturPenjualanController::class, 'searchFaktu
     
 Route::get('/sales/sales_histories', [HistoriHargaPenjualanController::class, 'index'])->middleware('auth')->name('histori-harga.index');
 
-// Route::get('/sales_retur', function () {
-//     return view('sales.sales_retur.index');
-// });
-// Route::get('/sales_histories', function () {
-//     return view('sales.sales_histories.index');
-// });
+Route::prefix('purchases')->group(function () {
+    Route::get('purchase_inv', [PembelianController::class,'index'])->name('pembelian.index')->middleware('auth');
+    Route::get('purchase_inv/create', [PembelianController::class,'create'])->name('pembelian.create')->middleware('auth');
+    Route::post('purchase_inv/store', [PembelianController::class,'store'])->name('pembelian.store')->middleware('auth');
+    Route::get('purchase_inv/{id}', [PembelianController::class,'show'])->name('pembelian.show')->middleware('auth');
+    Route::get('purchase_inv/{id}/print', [PembelianController::class,'print'])->name('pembelian.print')->middleware('auth');
+    Route::get('purchase_inv/{id}/edit', [PembelianController::class,'edit'])->name('pembelian.edit')->middleware('auth');
+    Route::put('purchase_inv/{id}', [PembelianController::class,'update'])->name('pembelian.update')->middleware('auth');
+    
+    // Route::get('purchase_invoices/{id}/print', [PembelianController::class, 'print'])->name('purchase_invoices.print');
+    // Route::put('purchase_invoices/{id}/approve', [PembelianController::class, 'approve'])->name('purchase_invoices.approve');
+    // Route::put('purchase_invoices/{id}/unapprove', [PembelianController::class, 'unapprove'])->name('purchase_invoices.unapprove');
+});
 Route::get('/purchases_retur', function () {
     return view('purchases.purchases_retur.index');
 });
-Route::get('/purchases_invoice', function () {
-    return view('purchases.purchases_invoices.index');
-});
+
 Route::get('/purchases_histories', function () {
     return view('purchases.purchases_histories.index');
 });
@@ -114,12 +109,13 @@ Route::get('/reports/sales_pdf', [LaporanPenjualanController::class, 'pdf'])->na
 Route::get('/purchases_report', function () {
     return view('reports.purchases_report');
 });
-Route::get('/customers', function () {
-    return view('customers.index');
-});
-Route::get('/suppliers', function () {
-    return view('suppliers.suppliers');
-});
+
+Route::resource('customers', PelangganController::class)->middleware('auth');
+// Route::get('/customers', function () {
+    //     return view('customers.index');
+    // });
+Route::resource('suppliers', PemasokController::class)->middleware('auth');
+
 Route::get('/users', function () {
     return view('users.index');
 });

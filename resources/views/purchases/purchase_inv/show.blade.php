@@ -9,41 +9,39 @@
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1 class="m-0">Detail Faktur Penjualan</h1>
+          <h1 class="m-0">Detail Faktur Pembelian</h1>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
-            <li class="breadcrumb-item"><a href="{{ route('penjualan.index') }}">Penjualan</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('pembelian.index') }}">Pembelian</a></li>
             <li class="breadcrumb-item active">Detail Faktur</li>
           </ol>
         </div>
       </div>
     </div>
   </div>
-
-<section class="content">
-  <div class="container-fluid">
+  <section class="content">
+      <div class="container-fluid">
     <div class="card">
       <div class="card-body">
-        <h5><strong>Informasi Penjualan</strong></h5>
+        <h5><strong>Informasi Pembelian</strong></h5>
         <div class="row">
           <div class="col-md-4">
-            <p><strong>No Faktur:</strong> {{ $penjualan->no_faktur }}</p>
-            <p><strong>Tanggal:</strong> {{ $penjualan->tanggal }}</p>
+            <p><strong>No Faktur:</strong> {{ $pembelian->no_faktur }}</p>
+            <p><strong>Tanggal:</strong> {{ $pembelian->tanggal}}</p>
             <p><strong>Status:</strong> 
-              <span class="badge {{ $penjualan->status_pembayaran == 'Lunas' ? 'badge-success' : 'badge-warning' }}">
-                {{ $penjualan->status_pembayaran }}
+              <span class="badge {{ $pembelian->status_pembayaran == 'Lunas' ? 'badge-success' : 'badge-warning' }}">
+                {{ $pembelian->status_pembayaran }}
               </span>
             </p>
           </div>
           <div class="col-md-4">
-            <p><strong>No PO:</strong> {{ $penjualan->no_po ?? '-' }}</p>
-            <p><strong>Jatuh Tempo:</strong> {{ $penjualan->jatuh_tempo ?? '-' }}</p>
-            <p><strong>Catatan:</strong> {{ $penjualan->catatan ?? '-' }}</p>
+            <p><strong>No PO:</strong> {{ $pembelian->no_po ?? '-' }}</p>
+            <p><strong>Catatan:</strong> {{ $pembelian->catatan ?? '-' }}</p>
           </div>
           <div class="col-md-4">
-            <p><strong>Pelanggan:</strong> {{ $penjualan->pelanggan->nama }}</p>
-            <p><strong>Alamat:</strong> {{ $penjualan->pelanggan->alamat ?? '-' }}</p>
+            <p><strong>Pemasok:</strong> {{ $pembelian->pemasok->nama }}</p>
+            <p><strong>Alamat:</strong> {{ $pembelian->pemasok->alamat ?? '-' }}</p>
             {{-- <p><strong>Telepon:</strong> {{ $penjualan->pelanggan->no_hp ?? '-' }}</p> --}}
           </div>
         </div>
@@ -65,12 +63,12 @@
             </thead>
             <tbody>
               @php $total = 0; $total_diskon = 0; @endphp
-              @foreach ($penjualan->detail as $i => $item)
+              @foreach ($pembelian->detail as $i => $item)
               <tr>
                 <td>{{ $i+1 }}</td>
                 <td>{{ $item->produk->nama_produk ?? '-' }}</td>
                 <td class="text-right">{{ $item->qty }}</td>
-                <td class="text-right">{{ rupiah($item->harga_jual) }}</td>
+                <td class="text-right">{{ rupiah($item->harga_beli) }}</td>
                 <td class="text-right">{{ rupiah($item->diskon) }}</td>
                 <td class="text-right">{{ rupiah($item->subtotal) }}</td>
               </tr>
@@ -95,43 +93,41 @@
                 <td class="text-right">{{ rupiah($total_diskon) }}</td>
               </tr>
               <tr>
-                <th class="text-right">Pajak ({{ $penjualan->pajak }}%)</th>
+                <th class="text-right">Pajak ({{ $pembelian->pajak }}%)</th>
                 <td class="text-right">
-                  @php $nilai_pajak = ($total * $penjualan->pajak) / 100; @endphp
+                  @php $nilai_pajak = ($total * $pembelian->pajak) / 100; @endphp
                   {{ rupiah($nilai_pajak) }}
                 </td>
               </tr>
               <tr>
                 <th class="text-right">Biaya Kirim</th>
-                <td class="text-right">{{ rupiah($penjualan->biaya_kirim) }}</td>
+                <td class="text-right">{{ rupiah($pembelian->biaya_kirim) }}</td>
               </tr>
               <tr class="font-weight-bold">
                 <th class="text-right">Total Bayar</th>
-                <td class="text-right">{{ rupiah($penjualan->total) }}</td>
+                <td class="text-right">{{ rupiah($pembelian->total) }}</td>
               </tr>
             </table>
           </div>
         </div>
 
         <div class="text-right mt-3">
-          <a href="{{ route('penjualan.index') }}" class="btn btn-secondary btn-sm">Kembali</a>
-          <a href="{{ route('penjualan.print-surat-jalan', $penjualan->id) }}" class="btn btn-info btn-sm" target="_blank">
+            <a href="{{ route('pembelian.index') }}" class="btn btn-secondary btn-sm">Kembali</a>
+            {{-- <a href="{{ route('penjualan.print-pdf', $penjualan->id) }}" class="btn btn-sm btn-danger" target="_blank">
+              <i class="fas fa-file-pdf"></i> PDF 
+            </a> --}}
+            <a href="{{ route('pembelian.print', $pembelian->id) }}" class="btn btn-info btn-sm" target="_blank"><i class="fas fa-print"></i> Print Invoice</a>
+          {{-- <a href="{{ route('penjualan.print-surat-jalan', $penjualan->id) }}" class="btn btn-info btn-sm" target="_blank">
               <i class="fas fa-print"></i> Print Surat Jalan
           </a>
           <a href="{{ route('penjualan.surat-jalan-pdf', $penjualan->id) }}" class="btn btn-danger btn-sm" target="_blank">
               <i class="fas fa-file-pdf"></i> PDF Surat Jalan
-          </a>
-          <a href="{{ route('penjualan.print-pdf', $penjualan->id) }}" class="btn btn-sm btn-danger" target="_blank">
-              <i class="fas fa-file-pdf"></i> PDF Invoice
-          </a>
-          <a href="{{ route('penjualan.print', $penjualan->id) }}" class="btn btn-info btn-sm" target="_blank"><i class="fas fa-print"></i> Print Invoice</a>
+          </a> --}}
         </div>
 
       </div>
     </div>
 
   </div>
-</section>
-
-</div>
+  </section>
 @endsection

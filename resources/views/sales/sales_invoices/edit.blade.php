@@ -117,11 +117,11 @@
                       </td>
                       <td>
                         {{-- <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control qty" required {{ $isReturExists ? 'readonly' : '' }}> --}}
-                        <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control qty" required>
+                        <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control number-input qty" required>
                       </td>
-                      <td><input type="number" name="harga_jual[]" value="{{ $detail->harga_jual }}" class="form-control harga" required {{ $isReturExists ? 'readonly' : '' }}></td>
-                      <td><input type="number" name="diskon[]" value="{{ $detail->diskon }}" class="form-control diskon"></td>
-                      <td><input type="number" name="subtotal[]" value="{{ $detail->subtotal }}" class="form-control subtotal" readonly></td>
+                      <td><input type="number" name="harga_jual[]" value="{{ $detail->harga_jual }}" class="form-control number-input harga" required {{ $isReturExists ? 'readonly' : '' }}></td>
+                      <td><input type="number" name="diskon[]" value="{{ $detail->diskon }}" class="form-control number-input diskon"></td>
+                      <td><input type="number" name="subtotal[]" value="{{ $detail->subtotal }}" class="form-control number-input subtotal" readonly></td>
                       <td><button type="button" class="btn btn-danger btn-sm" onclick="hapusBaris(this)">x</button></td>
                     </tr>
                   @endforeach
@@ -140,23 +140,23 @@
               <table class="table table-bordered">
                 <tr>
                   <th>Subtotal</th>
-                  <td><input type="number" name="total_subtotal" class="form-control" readonly></td>
+                  <td><input type="number" name="total_subtotal" class="form-control number-input" readonly></td>
                 </tr>
                 <tr>
                   <th>PPN / Pajak (%)</th>
-                  <td><input type="number" name="pajak" class="form-control" value="{{ $penjualan->pajak }}"></td>
+                  <td><input type="number" name="pajak" class="form-control number-input" value="{{ $penjualan->pajak }}"></td>
                 </tr>
                 <tr>
                   <th>Biaya Kirim</th>
-                  <td><input type="number" name="biaya_kirim" class="form-control" value="{{ $penjualan->biaya_kirim }}"></td>
+                  <td><input type="number" name="biaya_kirim" class="form-control number-input" value="{{ $penjualan->biaya_kirim }}"></td>
                 </tr>
                 <tr>
                   <th>Total Diskon</th>
-                  <td><input type="number" name="total_diskon" class="form-control" readonly></td>
+                  <td><input type="number" name="total_diskon" class="form-control number-input" readonly></td>
                 </tr>
                 <tr>
                   <th>Total Bayar</th>
-                  <td><input type="number" name="total" class="form-control total" readonly></td>
+                  <td><input type="number" name="total" class="form-control total number-input" readonly></td>
                 </tr>
               </table>
             </div>
@@ -172,10 +172,10 @@
 <template id="produk-row-template">
 <tr>
   <td><select name="produk_id[]" class="form-control produk-select" required></select></td>
-  <td><input type="number" name="qty[]" class="form-control qty" required></td>
-  <td><input type="number" name="harga_jual[]" class="form-control harga" required></td>
-  <td><input type="number" name="diskon[]" class="form-control diskon" value="0"></td>
-  <td><input type="number" name="subtotal[]" class="form-control subtotal" readonly></td>
+  <td><input type="number" name="qty[]" class="form-control number-input qty" required></td>
+  <td><input type="number" name="harga_jual[]" class="form-control number-input harga" required></td>
+  <td><input type="number" name="diskon[]" class="form-control number-input diskon" value="0"></td>
+  <td><input type="number" name="subtotal[]" class="form-control number-input subtotal" readonly></td>
   <td><button type="button" class="btn btn-sm btn-danger" onclick="hapusBaris(this)">x</button></td>
 </tr>
 </template>
@@ -205,7 +205,7 @@
 function tambahBaris() {
     const template = document.getElementById('produk-row-template').content.cloneNode(true);
     $('#produk-body').append(template);
-    initSelect2(); // jalankan ulang select2 agar aktif
+    initSelect2(); // jalankan ulang select2 agar aktif 
 }
 
     function hapusBaris(btn) {

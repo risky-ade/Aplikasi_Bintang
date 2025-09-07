@@ -76,7 +76,7 @@
                 <th>#</th>
                 <th>Tanggal</th>
                 <th>Produk</th>
-                <th>Harga Lama</th>
+                <th>Harga Jual Umum</th>
                 <th>Harga Baru</th>
                 {{-- <th>Sumber</th> --}}
                 {{-- <th>Keterangan</th> --}}

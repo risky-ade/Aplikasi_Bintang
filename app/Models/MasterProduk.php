@@ -36,7 +36,7 @@ class MasterProduk extends Model
     {
         return $this->belongsTo(Satuan::class, 'satuan_id');
     }
-        public function penjualanDetail()
+    public function penjualanDetail()
     {
         return $this->hasMany(PenjualanDetail::class, 'master_produk_id');
     }
@@ -44,5 +44,10 @@ class MasterProduk extends Model
     public function returPenjualanDetail()
     {
         return $this->hasMany(ReturPenjualanDetail::class, 'produk_id');
+    }
+
+    public function pembelianDetail()
+    {
+        return $this->hasMany(PembelianDetail::class, 'master_produk_id');
     }
 }

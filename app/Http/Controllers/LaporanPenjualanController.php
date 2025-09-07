@@ -23,6 +23,7 @@ class LaporanPenjualanController extends Controller
         if ($request->filled('status_pembayaran')) {
             $query->where('status_pembayaran', $request->status_pembayaran);
         }
+        $query->where('status', '!=', 'batal'); 
 
         // $perPage = $request->get('per_page', 10);
         // $penjualans = $query->orderByDesc('tanggal')->paginate($perPage);
@@ -47,6 +48,7 @@ class LaporanPenjualanController extends Controller
         if ($request->filled('status_pembayaran')) {
             $query->where('status_pembayaran', $request->status_pembayaran);
         }
+        $query->where('status', '!=', 'batal'); 
 
         $penjualans = $query->get();
         $totalPenjualan = $penjualans->sum('total');

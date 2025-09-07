@@ -32,6 +32,7 @@ class ReturPenjualanController extends Controller
     public function getDetailPenjualan($id)
     {
         $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
+        // $penjualan->where('status', '!=', 'batal');
         return response()->json($penjualan);
     }
 
@@ -46,6 +47,8 @@ class ReturPenjualanController extends Controller
                         $q->where('nama', 'like', "%{$search}%");
                     });
             })
+            ->where('status', '!=', 'batal')
+            ->where('status_pembayaran','!=','Lunas')
             ->limit(20)
             ->get();
 
