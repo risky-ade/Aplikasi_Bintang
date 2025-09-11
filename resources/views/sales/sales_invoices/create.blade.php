@@ -86,7 +86,8 @@
                     </div>
                     <div class="col-md-6">
                         <label>Biaya Pengiriman</label>
-                        <input type="number" name="biaya_kirim" class="form-control" value="0">
+                        <input type="hidden" name="biaya_kirim" class="biaya_kirim" value="0">
+                        <input type="text" class="form-control biaya_kirim_display" value="0">
                     </div>
                     <div class="col-md-6">
                         <label>Jatuh Tempo</label>
@@ -114,9 +115,18 @@
                             <select name="produk_id[]" class="form-control produk-select w-100" required></select>
                         </td>
                         <td><input type="number" name="qty[]" class="form-control number-input qty" required></td>
-                        <td><input type="number" name="harga_jual[]" class="form-control number-input harga" required></td>
-                        <td><input type="number" name="diskon[]" class="form-control number-input diskon" value="0"></td>
-                        <td><input type="number" name="subtotal[]" class="form-control number-input subtotal" readonly></td>
+                        <td>
+                            <input type="hidden" name="harga_jual[]" class="harga">
+                            <input type="text"class="form-control harga_display number-input" required>
+                        </td>
+                        <td>
+                            <input type="hidden" name="diskon[]" class="diskon">
+                            <input type="text" class="form-control diskon_display number-input" value="0">
+                        </td>
+                        <td>
+                            <input type="hidden" name="subtotal[]" class="subtotal">
+                            <input type="text" class="form-control subtotal_display number-input " readonly>
+                        </td>
                         <td><button type="button" class="btn btn-sm btn-danger" onclick="hapusBaris(this)">x</button></td>
                     </tr>
                 </tbody>
@@ -136,7 +146,10 @@
                 <table class="table table-bordered">
                     <tr>
                         <th style="width: 40%">Subtotal</th>
-                        <td><input type="number" name="total_subtotal" class="form-control number-input" readonly></td>
+                        <td>
+                            <input type="hidden" name="total_subtotal" class="total_subtotal">
+                            <input type="text" class="form-control total_subtotal_display number-input" readonly>
+                        </td>
                     </tr>
                     <tr>
                         <th>PPN / Pajak (%)</th>
@@ -144,15 +157,24 @@
                     </tr>
                     <tr>
                         <th>Biaya Kirim</th>
-                        <td><input type="number" name="biaya_kirim" class="form-control number-input " readonly></td>
+                        <td>
+                            <input type="hidden" name="biaya_kirim" class="biaya_kirim ">
+                            <input type="text" class="form-control biaya_kirim_display number-input " readonly>
+                        </td>
                     </tr>
                     <tr>
                         <th>Total Diskon</th>
-                        <td><input type="number" name="total_diskon" class="form-control number-input " readonly></td>
+                        <td>
+                            <input type="hidden" name="total_diskon" class="total_diskon">
+                            <input type="text" class="form-control total_diskon_display number-input " readonly>
+                        </td>
                     </tr>
                     <tr>
                         <th><strong>Total Bayar</strong></th>
-                        <td><input type="number" name="total" class="form-control number-input total " readonly></td>
+                        <td>
+                            <input type="hidden" name="total" class="total">
+                            <input type="text"  class="form-control number-input total_display " readonly>
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -168,9 +190,21 @@
         <select name="produk_id[]" class="form-control produk-select" required></select>
     </td>
     <td><input type="number" name="qty[]" class="form-control number-input qty" required></td>
-    <td><input type="number" name="harga_jual[]" class="form-control number-input harga" required></td>
-    <td><input type="number" name="diskon[]" class="form-control number-input diskon " value="0"></td>
-    <td><input type="number" name="subtotal[]" class="form-control number-input subtotal" readonly></td>
+    <td>
+        <input type="hidden" name="harga_jual[]" class="harga">
+        <input type="text"class="form-control harga_display number-input" required>
+    </td>
+    {{-- <td><input type="text" name="harga_jual[]" class="form-control harga-input number-input harga" required></td> --}}
+    <td>
+        <input type="hidden" name="diskon[]" class="diskon">
+        <input type="text" class="form-control diskon_display number-input" value="0">
+    </td>
+    <td>
+        <input type="hidden" name="subtotal[]" class="subtotal">
+        <input type="text" class="form-control subtotal_display number-input " readonly>
+    </td>
+    {{-- <td><input type="number" name="diskon[]" class="form-control number-input diskon " value="0"></td>
+    <td><input type="number" name="subtotal[]" class="form-control number-input subtotal" readonly></td> --}}
     <td><button type="button" class="btn btn-sm btn-danger" onclick="hapusBaris(this)">x</button></td>
 </tr>
 </template>
@@ -193,6 +227,7 @@
             const data = e.params.data;
             const row = $(this).closest('tr');
             row.find('.harga').val(data.harga_jual);
+            row.find('.harga_display').val('Rp ' + data.harga_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
             row.find('.qty').val(1).trigger('input');
         });
     }
@@ -211,43 +246,74 @@ function tambahBaris() {
     }
 
 
-    function hitungTotal() {
-        let total = 0;
-        let totalDiskon = 0;
+function formatRupiah(angka) {
+    if (!angka) return 'Rp 0';
+    return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
 
-        $('#produk-body tr').each(function () {
-            const qty = parseFloat($(this).find('.qty').val()) || 0;
-            const harga = parseFloat($(this).find('.harga').val()) || 0;
-            const diskon = parseFloat($(this).find('.diskon').val()) || 0;
-            const subtotal = (qty * harga) - diskon;
-            $(this).find('.subtotal').val(subtotal.toFixed(0));
+function hitungTotal() {
+    let total = 0;
+    let totalDiskon = 0;
 
-            total += subtotal;
-            totalDiskon += diskon;
-        });
+    $('#produk-body tr').each(function () {
+        const qty = parseFloat($(this).find('.qty').val()) || 0;
+        const harga = parseFloat($(this).find('.harga').val()) || 0; // hidden murni
+        const diskon = parseFloat($(this).find('.diskon').val()) || 0; // hidden murni
+        const subtotal = (qty * harga) - diskon;
 
-        const pajak = parseFloat($('[name="pajak"]').val()) || 0;
-        const biaya_kirim = parseFloat($('[name="biaya_kirim"]').val()) || 0;
-        const totalPajak = (total * pajak) / 100;
+        $(this).find('.diskon').val(diskon);
+        $(this).find('.diskon_display').val(formatRupiah(diskon));
+        // set ke hidden
+        $(this).find('.subtotal').val(subtotal);
 
-        $('[name="total_subtotal"]').val(total.toFixed(0));
-        $('[name="total_diskon"]').val(totalDiskon.toFixed(0));
-        $('[name="biaya_kirim"]').val(biaya_kirim.toFixed(0));
-        $('[name="total"]').val((total + totalPajak + biaya_kirim).toFixed(0));
-    }
+        // set ke display (Rp format)
+        $(this).find('.subtotal_display').val(formatRupiah(subtotal));
 
-    $(document).ready(function () {
+        total += subtotal;
+        totalDiskon += diskon;
+    });
+
+    const pajak = parseFloat($('[name="pajak"]').val()) || 0;
+    const biayaKirim = parseFloat($('.biaya_kirim').val()) || 0;
+    const totalPajak = (total * pajak) / 100;
+    const grandTotal = total + totalPajak + biayaKirim;
+
+    // set hidden
+    $('[name="total_subtotal"]').val(total);
+    $('[name="total_diskon"]').val(totalDiskon);
+    $('[name="biaya_kirim"]').val(biayaKirim);
+    $('[name="total"]').val(grandTotal);
+
+    // set display
+    $('.total_subtotal_display').val(formatRupiah(total));
+    $('.total_diskon_display').val(formatRupiah(totalDiskon));
+    $('.biaya_kirim_display').val(formatRupiah(biayaKirim));
+    $('.total_display').val(formatRupiah(grandTotal));
+}
+
+$(document).ready(function () {
     initSelect2();
-
-    // Optional: trigger kalkulasi pertama kali
     hitungTotal();
 
-    // Pastikan select2 aktif ulang setelah tambah baris
-    $(document).on('input', '.qty, .harga, .diskon, [name="pajak"], [name="biaya_kirim"]', function () {
+    // trigger total setiap input berubah
+    $(document).on('input', '.qty, .harga_display, .diskon_display, .biaya_kirim_display, [name="pajak"]', function () {
+        // konversi display ke hidden murni dulu
+        if ($(this).hasClass('harga_display')) {
+            let value = $(this).val().replace(/[^0-9]/g, '');
+            $(this).closest('tr').find('.harga').val(value);
+        }
+        if ($(this).hasClass('diskon_display')) {
+            let value = $(this).val().replace(/[^0-9]/g, '');
+            $(this).closest('tr').find('.diskon').val(value);
+        }
+        if ($(this).hasClass('biaya_kirim_display')) {
+            let value = $(this).val().replace(/[^0-9]/g, '');
+            $('.biaya_kirim').val(value);
+        }
+
         hitungTotal();
     });
 });
-
 </script>
 
 @endsection

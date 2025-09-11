@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class HistoriHargaPenjualan extends Model
@@ -20,14 +21,22 @@ class HistoriHargaPenjualan extends Model
         'tanggal',
         'keterangan',
     ];
+    protected $dates = ['tanggal'];
 
-    // Relasi ke produk
+    protected function tanggal(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => \Carbon\Carbon::parse($value)->format('d-m-Y'),
+        );
+    }
+
+   
     public function produk()
     {
         return $this->belongsTo(MasterProduk::class, 'produk_id');
     }
 
-    // Relasi ke pelanggan 
+
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class, 'pelanggan_id');

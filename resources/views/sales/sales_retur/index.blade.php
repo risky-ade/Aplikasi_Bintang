@@ -1,6 +1,9 @@
 @extends('layouts.main')
 @section('content')
-
+@php
+    use App\Helpers\Helper;
+    use Illuminate\Support\Str;
+@endphp
   <div class="content-wrapper">
     <div class="content-header">
       <div class="container-fluid">
@@ -48,7 +51,7 @@
                   <td>{{ $index + 1 }}</td>
                   <td>{{ $retur->no_retur }}</td>
                   <td>{{ $retur->penjualan->no_faktur ?? '-' }}</td>
-                  <td>{{ $retur->tanggal_retur }}</td>
+                  <td>{{ $retur->tanggal_retur->format('d-m-Y') }}</td>
                   <td>{{ $retur->penjualan->pelanggan->nama ?? '-' }}</td>
                   <td>Rp {{ number_format($retur->total, 0, ',', '.') }}</td>
                   <td>

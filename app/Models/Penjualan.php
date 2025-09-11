@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Penjualan extends Model
 {
     const STATUS_AKTIF = 'aktif';
     const STATUS_BATAL = 'batal';
     protected $table = 'penjualan';
-    protected $casts = ['approved_at'=>'datetime',];
+    protected $casts = ['approved_at'=>'datetime','jatuh_tempo' => 'date',];
     protected $fillable = [
         'no_faktur',
         'no_po',
@@ -26,6 +27,20 @@ class Penjualan extends Model
         'status',
         'created_by',
     ];
+    protected $dates = ['tanggal','jatuh_tempo'];
+
+    protected function tanggal(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => \Carbon\Carbon::parse($value)->format('d-m-Y'),
+        );
+    }
+    protected function jatuh_tempo(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => \Carbon\Carbon::parse($value)->format('d-m-Y'),
+        );
+    }
 
     public function detail()
     {

@@ -38,7 +38,7 @@
           </div>
           <div class="col-md-4">
             <p><strong>No PO:</strong> {{ $penjualan->no_po ?? '-' }}</p>
-            <p><strong>Jatuh Tempo:</strong> {{ $penjualan->jatuh_tempo ?? '-' }}</p>
+            <p><strong>Jatuh Tempo:</strong> {{ $penjualan->jatuh_tempo->format('d-m-Y') ?? '-' }}</p>
             <p><strong>Catatan:</strong> {{ $penjualan->catatan ?? '-' }}</p>
           </div>
           <div class="col-md-4">

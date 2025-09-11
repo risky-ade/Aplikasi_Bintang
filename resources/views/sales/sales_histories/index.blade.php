@@ -1,5 +1,9 @@
 @extends('layouts.main')
 @section('content')
+@php
+    use App\Helpers\Helper;
+    use Illuminate\Support\Str;
+@endphp
 <style>
 .pagination {
     margin-top: 20px;
