@@ -61,7 +61,7 @@
             </div>
             <div class="col-md-4">
               <label>Tanggal</label>
-              <input type="date" name="tanggal" class="form-control" value="{{ $penjualan->tanggal }}" required>
+              <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', \Carbon\Carbon::parse($penjualan->tanggal)->format('Y-m-d')) }}" required>
             </div>
             <div class="col-md-4">
               <label>Pelanggan</label>
@@ -93,7 +93,7 @@
             </div>
             <div class="col-md-6">
               <label>Jatuh Tempo</label>
-              <input type="date" name="jatuh_tempo" class="form-control" value="{{ $penjualan->jatuh_tempo }}" required>
+              <input type="date" name="jatuh_tempo" class="form-control" value="{{ old('jatuh_tempo', \Carbon\Carbon::parse($penjualan->jatuh_tempo)->format('Y-m-d')) }}" required>
             </div>
           </div>
 
@@ -187,8 +187,10 @@
               </table>
             </div>
           </div>
-
-          <button type="submit" class="btn btn-primary">Update Transaksi</button>
+          <div class="text-right">
+            <a href="{{ route('penjualan.index') }}" class="btn btn-secondary btn-sm">Kembali</a>
+            <button type="submit" class="btn btn-sm btn-primary">Update Transaksi</button>
+          </div>
         </div>
       </div>
     </form>

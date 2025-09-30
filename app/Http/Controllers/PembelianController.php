@@ -75,10 +75,11 @@ class PembelianController extends Controller
         DB::beginTransaction();
         try {
             // Hitung subtotal & total
-            $subtotal = 0; $totalDiskon = 0;
+            $subtotal = 0; 
+            $totalDiskon = 0;
             foreach ($request->produk_id as $i => $pid) {
                 $qty = (int) $request->qty[$i];
-                $harga = (float) $request->harga_beli[$i];
+                $harga = $request->harga_beli[$i];
                 $diskon = (float) ($request->diskon[$i] ?? 0);
                 $subtotal += ($qty * $harga) - $diskon;
                 $totalDiskon += $diskon;

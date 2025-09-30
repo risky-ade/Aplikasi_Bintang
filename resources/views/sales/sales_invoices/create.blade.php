@@ -179,7 +179,10 @@
                 </table>
             </div>
         </div>
-                <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
+            <div class="text-right">
+                <a href="{{ route('penjualan.index') }}" class="btn btn-secondary btn-sm">Kembali</a>
+                <button type="submit" class="btn btn-sm btn-primary">Simpan Transaksi</button>
+            </div>
             </div>
         </div>
     </form>

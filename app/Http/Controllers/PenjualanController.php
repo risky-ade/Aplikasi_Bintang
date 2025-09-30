@@ -84,7 +84,7 @@ class PenjualanController extends Controller
         'harga_jual.*' => 'required|numeric|min:0',
         'status_pembayaran' => 'required|in:Belum Lunas,Lunas',
     ]);
-        
+        // dd($request);
     $subtotal = 0;
     $totalDiskon = 0;
 
@@ -120,7 +120,7 @@ class PenjualanController extends Controller
         'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
         'created_by'    => Auth::id(),
     ]);
-
+// dd($penjualan);
     // Proses detail penjualan & stok
     foreach ($request->produk_id as $index => $produk_id) {
         $qty = $request->qty[$index];
@@ -175,6 +175,7 @@ class PenjualanController extends Controller
     public function edit($id)
     {
         $penjualan = Penjualan::with('detail', 'pelanggan','returPenjualan')->findOrFail($id);
+        // dd($penjualan);
         $pelanggan = Pelanggan::all();
         if ($penjualan->status_pembayaran === 'Lunas') {
             return redirect()->route('penjualan.index')
@@ -415,7 +416,7 @@ class PenjualanController extends Controller
         if ($penjualan->status === 'batal') {
             return back()->with('error', 'Faktur sudah dibatalkan sebelumnya.');
         }
-
+ 
         // Rollback stok
         foreach ($penjualan->detail as $item) {
             $produk = $item->produk;
@@ -426,6 +427,7 @@ class PenjualanController extends Controller
             'status' => 'batal'
         ]);
 
+        // return response()->json(['message' => 'Faktur berhasil dibatalkan.']);
         return redirect()->route('penjualan.index')->with('success', 'Faktur berhasil dibatalkan.');
     }
 }

@@ -170,7 +170,6 @@
                                 @endif
                               @endif
 
-
                               @if ($jual->status != 'batal'||$jual->status_pembayaran == 'Lunas')
                                 <a href="{{ route('penjualan.edit', $jual->id) }}" class="btn btn-info btn-sm"><i class="fa fa-edit"></i></a>
                                 {{-- <form action="{{ route('penjualan.destroy', $jual->id) }}" method="POST" onsubmit="return confirm('Yakin ingin hapus?')" style="display:inline;">
@@ -181,13 +180,14 @@
                               @endif
 
                               @if ($jual->status == 'aktif')
-                                <form action="{{ route('penjualan.batal', $jual->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan faktur ini?')" style="display:inline;">
+                                <form id="form-batal-{{ $jual->id }}" action="{{ route('penjualan.batal', $jual->id) }}" method="POST" style="display:inline;">
                                   @csrf
                                   @method('PUT')
-                                  <button class="btn btn-danger btn-sm"><i class="fas fa-times-circle"></i></button>
+                                  <button class="btn btn-danger btn-sm btn-batal" ><i class="fas fa-times-circle"></i></button>
                                 </form>
-                              @endif
-
+                                @endif
+                                {{-- <button class="btn btn-danger btn-delete btn-sm" data-id="{{ $jual->id }}" data-no_faktur="{{ $jual->no_faktur }}">
+                                  <i class="fas fa-times-circle"></i></button> --}}
                           </td>
                       </tr>
 
@@ -245,4 +245,75 @@
     });
   });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-batal').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            let id = this.getAttribute('data-id');
+            Swal.fire({
+                title: 'Yakin ingin membatalkan?',
+                text: "Faktur yang dibatalkan tidak bisa dikembalikan.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Batalkan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-batal-' + id).submit();
+                }
+            });
+        });
+    });
+});
+</script>
+{{-- <script>
+  $(document).on('click', '.btn-delete', function (e) {
+    e.preventDefault();
+
+    let id = $(this).data('id');
+    let no_faktur = $(this).data('no_faktur');
+
+    Swal.fire({
+      title: 'Yakin ingin hapus?',
+      text: `Faktur "${no_faktur}" akan dihapus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/sales/sales_invoices/${id}/batal`,
+          type: 'POST',
+          data: {
+            _token: '{{ csrf_token() }}'
+          },
+          success: function (res) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: res.message,
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              location.reload();
+            });
+          },
+          error: function (xhr) {
+            let res = xhr.responseJSON;
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: res.message || 'Terjadi kesalahan.',
+            });
+          }
+        });
+      }
+    });
+  });
+</script> --}}
 @endsection
