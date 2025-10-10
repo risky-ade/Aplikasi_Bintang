@@ -4,14 +4,19 @@
     use App\Helpers\Helper;
     use Illuminate\Support\Str;
 @endphp
+<style>
+  .dropdown-menu {
+    max-width: 220px;
+    word-wrap: break-word;
+  }
+</style>
 <div class="content-wrapper">
-  <!-- Content Header (Page header) -->
   <div class="content-header">
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
           <h1 class="m-0">Faktur Penjualan</h1>
-        </div><!-- /.col -->
+        </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -21,7 +26,6 @@
       </div>
     </div>
   </div>
-  <!-- Main content -->
 <section class="content">
   <div class="container-fluid">
     <div class="row">
@@ -35,7 +39,6 @@
                 </a>
               </div>
             </div>
-              <!-- /.card-header -->
             <div class="card-body">
               <form method="GET" action="{{ route('penjualan.index') }}" class="mb-3">
               <div class="row">
@@ -94,6 +97,15 @@
                           <td>
                               @if ($jual->status_pembayaran == 'Lunas')
                                   <span class="badge badge-success">Lunas</span>
+                                  @php
+                                    // fallback ke approved_at kalau paid_date belum ada (data lama)
+                                    $tanggalTampil = $jual->paid_date
+                                                    ? \Carbon\Carbon::parse($jual->paid_date)
+                                                    : ($jual->approved_at ? $jual->approved_at : null);
+                                  @endphp
+                                  @if($tanggalTampil)
+                                    <div><small class="text-muted">({{ $tanggalTampil->format('d/m/Y') }})</small></div>
+                                  @endif
                               @else
                                   <span class="badge badge-warning">Belum Lunas</span>
                               @endif
@@ -106,22 +118,20 @@
                           @endif
                         </td>
                           <td>
-                            {{-- <a href="{{ route('penjualan.edit',$jual->id) }}" class="btn btn-info btn-sm"
-                                      type="button"><i class="fa fa-edit"></i> 
-                            </a> --}}
-                              <a href="{{ route('penjualan.show', $jual->id) }}" class="btn btn-info btn-sm">
-                                  <i class="fa fa-eye"></i>
+                            <div class="dropdown ">
+                              <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="fas fa-bars"></i>
+                              </button>
+                              <div class="dropdown-menu dropdown-menu-right">
+                              <a href="{{ route('penjualan.show', $jual->id) }}" class="dropdown-item text-info">
+                                  <i class="fa fa-eye"></i> Lihat
                               </a>
-                              {{-- <a href="{{ route('penjualan.print', $jual->id) }}" class="btn btn-secondary btn-sm" target="_blank">
-                                  <i class="fa fa-print"></i>
-                              </a> --}}
-                              <a href="{{ route('sales.sales_invoices.surat-jalan', $jual->id) }}" class="btn btn-sm btn-secondary">
-                                <i class="fas fa-file-alt"></i>
+                              <a href="{{ route('sales.sales_invoices.surat-jalan', $jual->id) }}" class="dropdown-item text-secondary">
+                                <i class="fas fa-file-alt"></i> Surat Jalan
                               </a>
-
-                              <!-- Tombol -->
+                              
                               @if($jual->status_pembayaran == 'Belum Lunas'&& $jual->status != 'batal')
-                              <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalApprove{{ $jual->id }}">Approve</button>
+                              <a href="" class="dropdown-item text-success" data-toggle="modal" data-target="#modalApprove{{ $jual->id }}"><i class="far fa-money-bill-alt"></i> Approve</a>
                               @endif
 
                               @if($jual->status_pembayaran === 'Lunas')
@@ -137,59 +147,55 @@
                                     }
                                 @endphp
                                 @if($canCancel)
-                                  <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalUnapprove{{ $jual->id }}">
-                                    Unapprove
-                                    </button>
-
-                                    <!-- Modal Unapprove -->
-                                <div class="modal fade" id="modalUnapprove{{ $jual->id }}"tabindex="-1">
-                                  <div class="modal-dialog">
-                                    <form method="POST" action="{{ route('penjualan.unapprove', $jual->id) }}">
-                                      @csrf
-                                      @method('PUT')
-                                      <div class="modal-content">
-                                        <div class="modal-header">
-                                          <h5 class="modal-title">Konfirmasi Pembatalan Lunas</h5>
-                                          <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                        </div>
-                                        <div class="modal-body">
-                                          Pembatalan pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
-                                          dengan total <strong>{{ rupiah($jual->total) }}</strong><br><br>
-                                          <small class="text-muted">
-                                              *Batas pembatalan hanya 24 jam sejak approve.
-                                          </small>
-                                        </div>
-                                        <div class="modal-footer">
-                                          <button type="submit" class="btn btn-danger">Ya, Batalkan</button>
-                                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                                        </div>
-                                      </div>
-                                    </form>
-                                  </div>
-                                </div>
+                                  <a href="#" class="dropdown-item text-danger open-unapprove" data-toggle="modal" data-target="#modalUnapprove{{ $jual->id }}">
+                                    <i class="far fa-money-bill-alt"></i> Unapprove
+                                  </a>
                                 @endif
                               @endif
 
                               @if ($jual->status != 'batal'||$jual->status_pembayaran == 'Lunas')
-                                <a href="{{ route('penjualan.edit', $jual->id) }}" class="btn btn-info btn-sm"><i class="fa fa-edit"></i></a>
-                                {{-- <form action="{{ route('penjualan.destroy', $jual->id) }}" method="POST" onsubmit="return confirm('Yakin ingin hapus?')" style="display:inline;">
-                                  @csrf
-                                  @method('DELETE')
-                                  <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
-                                </form> --}}
+                                <a href="{{ route('penjualan.edit', $jual->id) }}" class="dropdown-item text-primary"><i class="fa fa-edit"></i> Edit</a>
                               @endif
 
                               @if ($jual->status == 'aktif')
                                 <form id="form-batal-{{ $jual->id }}" action="{{ route('penjualan.batal', $jual->id) }}" method="POST" style="display:inline;">
                                   @csrf
                                   @method('PUT')
-                                  <button class="btn btn-danger btn-sm btn-batal" ><i class="fas fa-times-circle"></i></button>
+                                  <button type="button" class="dropdown-item text-danger btn-batal" data-id="{{ $jual->id }}" ><i class="fas fa-times-circle"></i> Batal</button>
                                 </form>
-                                @endif
-                                {{-- <button class="btn btn-danger btn-delete btn-sm" data-id="{{ $jual->id }}" data-no_faktur="{{ $jual->no_faktur }}">
-                                  <i class="fas fa-times-circle"></i></button> --}}
-                          </td>
+                              @endif
+                            </div>
+                          </div>
+                        </td>
                       </tr>
+                      <!-- Modal Unapprove -->
+                      @push('modals')
+                      <div class="modal fade" id="modalUnapprove{{ $jual->id }}"tabindex="-1">
+                        <div class="modal-dialog">
+                          <form method="POST" action="{{ route('penjualan.unapprove', $jual->id) }}">
+                            @csrf
+                            @method('PUT')
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">Konfirmasi Pembatalan Lunas</h5>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                              </div>
+                              <div class="modal-body">
+                                Pembatalan pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
+                                dengan total <strong>{{ rupiah($jual->total) }}</strong><br><br>
+                                <small class="text-muted">
+                                    *Batas pembatalan hanya 24 jam sejak approve.
+                                </small>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger">Ya, Batalkan</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                      @endpush
 
                     <!-- Modal -->
                     <div class="modal fade" id="modalApprove{{ $jual->id }}" tabindex="-1">
@@ -205,6 +211,12 @@
                             <div class="modal-body">
                               Konfirmasi pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
                               dengan total <strong>{{ rupiah($jual->total) }}</strong>
+                              <hr>
+                              <div class="form-group">
+                              <label for="paid_date_{{ $jual->id }}">Tanggal Pelunasan</label>
+                              <input type="date" name="paid_date" id="paid_date_{{ $jual->id }}" class="form-control" value="{{ old('paid_date',now()->format('Y-m-d')) }}" required>
+                              <small class="text-muted">Tanggal ini akan tersimpan sebagai tanggal pelunasan (Lunas).</small>
+                            </div>
                             </div>
                             <div class="modal-footer">
                               <button type="submit" class="btn btn-success">Ya, Tandai Lunas</button>
@@ -244,11 +256,19 @@
       },
     });
   });
+  $(document).on('show.bs.modal', '.modal', function () {
+    const inputDate = $(this).find('input[name="approved_at"]');
+    if (inputDate.length && !inputDate.val()) {
+      const today = new Date().toISOString().slice(0,10);
+      inputDate.val(today);
+    }
+  });
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.btn-batal').forEach(function (btn) {
         btn.addEventListener('click', function () {
+          // e.preventDefault();
             let id = this.getAttribute('data-id');
             Swal.fire({
                 title: 'Yakin ingin membatalkan?',
@@ -268,52 +288,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-{{-- <script>
-  $(document).on('click', '.btn-delete', function (e) {
-    e.preventDefault();
-
-    let id = $(this).data('id');
-    let no_faktur = $(this).data('no_faktur');
-
-    Swal.fire({
-      title: 'Yakin ingin hapus?',
-      text: `Faktur "${no_faktur}" akan dihapus.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Ya, Hapus!',
-      cancelButtonText: 'Batal'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        $.ajax({
-          url: `/sales/sales_invoices/${id}/batal`,
-          type: 'POST',
-          data: {
-            _token: '{{ csrf_token() }}'
-          },
-          success: function (res) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Berhasil',
-              text: res.message,
-              timer: 1500,
-              showConfirmButton: false
-            }).then(() => {
-              location.reload();
-            });
-          },
-          error: function (xhr) {
-            let res = xhr.responseJSON;
-            Swal.fire({
-              icon: 'error',
-              title: 'Gagal',
-              text: res.message || 'Terjadi kesalahan.',
-            });
-          }
-        });
-      }
-    });
-  });
-</script> --}}
 @endsection

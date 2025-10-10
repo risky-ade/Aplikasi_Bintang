@@ -73,7 +73,7 @@
             <td>{{ $i + 1 }}</td>
             <td>{{ $item->produk->nama_produk }}</td>
             <td style="text-align: center;">{{ $item->qty }}</td>
-            <td style="text-align: right;">@rupiah($item->harga_jual)</td>
+            <td style="text-align: right;">@rupiah($item->harga_beli)</td>
             <td style="text-align: right;">@rupiah($item->diskon)</td>
             <td style="text-align: right;">@rupiah($item->subtotal)</td>
         </tr>

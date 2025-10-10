@@ -8,6 +8,7 @@ use App\Models\Penjualan;
 use App\Models\MasterProduk;
 use Illuminate\Http\Request;
 use App\Models\ReturPenjualan;
+use Illuminate\Support\Carbon;
 use App\Models\PenjualanDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ class PenjualanController extends Controller
     // if ($request->filled('tanggal')) {
     //     $query->whereDate('tanggal', $request->tanggal);
     // }
-    // Filter tanggal
+
     if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
         $query->whereBetween('tanggal', [$request->tanggal_awal, $request->tanggal_akhir]);
     } elseif ($request->filled('tanggal_awal')) {
@@ -362,14 +363,24 @@ class PenjualanController extends Controller
         //Gunakan stream() untuk menampilkan langsung di browser, atau download() jika ingin mengunduh otomatis.
     }
 
-    public function approve($id)
+    public function approve($id, Request $request)
     {
+        $request->validate([
+        'paid_date' => ['required','date_format:Y-m-d'],
+        ],[
+            'paid_date.required' => 'Tanggal pelunasan wajib diisi.',
+        ]);
         $penjualan = Penjualan::findOrFail($id);
+
+        $paidDate = Carbon::parse($request->paid_date)
+                ->setTimeFromTimeString(now()->format('H:i:s'));
         $penjualan->update([
             'status_pembayaran' => 'Lunas',
-            'approved_at' =>now(),
+            'approved_at' =>now('Asia/Jakarta'),
+            'paid_date'         => $paidDate,
+            'approved_by'        => Auth::id(),
         ]);
-        return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas.');
+        return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas per ' . Carbon::parse($paidDate)->format('d/m/Y') . '.');
         
     }
     public function unapprove($id)
@@ -396,6 +407,7 @@ class PenjualanController extends Controller
         $penjualan->update([
             'status_pembayaran' => 'Belum Lunas',
             'approved_at' => null,
+            'paid_date'   => null,
         ]);
 
         return back()->with('success', 'Pelunasan berhasil dibatalkan.');

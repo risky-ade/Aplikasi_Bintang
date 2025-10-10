@@ -94,6 +94,9 @@
                           <td>
                               @if ($beli->status_pembayaran == 'Lunas')
                                   <span class="badge badge-success">Lunas</span>
+                                   @if($beli->approved_at)
+                                    <div><small class="text-muted">({{ $beli->approved_at->format('d/m/Y') }})</small></div>
+                                  @endif
                               @else
                                   <span class="badge badge-warning">Belum Lunas</span>
                               @endif
@@ -106,11 +109,16 @@
                           @endif
                         </td>
                           <td>
-                            <a href="{{ route('pembelian.edit',$beli->id) }}" class="btn btn-info btn-sm"
-                                      type="button"><i class="fa fa-edit"></i> 
-                            </a>
-                              <a href="{{ route('pembelian.show', $beli->id) }}" class="btn btn-info btn-sm">
-                                  <i class="fa fa-eye"></i>
+                            <div class="dropdown ">
+                              <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="fas fa-bars"></i>
+                              </button>
+                              <div class="dropdown-menu dropdown-menu-right">
+                              <a href="{{ route('pembelian.show', $beli->id) }}" class="dropdown-item text-info">
+                                    <i class="fa fa-eye"></i> Lihat
+                               </a>
+                              <a href="{{ route('pembelian.edit',$beli->id) }}" class="dropdown-item text-primary"
+                                        type="button"><i class="fa fa-edit"></i> Edit
                               </a>
                               {{-- <a href="{{ route('penjualan.print', $jual->id) }}" class="btn btn-secondary btn-sm" target="_blank">
                                   <i class="fa fa-print"></i>
@@ -121,7 +129,7 @@
 
                               <!-- Tombol -->
                               @if($beli->status_pembayaran == 'Belum Lunas'&& $beli->status != 'batal')
-                              <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalApprove{{ $beli->id }}">Approve</button>
+                              <a href="" class="dropdown-item text-success" data-toggle="modal" data-target="#modalApprove{{ $beli->id }}"><i class="far fa-money-bill-alt"></i> Approve</a>
                               @endif
 
                               @if($beli->status_pembayaran === 'Lunas')
@@ -137,9 +145,9 @@
                                     }
                                 @endphp
                                 @if($canCancel)
-                                  <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalUnapprove{{ $beli->id }}">
+                                  <a href="" class="dropdown-item text-danger" data-toggle="modal" data-target="#modalUnapprove{{ $beli->id }}">
                                     Unapprove
-                                    </button>
+                                  </a>
 
                                     <!-- Modal Unapprove -->
                                 <div class="modal fade" id="modalUnapprove{{ $beli->id }}"tabindex="-1">
@@ -175,21 +183,22 @@
                                 <a href="{{ route('penjualan.edit', $beli->id) }}" class="btn btn-info btn-sm"><i class="fa fa-edit"></i></a>
                               @endif --}}
 
-                              {{-- @if ($beli->status == 'aktif')
-                                <form action="{{ route('penjualan.batal', $beli->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan faktur ini?')" style="display:inline;">
+                              @if ($beli->status == 'aktif')
+                                <form id="form-batal-{{ $beli->id }}" action="{{ route('pembelian.batal', $beli->id) }}" method="POST" style="display:inline;">
                                   @csrf
                                   @method('PUT')
-                                  <button class="btn btn-danger btn-sm"><i class="fas fa-times-circle"></i></button>
+                                  <button type="button" class="dropdown-item text-danger btn-batal" data-id="{{ $beli->id }}"><i class="fas fa-times-circle"></i> Batal</button>
                                 </form>
-                              @endif --}}
-
+                              @endif
+                              </div>
+                            </div>
                           </td>
                       </tr>
 
                     <!-- Modal -->
                     <div class="modal fade" id="modalApprove{{ $beli->id }}" tabindex="-1">
                       <div class="modal-dialog">
-                        <form method="POST" action="{{ route('penjualan.approve', $beli->id) }}">
+                        <form method="POST" action="{{ route('pembelian.approve', $beli->id) }}">
                           @csrf
                           @method('PUT')
                           <div class="modal-content">
@@ -200,6 +209,12 @@
                             <div class="modal-body">
                               Konfirmasi pembayaran invoice <strong>{{ $beli->no_faktur }}</strong> <br>
                               dengan total <strong>{{ rupiah($beli->total) }}</strong>
+                              <hr>
+                              <div class="form-group">
+                              <label for="approved_at_{{ $beli->id }}">Tanggal Pelunasan</label>
+                              <input type="date" name="approved_at" id="approved_at_{{ $beli->id }}" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
+                              <small class="text-muted">Tanggal ini akan tersimpan sebagai tanggal pelunasan (Lunas).</small>
+                            </div>
                             </div>
                             <div class="modal-footer">
                               <button type="submit" class="btn btn-success">Ya, Tandai Lunas</button>
@@ -239,5 +254,29 @@
       },
     });
   });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-batal').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          // e.preventDefault();
+            let id = this.getAttribute('data-id');
+            Swal.fire({
+                title: 'Yakin ingin membatalkan?',
+                text: "Faktur yang dibatalkan tidak bisa dikembalikan.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Batalkan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-batal-' + id).submit();
+                }
+            });
+        });
+    });
+});
 </script>
 @endsection

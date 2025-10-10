@@ -10,7 +10,7 @@ class Penjualan extends Model
     const STATUS_AKTIF = 'aktif';
     const STATUS_BATAL = 'batal';
     protected $table = 'penjualan';
-    protected $casts = ['approved_at'=>'datetime','jatuh_tempo' => 'date',];
+    protected $casts = ['approved_at'=>'datetime','jatuh_tempo' => 'date','paid_date'   => 'date',];
     protected $fillable = [
         'no_faktur',
         'no_po',
@@ -23,7 +23,9 @@ class Penjualan extends Model
         'total',
         'jatuh_tempo',
         'status_pembayaran',
+        'paid_date',
         'approved_at',
+        'approved_by',
         'status',
         'created_by',
     ];

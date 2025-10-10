@@ -58,13 +58,18 @@
                     <a href="{{ route('retur-penjualan.show', $retur->id) }}" class="btn btn-sm btn-info">
                       <i class="fas fa-eye"></i>
                     </a>
-                    <form action="{{ route('retur-penjualan.destroy', $retur->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus retur ini?')">
+                    
+                    <button class="btn btn-danger btn-sm btn-delete" data-id="{{ $retur->id }}" data-no_retur="{{ $retur->no_retur }}">
+                        <i class="fas fa-trash"></i>
+                    </button>                                        
+                   
+                    {{-- <form action="{{ route('retur-penjualan.destroy', $retur->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus retur ini?')">
                       @csrf
                       @method('DELETE')
                       <button class="btn btn-sm btn-danger">
                         <i class="fas fa-trash"></i>
                       </button>
-                    </form>
+                    </form> --}}
                   </td>
                 </tr>
               @empty
@@ -80,4 +85,54 @@
     </section>
   </div>
 </div>
+{{-- script delete --}}
+<script>
+  $(document).on('click', '.btn-delete', function (e) {
+    e.preventDefault();
+
+    let id = $(this).data('id');
+    let no_retur = $(this).data('no_retur');
+
+    Swal.fire({
+      title: 'Yakin ingin hapus?',
+      text: `Retur "${no_retur}" akan dihapus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/sales/sales_retur/${id}`,
+          type: 'POST',
+          data: {
+             _method: 'DELETE',
+            _token: '{{ csrf_token() }}'
+          },
+          success: function (res) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: res.message,
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              location.reload();
+            });
+          },
+          error: function (xhr) {
+            let res = xhr.responseJSON;
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: res.message || 'Terjadi kesalahan.',
+            });
+          }
+        });
+      }
+    });
+  });
+</script>
 @endsection

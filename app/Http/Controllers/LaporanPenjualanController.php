@@ -28,7 +28,7 @@ class LaporanPenjualanController extends Controller
         // $perPage = $request->get('per_page', 10);
         // $penjualans = $query->orderByDesc('tanggal')->paginate($perPage);
         // $pelanggans = Pelanggan::all();
-        $penjualans = $query->get();
+        $penjualans = $query->latest()->get();
         $pelanggans = Pelanggan::all();
 
         return view('reports/sales_report', compact('penjualans', 'pelanggans'));

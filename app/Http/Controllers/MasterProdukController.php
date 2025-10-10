@@ -185,10 +185,11 @@ class MasterProdukController extends Controller
             $results[] = [
                 'id' => $item->id,
                 'text' => $item->nama_produk,
-                'harga_jual' => $item->harga_jual
+                'harga_jual' => $item->harga_jual,
+                'harga_dasar'=> $item->harga_dasar,
             ];
         }
-
+        
         return response()->json(['results' => $results]);
     }
 }

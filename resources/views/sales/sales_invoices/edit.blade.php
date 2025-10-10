@@ -124,7 +124,6 @@
                         <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control number-input qty" required>
                       </td>
                       <td>
-                        {{-- <input type="number" name="harga_jual[]" value="{{ rupiah($detail->harga_jual) }}" class="form-control harga" required {{ $isReturExists ? 'readonly' : '' }}> --}}
                         <input type="hidden" name="harga_jual[]" value="{{ $detail->harga_jual }}" class="harga" required {{ $isReturExists ? 'readonly' : '' }}>
                         <input type="text" value="{{ rupiah($detail->harga_jual) }}" class="form-control harga_display number-input " required {{ $isReturExists ? 'readonly' : '' }}>
                       </td>

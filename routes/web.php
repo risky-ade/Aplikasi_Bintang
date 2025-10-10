@@ -59,7 +59,7 @@ Route::prefix('sales')->group(function () {
     Route::get('sales_retur/create', [ReturPenjualanController::class, 'create'])->name('retur-penjualan.create')->middleware('auth');
     Route::post('sales_retur/store', [ReturPenjualanController::class, 'store'])->name('retur-penjualan.store')->middleware('auth');
     Route::get('sales_retur/get-detail/{id}', [ReturPenjualanController::class, 'getDetailPenjualan'])->name('retur-penjualan.get-detail')->middleware('auth');
-    Route::delete('sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy')->middleware('auth');
+    Route::delete('/sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy')->middleware('auth');
     Route::get('sales_retur/{id}', [ReturPenjualanController::class, 'show'])->name('retur-penjualan.show')->middleware('auth');
 });
 Route::get('/ajax/faktur-search', [ReturPenjualanController::class, 'searchFaktur'])->name('ajax.faktur-search')->middleware('auth');
@@ -74,10 +74,11 @@ Route::prefix('purchases')->group(function () {
     Route::get('purchase_inv/{id}/print', [PembelianController::class,'print'])->name('pembelian.print')->middleware('auth');
     Route::get('purchase_inv/{id}/edit', [PembelianController::class,'edit'])->name('pembelian.edit')->middleware('auth');
     Route::put('purchase_inv/{id}', [PembelianController::class,'update'])->name('pembelian.update')->middleware('auth');
+    Route::put('purchase_inv/{id}/approve', [PembelianController::class,'approve'])->name('pembelian.approve')->middleware('auth');
+    Route::put('purchase_inv/{id}/unapprove', [PembelianController::class,'unapprove'])->name('pembelian.unapprove')->middleware('auth');
+    Route::put('purchase_inv/{id}/batal', [PembelianController::class,'batal'])->name('pembelian.batal')->middleware('auth');
     
     // Route::get('purchase_invoices/{id}/print', [PembelianController::class, 'print'])->name('purchase_invoices.print');
-    // Route::put('purchase_invoices/{id}/approve', [PembelianController::class, 'approve'])->name('purchase_invoices.approve');
-    // Route::put('purchase_invoices/{id}/unapprove', [PembelianController::class, 'unapprove'])->name('purchase_invoices.unapprove');
 });
 Route::get('/purchases_retur', function () {
     return view('purchases.purchases_retur.index');

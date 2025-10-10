@@ -33,7 +33,22 @@ class ReturPenjualanController extends Controller
     {
         $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
         // $penjualan->where('status', '!=', 'batal');
-        return response()->json($penjualan);
+        $details = $penjualan->detail->map(function ($d) {
+            return [
+                'produk' => [
+                    'id'           => $d->produk?->id,
+                    'nama_produk'  => $d->produk?->nama_produk,
+                ],
+                'qty'         => (int) $d->qty,
+                'harga_jual'  => (int) $d->harga_jual,
+                'subtotal'    => (int) $d->subtotal,
+            ];
+        })->values();
+        return response()->json([
+            'success' => true,
+            'details' => $details,
+        ], 200);
+        // return response()->json($penjualan);
     }
 
     public function searchFaktur(Request $request)
@@ -50,6 +65,7 @@ class ReturPenjualanController extends Controller
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran','!=','Lunas')
             ->limit(20)
+            ->latest()
             ->get();
 
         $formatted = $results->map(function($penjualan) {

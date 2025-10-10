@@ -92,46 +92,56 @@ $('#penjualan_id').select2({
       cache: true
     }
   });
-
   $('#penjualan_id').on('change', function () {
-    const id = $(this).val();
-    if (id) {
-      fetch(`get-detail/${id}`)
-        .then(res => res.json())
-        .then(data => {
-            console.log('data', data);
-          const tbody = $('#produk-retur-body').empty();
-          data.detail.forEach((item, index) => {
-            tbody.append(`
-              <tr>
-                <td>
-                  ${item.produk.nama_produk}
-                  <input type="hidden" name="produk_id[]" value="${item.produk.id}">
-                  <input type="hidden" name="harga_jual[]" value="${item.harga_jual}">
-                </td>
-                <td>${item.qty}</td>
-                <td>Rp ${parseInt(item.harga_jual).toLocaleString()}</td>
-                <td>
-                  <input type="number" name="qty_retur[]" class="form-control qty-retur" data-harga="${item.harga_jual}" min="0" max="${item.qty}" value="0">
-                </td>
-                <td class="subtotal">Rp 0</td>
-              </tr>
-            `);
-          });
-          $('#detail-penjualan').show();
-        });
-    } else {
-      $('#detail-penjualan').hide();
-      $('#produk-retur-body').empty();
-    }
-  });
+  const id = $(this).val();
+  if (!id) {
+    $('#detail-penjualan').hide();
+    $('#produk-retur-body').empty();
+    return;
+  }
+  fetch(`/sales/sales_retur/get-detail/${id}`)
+    .then(async (res) => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error('HTTP ' + res.status + ' ' + text);
+      }
+      return res.json();
+    })
+    .then(data => {
+      const tbody = $('#produk-retur-body').empty();
+      (data.details || []).forEach((item) => {
+        tbody.append(`
+          <tr>
+            <td>
+              ${item.produk?.nama_produk ?? '-'}
+              <input type="hidden" name="produk_id[]"   value="${item.produk?.id ?? ''}">
+              <input type="hidden" name="harga_jual[]" value="${item.harga_jual}">
+            </td>
+            <td>${item.qty}</td>
+            <td>Rp ${parseInt(item.harga_jual).toLocaleString('id-ID')}</td>
+            <td>
+              <input type="number" name="qty_retur[]" class="form-control qty-retur"
+                     data-harga="${item.harga_jual}" min="0" max="${item.qty}" value="0">
+            </td>
+            <td class="subtotal">Rp 0</td>
+          </tr>
+        `);
+      });
+      $('#detail-penjualan').show();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal memuat detail faktur. Cek konsol & laravel.log');
+    });
+});
 
-  $(document).on('input', '.qty-retur', function () {
-    const harga = $(this).data('harga');
-    const qty = parseInt($(this).val()) || 0;
-    const subtotal = qty * harga;
-    $(this).closest('tr').find('.subtotal').text('Rp ' + subtotal.toLocaleString());
-  });
+$(document).on('input', '.qty-retur', function () {
+  const harga = Number($(this).data('harga') || 0);
+  const qty   = Number($(this).val() || 0);
+  const sub   = qty * harga;
+  $(this).closest('tr').find('.subtotal').text('Rp ' + sub.toLocaleString('id-ID'));
+});
+
 });
 </script>
 

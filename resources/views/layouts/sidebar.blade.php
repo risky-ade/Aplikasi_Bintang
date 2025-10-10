@@ -175,12 +175,12 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-header">Lainnya</li>
+                <li class="nav-header"></li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="fas fa-solid fa-microchip"></i>
                         <p>
-                            Pengaturan
+                            Lainnya
                             <i class="fas fa-angle-left right"></i>
                         </p>
                     </a>

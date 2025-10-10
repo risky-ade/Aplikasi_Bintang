@@ -195,27 +195,7 @@
       row.find('.qty').val(1).trigger('input');
     });
   }
-    // function initSelect2() {
-    //     $('.produk-select').select2({
-    //         placeholder: 'Cari Produk...',
-    //         ajax: {
-    //             url: '{{ route("produk.search") }}',
-    //             dataType: 'json',
-    //             delay: 250,
-    //             processResults: function (data) {
-    //                 return {
-    //                     results: data.results
-    //                 };
-    //             }
-    //         }
-    //     }).on('select2:select', function (e) {
-    //         const data = e.params.data;
-    //         const row = $(this).closest('tr');
-    //         row.find('.harga').val(data.harga_dasar);
-    //         row.find('.harga_display').val('Rp ' + data.harga_dasar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
-    //         row.find('.qty').val(1).trigger('input');
-    //     });
-    // }
+
   function tambahBaris(){
     const tpl = document.getElementById('row-template').content.cloneNode(true);
     $('#produk-body').append(tpl);
@@ -238,8 +218,8 @@ function hitungTotal() {
 
     $('#produk-body tr').each(function () {
         const qty = parseFloat($(this).find('.qty').val()) || 0;
-        const harga = parseFloat($(this).find('.harga').val()) || 0; // hidden murni
-        const diskon = parseFloat($(this).find('.diskon').val()) || 0; // hidden murni
+        const harga = parseFloat($(this).find('.harga').val()) || 0; 
+        const diskon = parseFloat($(this).find('.diskon').val()) || 0; 
         const subtotal = (qty * harga) - diskon;
 
         $(this).find('.diskon').val(diskon);
@@ -256,13 +236,13 @@ function hitungTotal() {
     const totalPajak = (total * pajak) / 100;
     const grandTotal = total + totalPajak + biayaKirim;
 
-    // set hidden
+  
     $('[name="total_subtotal"]').val(total);
     $('[name="total_diskon"]').val(totalDiskon);
     $('[name="biaya_kirim"]').val(biayaKirim);
     $('[name="total"]').val(grandTotal);
 
-    // set display
+ 
     $('.total_subtotal_display').val(formatRupiah(total));
     $('.total_diskon_display').val(formatRupiah(totalDiskon));
     $('.biaya_kirim_display').val(formatRupiah(biayaKirim));
@@ -292,27 +272,6 @@ $(document).ready(function () {
         hitungTotal();
     });
 });
-  // function hitungTotal(){
-  //   let subtotal = 0;
-  //   let totalDiskon = 0;
-  //   $('#produk-body tr').each(function(){
-  //     const qty = parseFloat($(this).find('.qty').val()) || 0;
-  //     const harga = parseFloat($(this).find('.harga').val()) || 0;
-  //     const diskon = parseFloat($(this).find('.diskon').val()) || 0;
-  //     const sub = (qty * harga) - diskon;
-  //     $(this).find('.subtotal').val(sub.toFixed(0));
-  //     subtotal += sub;
-  //     totalDiskon += diskon;
-  //   });
-  //   const pajak = parseFloat($('[name="pajak"]').val()) || 0;
-  //   const biaya = parseFloat($('[name="biaya_kirim"]').val()) || 0;
-  //   const totalPajak = subtotal * pajak / 100;
-  //   $('[name="total_subtotal"]').val(subtotal.toFixed(0));
-  //   $('[name="total_diskon"]').val(totalDiskon.toFixed(0));
-  //   $('[name="total"]').val((subtotal + totalPajak + biaya).toFixed(0));
-  // }
-  // $(document).on('input', '.qty,.harga,.diskon,[name="pajak"],[name="biaya_kirim"]', hitungTotal);
-  // $(function(){ initSelect2(); hitungTotal(); });
   
 </script>
 @endsection
