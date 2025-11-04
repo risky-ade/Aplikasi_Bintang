@@ -16,10 +16,6 @@ class PembelianDetail extends Model
         'subtotal'
     ];
 
-    // public function pembelian()
-    // {
-    //     return $this->belongsTo(Pembelian::class);
-    // }
     public function produk()
     {
         return $this->belongsTo(MasterProduk::class, 'master_produk_id');

@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use App\Models\PembelianDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\HistoriHargaPembelian;
 
 class PembelianController extends Controller
 {
@@ -111,6 +112,8 @@ class PembelianController extends Controller
                 $diskon = (float) ($request->diskon[$i] ?? 0);
                 $sub = ($qty * $harga) - $diskon;
 
+                $produk = MasterProduk::find($pid);
+
                 PembelianDetail::create([
                     'pembelian_id'     => $pembelian->id,
                     'master_produk_id' => $pid,
@@ -119,6 +122,22 @@ class PembelianController extends Controller
                     'diskon'           => $diskon,
                     'subtotal'         => $sub,
                 ]);
+                //  Cek hanya buat histori jika harga berbeda dengan harga default produk
+                $lastHistori = HistoriHargaPembelian::where('produk_id', $produk->id)
+                    ->latest('id')
+                    ->first();
+                if ($harga != $produk->harga_dasar && (!$lastHistori || $lastHistori->harga_baru != $harga)) {
+                    $tanggalHist = $pembelian->getRawOriginal('tanggal');
+                    HistoriHargaPembelian::create([
+                        'produk_id' => $produk->id,
+                        'pemasok_id'     => $pembelian->pemasok_id,
+                        'harga_lama'       => $produk->harga_dasar,
+                        'harga_baru'       => $harga,
+                        'sumber'           => 'pembelian',
+                        'tanggal'          => $tanggalHist,
+                        'keterangan'       => 'Perubahan harga saat transaksi Faktur ' . $pembelian->no_faktur,
+                    ]);
+                }
 
                 //Tambah stok
                 MasterProduk::where('id', $pid)->increment('stok', $qty);
@@ -151,121 +170,303 @@ class PembelianController extends Controller
         $pembelian = Pembelian::with('detail', 'pemasok')->findOrFail($id);
         // dd($pembelian);
         $pemasok = Pemasok::all();
+        if ($pembelian->status_pembayaran === 'Lunas') {
+            return redirect()->route('pembelian.index')
+                ->with('error', 'Faktur tidak dapat diedit atau dihapus karena sudah diset sebagai Lunas.');
+        }
         $produk = MasterProduk::all();
         
 
         return view('purchases.purchase_inv.edit', compact('pembelian', 'pemasok'));
     }
 
+public function update(Request $request, $id)
+{
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'tanggal' => 'required|date',
-            'pemasok_id' => 'required',
-            'produk_id.*' => 'required|exists:master_produk,id',
-            'qty.*' => 'required|integer|min:1',
-            'harga_beli.*' => 'required|numeric|min:0',
-            'pajak' => 'nullable|numeric|min:0',
-        ]);
-        $pembelian = Pembelian::with('detail')->findOrFail($id);
-        
-        DB::beginTransaction();
-        try {
-            // Rollback stok dari detail lama (karena pembelian sebelumnya sudah menambah stok)
-            foreach ($pembelian->detail as $d) {
-                $produk = MasterProduk::find($d->master_produk_id);
-                if ($produk) {
-                    $produk->decrement('stok', $d->qty);
-                }
-            }
+    $request->validate([
+        'tanggal'          => ['required','date'],
+        'pemasok_id'       => ['required','exists:pemasok,id'],
+        'produk_id'        => ['required','array','min:1'],
+        'produk_id.*'      => ['required','exists:master_produk,id'],
+        'qty'              => ['required','array','min:1'],
+        'qty.*'            => ['required','integer','min:1'],
+        'harga_beli'       => ['required','array','min:1'],
+        'harga_beli.*'     => ['required','numeric','min:0'],
+        'diskon'           => ['nullable','array'],
+        'diskon.*'         => ['nullable','numeric','min:0'],
+        'pajak'            => ['nullable','numeric','min:0'], 
+        'biaya_kirim'      => ['nullable','numeric','min:0'],
+        'catatan'          => ['nullable','string'],
+        'jatuh_tempo'      => ['nullable','date'],
+        'status_pembayaran'=> ['nullable','in:Belum Lunas,Lunas'],
+        'status'           => ['nullable','in:aktif,batal'],
+    ]);
 
-            //  Hapus detail lama
-            $pembelian->detail()->delete();
+    // Helper parsing angka kalau form pakai "Rp 1.000.000"
+    $parseMoney = function($v){
+        if ($v === null) return 0;
+        if (is_numeric($v)) return (float)$v;
+        return (float)str_replace(['Rp','rp','.',',',' '], ['', '', '', '.', ''], $v);
+    };
 
-            //  Update header faktur
-            $pembelian->update([
-                'tanggal'           => $request->tanggal,
-                'pemasok_id'        => $request->pemasok_id,
-                'catatan'           => $request->catatan,
-                'pajak'             => $request->pajak ?? 0,
-                'biaya_kirim'       => $request->biaya_kirim ?? 0,
-                'no_po'             => $request->no_po,
-                'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
-            ]);
+    DB::transaction(function() use ($request, $id, $parseMoney) {
 
-            $total = 0;
+        // Kunci header agar aman dari race condition
+        $pembelian = Pembelian::lockForUpdate()->findOrFail($id);
 
-            foreach ($request->produk_id as $i => $produk_id) {
-                $qty     = $request->qty[$i];
-                $harga   = $request->harga_beli[$i]??0;
-                $diskon  = $request->diskon[$i] ?? 0;
-                $subtotal = ($qty * $harga) - $diskon;
+ 
+        //Ambil detail lama & total qty per produk
+        $oldDetails = PembelianDetail::where('pembelian_id', $pembelian->id)->get();
 
-                //  Simpan detail baru
-                PembelianDetail::create([
-                    'pembelian_id'     => $pembelian->id,
-                    'master_produk_id' => $produk_id,
-                    'qty'              => $qty,
-                    'harga_beli'       => $harga,
-                    'diskon'           => $diskon,
-                    'subtotal'         => $subtotal,
-                ]);
+        $oldQtyMap = []; // [produk_id => total_qty_lama]
+        foreach ($oldDetails as $d) {
+            $pid = (int)$d->master_produk_id;
+            $oldQtyMap[$pid] = ($oldQtyMap[$pid] ?? 0) + (int)$d->qty;
+        }
+        // Hitung total qty baru per produk dari request
+        //    (antisipasi baris produk dobel)
+        $newQtyMap = []; // [produk_id => total_qty_baru]
+        $produkIds = $request->produk_id;
+        $qtys      = $request->qty;
+        $hargas    = $request->harga_beli;
+        $diskons   = $request->diskon ?? [];
 
-                //  Kurangi stok sesuai qty baru
-                $produk->increment('stok', $qty);
-
-                //Cek histori harga terakhir produk ini
-                // $lastHistori = HistoriHargaPenjualan::where('produk_id', $produk->id)
-                //     ->where('pelanggan_id', $penjualan->pelanggan_id)
-                //     ->latest('created_at')
-                //     ->first();
-
-                // $hargaLama = $lastHistori ? $lastHistori->harga_baru : $produk->harga_jual;
-                //Catat hanya jika harga BERBEDA dari histori terakhir
-                // if ($harga != $hargaLama) {
-                //     HistoriHargaPenjualan::create([
-                //         'produk_id' => $produk->id,
-                //         'pelanggan_id'     => $penjualan->pelanggan_id,
-                //         'harga_lama'       => $produk->harga_jual,
-                //         'harga_baru'       => $harga,
-                //         'sumber'           => 'penjualan',
-                //         'tanggal'          => $penjualan->tanggal,
-                //         'keterangan'       => 'Perubahan harga saat UPDATE Faktur ' . $penjualan->no_faktur,
-                //     ]);
-                // }
-
-                $total += $subtotal;
-            }
-
-            //  Hitung ulang total faktur
-            $pajak = $request->pajak ? ($total * $request->pajak / 100) : 0;
-            $total += $pajak + ($request->biaya_kirim ?? 0);
-
-            $pembelian->update([
-                'total' => $total
-            ]);
-
-            DB::commit();
-            return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil diperbarui.');
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal update faktur: ' . $e->getMessage());
+        foreach ($produkIds as $i => $pid) {
+            $pid = (int)$pid;
+            $q   = (int)($qtys[$i] ?? 0);
+            $newQtyMap[$pid] = ($newQtyMap[$pid] ?? 0) + $q;
         }
 
-    }
+        // Terapkan DELTA stok per produk
+        $allProductIds = array_unique(array_merge(array_keys($oldQtyMap), array_keys($newQtyMap)));
+
+        foreach ($allProductIds as $pid) {
+            $old   = (int)($oldQtyMap[$pid] ?? 0);
+            $new   = (int)($newQtyMap[$pid] ?? 0);
+            $delta = $new - $old; // + tambah stok, - kurangi stok
+
+            if ($delta !== 0) {
+                $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
+
+                $stokSesudah = (int)$produk->stok + (int)$delta;
+                if ($stokSesudah < 0) {
+                    abort(422, 'Stok produk "'.$produk->nama_produk.'" tidak mencukupi untuk koreksi. (Stok: '.$produk->stok.', delta: '.$delta.')');
+                }
+
+                if ($delta > 0) {
+                    $produk->increment('stok', $delta);
+                } else {
+                    $produk->decrement('stok', abs($delta));
+                }
+            }
+        }
+
+        // Sinkronisasi detail:
+        //    Hapus semua detail lama, insert ulang dari request
+        PembelianDetail::where('pembelian_id', $pembelian->id)->delete();
+
+        $detailRows = [];
+        $subtotalHeader = 0;
+
+        foreach ($produkIds as $i => $pid) {
+            $pid      = (int)$pid;
+            $qty      = (int)$qtys[$i];
+            $harga    = (float)$parseMoney($hargas[$i] ?? 0);
+            $diskon   = (float)$parseMoney($diskons[$i] ?? 0);
+
+            $subtotal = max(0, ($qty * $harga) - $diskon);
+            $subtotalHeader += $subtotal;
+
+            $detailRows[] = [
+                'pembelian_id'     => $pembelian->id,
+                'master_produk_id' => $pid,
+                'qty'              => $qty,
+                'harga_beli'       => $harga,
+                'diskon'           => $diskon,
+                'subtotal'         => $subtotal,
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ];
+        }
+
+        if (!empty($detailRows)) {
+            PembelianDetail::insert($detailRows);
+        }
+
+        $pajakPersen = (float)$parseMoney($request->pajak ?? 0);         
+        $biayaKirim  = (float)$parseMoney($request->biaya_kirim ?? 0);
+
+        $totalPajak  = ($subtotalHeader * $pajakPersen) / 100;
+        $grandTotal  = $subtotalHeader + $totalPajak + $biayaKirim;
+
+        $produkHargaBaru = []; // [produk_id => harga_baru]
+        foreach ($request->produk_id as $i => $pid) {
+            $produkHargaBaru[(int)$pid] = (float)$parseMoney($request->harga_beli[$i] ?? 0);
+        }
+
+        // Tanggal histori: pakai nilai mentah dari DB (aman Y-m-d)
+        $tanggalHist = $pembelian->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString();
+
+        foreach ($produkHargaBaru as $pid => $hargaBaru) {
+            $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
+
+            // Cek perubahan harga
+            if ((float)$hargaBaru != (float)$produk->harga_dasar) {
+                $lastHistori = HistoriHargaPembelian::where('produk_id', $produk->id)
+                    ->latest('id')
+                    ->first();
+
+                if (!$lastHistori || (float)$lastHistori->harga_baru != (float)$hargaBaru) {
+                    HistoriHargaPembelian::create([
+                        'produk_id'   => $produk->id,
+                        'pemasok_id'  => $pembelian->pemasok_id,
+                        'harga_lama'  => $produk->harga_dasar,
+                        'harga_baru'  => $hargaBaru,
+                        'sumber'      => 'pembelian',
+                        'tanggal'     => $tanggalHist,
+                        'keterangan'  => 'Perubahan harga saat update Faktur ' . $pembelian->no_faktur,
+                    ]);
+                }
+            }
+        }
+
+        // Update header pembelian
+        $pembelian->update([
+            'tanggal'          => $request->tanggal,     
+            'pemasok_id'       => $request->pemasok_id,
+            'catatan'          => $request->catatan,
+            'pajak'            => $pajakPersen,
+            'biaya_kirim'      => $biayaKirim,
+            'total'            => $grandTotal,
+            'jatuh_tempo'      => $request->jatuh_tempo,
+            'status_pembayaran'=> $request->status_pembayaran ?? $pembelian->status_pembayaran,
+            'status'           => $request->status ?? $pembelian->status,
+        ]);
+    });
+
+    return redirect()
+        ->route('pembelian.index')
+        ->with('success', 'Pembelian berhasil diperbarui. Stok telah dikoreksi berdasarkan perbedaan qty.');
+}
+    // public function update(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'tanggal' => 'required|date',
+    //         'pemasok_id' => 'required',
+    //         'produk_id.*' => 'required|exists:master_produk,id',
+    //         'qty.*' => 'required|integer|min:1',
+    //         'harga_beli.*' => 'required|numeric|min:0',
+    //         'pajak' => 'nullable|numeric|min:0',
+    //     ]);
+    //     $pembelian = Pembelian::with('detail')->findOrFail($id);
+        
+    //     DB::beginTransaction();
+    //     try {
+    //         // Rollback stok dari detail lama (karena pembelian sebelumnya sudah menambah stok)
+    //         foreach ($pembelian->detail as $d) {
+    //             $produk = MasterProduk::find($d->master_produk_id);
+    //             if ($produk) {
+    //                 $produk->decrement('stok', $d->qty);
+    //             }
+    //         }
+
+    //         //  Hapus detail lama
+    //         $pembelian->detail()->delete();
+
+    //         //  Update header faktur
+    //         $pembelian->update([
+    //             'tanggal'           => $request->tanggal,
+    //             'pemasok_id'        => $request->pemasok_id,
+    //             'catatan'           => $request->catatan,
+    //             'pajak'             => $request->pajak ?? 0,
+    //             'biaya_kirim'       => $request->biaya_kirim ?? 0,
+    //             'no_po'             => $request->no_po,
+    //             'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
+    //         ]);
+
+    //         $total = 0;
+
+    //         foreach ($request->produk_id as $i => $produk_id) {
+    //             $qty     = $request->qty[$i];
+    //             $harga   = $request->harga_beli[$i]??0;
+    //             $diskon  = $request->diskon[$i] ?? 0;
+    //             $subtotal = ($qty * $harga) - $diskon;
+
+    //             //  Validasi stok
+    //             $produk = MasterProduk::findOrFail($produk_id);
+    //             if ($produk->stok < $qty) {
+    //                 DB::rollBack();
+    //                 return back()->with('error', 'Stok produk "' . $produk->nama_produk . '" tidak mencukupi. Tersedia: ' . $produk->stok);
+    //             }
+
+    //             //  Simpan detail baru
+    //             PembelianDetail::create([
+    //                 'pembelian_id'     => $pembelian->id,
+    //                 'master_produk_id' => $produk_id,
+    //                 'qty'              => $qty,
+    //                 'harga_beli'       => $harga,
+    //                 'diskon'           => $diskon,
+    //                 'subtotal'         => $subtotal,
+    //             ]);
+
+    //             $produk->increment('stok', $qty);
+
+    //             //Cek histori harga terakhir produk ini
+    //             // $lastHistori = HistoriHargaPenjualan::where('produk_id', $produk->id)
+    //             //     ->where('pelanggan_id', $penjualan->pelanggan_id)
+    //             //     ->latest('created_at')
+    //             //     ->first();
+
+    //             // $hargaLama = $lastHistori ? $lastHistori->harga_baru : $produk->harga_jual;
+    //             //Catat hanya jika harga BERBEDA dari histori terakhir
+    //             // if ($harga != $hargaLama) {
+    //             //     HistoriHargaPenjualan::create([
+    //             //         'produk_id' => $produk->id,
+    //             //         'pelanggan_id'     => $penjualan->pelanggan_id,
+    //             //         'harga_lama'       => $produk->harga_jual,
+    //             //         'harga_baru'       => $harga,
+    //             //         'sumber'           => 'penjualan',
+    //             //         'tanggal'          => $penjualan->tanggal,
+    //             //         'keterangan'       => 'Perubahan harga saat UPDATE Faktur ' . $penjualan->no_faktur,
+    //             //     ]);
+    //             // }
+
+    //             $total += $subtotal;
+    //         }
+
+    //         //  Hitung ulang total faktur
+    //         $pajak = $request->pajak ? ($total * $request->pajak / 100) : 0;
+    //         $total += $pajak + ($request->biaya_kirim ?? 0);
+
+    //         $pembelian->update([
+    //             'total' => $total
+    //         ]);
+
+    //         DB::commit();
+    //         return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil diperbarui.');
+
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         return back()->with('error', 'Gagal update faktur: ' . $e->getMessage());
+    //     }
+
+    // }
     public function approve($id, Request $request)
     {
-        $request->validate([
-        'approved_at' => 'required|date',
+         $request->validate([
+        'paid_date' => ['required','date_format:Y-m-d'],
+        ],[
+            'paid_date.required' => 'Tanggal pelunasan wajib diisi.',
         ]);
         $pembelian = Pembelian::findOrFail($id);
-        $approvedAt = Carbon::parse($request->approved_at)
+
+        $paidDate = Carbon::parse($request->paid_date)
                 ->setTimeFromTimeString(now()->format('H:i:s'));
         $pembelian->update([
             'status_pembayaran' => 'Lunas',
-            'approved_at' =>now(),
+            'approved_at' =>now('Asia/Jakarta'),
+            'paid_date'         => $paidDate,
+            'approved_by'        => Auth::id(),
         ]);
         return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas.');
         
@@ -294,6 +495,7 @@ class PembelianController extends Controller
         $pembelian->update([
             'status_pembayaran' => 'Belum Lunas',
             'approved_at' => null,
+            'paid_date'   => null,
         ]);
 
         return back()->with('success', 'Pelunasan berhasil dibatalkan.');

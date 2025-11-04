@@ -66,9 +66,19 @@
             <tbody>
               @php $total = 0; $total_diskon = 0; @endphp
               @foreach ($penjualan->detail as $i => $item)
+              @php
+                $pid = (int) $item->master_produk_id; // atau $d->produk_id
+                $retQty = (int) ($produkDiretur[$pid] ?? 0);
+              @endphp
               <tr>
-                <td>{{ $i+1 }}</td>
-                <td>{{ $item->produk->nama_produk ?? '-' }}</td>
+                <td>{{ $i + 1 }}</td>
+                <td>
+                  {{ $item->produk->nama_produk ?? '-' }}
+                  @if($retQty > 0)
+                    <br>
+                    <small class="text-danger"><i class="fas fa-undo"></i> produk diretur {{ $retQty }}</small>
+                  @endif
+                </td>
                 <td class="text-right">{{ $item->qty }}</td>
                 <td class="text-right">{{ rupiah($item->harga_jual) }}</td>
                 <td class="text-right">{{ rupiah($item->diskon) }}</td>
@@ -106,8 +116,16 @@
                 <td class="text-right">{{ rupiah($penjualan->biaya_kirim) }}</td>
               </tr>
               <tr class="font-weight-bold">
-                <th class="text-right">Total Bayar</th>
+                <th class="text-right">Total</th>
                 <td class="text-right">{{ rupiah($penjualan->total) }}</td>
+              </tr>
+              <tr>
+                <th class="text-right">Total Retur</th>
+                <td class="text-right text-red">{{ rupiah($totalRetur ?? 0, 0, ',', '.')}}</td>
+              </tr>
+              <tr class="font-weight-bold">
+                <th class="text-right">Total Netto</th>
+                <td class="text-right">{{ rupiah($totalNetto) }}</td>
               </tr>
             </table>
           </div>

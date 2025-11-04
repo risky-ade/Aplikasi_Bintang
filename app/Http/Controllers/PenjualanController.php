@@ -24,7 +24,16 @@ class PenjualanController extends Controller
             'tanggal_awal' => 'nullable|date',
             'tanggal_akhir' => 'nullable|date|after_or_equal:tanggal_awal',
         ]);
-        $query = Penjualan::with('pelanggan');
+        // $query = Penjualan::with('pelanggan');
+        $query = Penjualan::query()
+            ->with(['pelanggan'])
+            ->select('penjualan.*')
+            ->selectSub(function ($sub) {
+                $sub->from('retur_penjualan as r')
+                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+                    ->selectRaw('COALESCE(SUM(rd.subtotal), 0)')
+                    ->whereColumn('r.penjualan_id', 'penjualan.id');
+            }, 'total_retur');
 
     if ($request->filled('no_faktur')) {
         $query->where('no_faktur', 'like', '%' . $request->no_faktur . '%');
@@ -150,13 +159,14 @@ class PenjualanController extends Controller
             ->latest('id')
             ->first();
         if ($harga != $produk->harga_jual && (!$lastHistori || $lastHistori->harga_baru != $harga)) {
+            $tanggalHist = $penjualan->getRawOriginal('tanggal');
             HistoriHargaPenjualan::create([
                 'produk_id' => $produk->id,
                 'pelanggan_id'     => $penjualan->pelanggan_id,
                 'harga_lama'       => $produk->harga_jual,
                 'harga_baru'       => $harga,
                 'sumber'           => 'penjualan',
-                'tanggal'          => $penjualan->tanggal,
+                'tanggal'          => $tanggalHist,
                 'keterangan'       => 'Perubahan harga saat transaksi Faktur ' . $penjualan->no_faktur,
             ]);
         }
@@ -169,8 +179,24 @@ class PenjualanController extends Controller
 
      public function show($id)
     {
-        $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
-        return view('sales.sales_invoices.show', compact('penjualan'));
+        $penjualan = Penjualan::with(['pelanggan','detail.produk'])
+            ->withSum('returPenjualan as total_retur', 'total')
+            ->findOrFail($id);
+
+        // Pluck qty retur per produk
+        $produkDiretur = DB::table('retur_penjualan as r')
+            ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+            ->where('r.penjualan_id', $penjualan->id)
+            ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+            ->groupBy('rd.produk_id')
+            ->pluck('total_qty_retur', 'rd.produk_id')
+            ->map(fn($v) => (int) $v)
+            ->toArray();
+// dd($produkDiretur, $penjualan->detail->pluck('produk_id'));
+        $totalRetur = (float) ($penjualan->total_retur ?? 0);
+        $totalNetto = max(0, (float) ($penjualan->total ?? 0) - $totalRetur);
+
+        return view('sales.sales_invoices.show', compact('penjualan','produkDiretur','totalRetur', 'totalNetto'));
     }
 
     public function edit($id)
@@ -256,7 +282,7 @@ class PenjualanController extends Controller
 
                 //  Kurangi stok sesuai qty baru
                 $produk->decrement('stok', $qty);
-
+                $tanggalHist = $penjualan->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString();
                 //Cek histori harga terakhir produk ini
                 $lastHistori = HistoriHargaPenjualan::where('produk_id', $produk->id)
                     ->where('pelanggan_id', $penjualan->pelanggan_id)
@@ -272,7 +298,7 @@ class PenjualanController extends Controller
                         'harga_lama'       => $produk->harga_jual,
                         'harga_baru'       => $harga,
                         'sumber'           => 'penjualan',
-                        'tanggal'          => $penjualan->tanggal,
+                        'tanggal'          => $tanggalHist,
                         'keterangan'       => 'Perubahan harga saat UPDATE Faktur ' . $penjualan->no_faktur,
                     ]);
                 }
@@ -344,8 +370,14 @@ class PenjualanController extends Controller
 
     public function print($id)
     {
-        $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
-        return view('sales.sales_invoices.print', compact('penjualan'));
+        // $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        $penjualan = Penjualan::with(['pelanggan','detail.produk'])
+            ->withSum('returPenjualan as total_retur', 'total') // jika tabel retur punya kolom total
+            ->findOrFail($id);
+
+        $totalRetur = (float)($penjualan->total_retur ?? 0);
+        $totalNetto = max(0, (float)$penjualan->total - $totalRetur);
+        return view('sales.sales_invoices.print', compact('penjualan','totalRetur', 'totalNetto'));
 
         // $pdf = PDF::loadView('penjualan.print', compact('penjualan'));
         // return $pdf->download('invoice-'.$penjualan->no_faktur.'.pdf');
@@ -442,4 +474,6 @@ class PenjualanController extends Controller
         // return response()->json(['message' => 'Faktur berhasil dibatalkan.']);
         return redirect()->route('penjualan.index')->with('success', 'Faktur berhasil dibatalkan.');
     }
+
+
 }

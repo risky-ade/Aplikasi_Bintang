@@ -12,6 +12,7 @@ use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\LaporanPenjualanController;
+use App\Http\Controllers\HistoriHargaPembelianController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
 
 
@@ -64,7 +65,7 @@ Route::prefix('sales')->group(function () {
 });
 Route::get('/ajax/faktur-search', [ReturPenjualanController::class, 'searchFaktur'])->name('ajax.faktur-search')->middleware('auth');
     
-Route::get('/sales/sales_histories', [HistoriHargaPenjualanController::class, 'index'])->middleware('auth')->name('histori-harga.index');
+Route::get('/sales/sales_histories', [HistoriHargaPenjualanController::class, 'index'])->middleware('auth')->name('histori-harga-jual.index');
 
 Route::prefix('purchases')->group(function () {
     Route::get('purchase_inv', [PembelianController::class,'index'])->name('pembelian.index')->middleware('auth');
@@ -83,10 +84,9 @@ Route::prefix('purchases')->group(function () {
 Route::get('/purchases_retur', function () {
     return view('purchases.purchases_retur.index');
 });
+Route::get('/purchases/purchases_histories', [HistoriHargaPembelianController::class, 'index'])->middleware('auth')->name('histori-harga-beli.index');
 
-Route::get('/purchases_histories', function () {
-    return view('purchases.purchases_histories.index');
-});
+
 Route::resource('categories', KategoriController::class)->except(['create','show','edit'])->middleware('auth');
 // Route::get('/categories', [KategoriController::class, 'index'])->middleware('auth');
 Route::post('/categories', [KategoriController::class, 'store'])->middleware('auth');

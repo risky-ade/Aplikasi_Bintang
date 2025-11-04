@@ -87,7 +87,7 @@
         <tr>
             <td style="width: 50%; vertical-align: top;">
                 <p><strong>Terbilang:</strong></p>
-                <p><em>{{ terbilang($penjualan->total) }} rupiah</em></p>
+                <p><em>{{ terbilang($totalNetto) }} rupiah</em></p>
                 
                 <p><strong>Rekening Pembayaran:</strong></p>
                 <p>Bank BCA: 123-456-789 a.n. CV. Bintang Empat</p>
@@ -109,6 +109,14 @@
                     <tr>
                         <td><strong>Total</strong></td>
                         <td style="text-align: right;">@rupiah($penjualan->total)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Retur</strong></td>
+                        <td style="text-align: right;">- @rupiah($totalRetur)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Netto</strong></td>
+                        <td style="text-align: right;">@rupiah($totalNetto)</td>
                     </tr>
                 </table>
             </td>

@@ -24,7 +24,7 @@ return new class extends Migration
             $table->date('jatuh_tempo')->nullable();
             $table->enum('status_pembayaran', ['Belum Lunas','Lunas'])->default('Belum Lunas');
             $table->enum('status', ['aktif','batal'])->default('aktif');
-            $table->timestamp('approved_at')->nullable();         // waktu approve pelunasan
+            $table->timestamp('approved_at')->nullable();         
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

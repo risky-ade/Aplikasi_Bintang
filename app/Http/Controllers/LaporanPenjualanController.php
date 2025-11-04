@@ -11,7 +11,16 @@ class LaporanPenjualanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Penjualan::with('pelanggan');
+        // $query = Penjualan::with('pelanggan');
+        $query = Penjualan::query()
+            ->with(['pelanggan'])
+            ->select('penjualan.*')
+            ->selectSub(function ($sub) {
+                $sub->from('retur_penjualan as r')
+                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+                    ->selectRaw('COALESCE(SUM(rd.subtotal), 0)')
+                    ->whereColumn('r.penjualan_id', 'penjualan.id');
+            }, 'total_retur');
 
         if ($request->filled('from') && $request->filled('to')) {
             $query->whereBetween('tanggal', [$request->from, $request->to]);
@@ -36,7 +45,15 @@ class LaporanPenjualanController extends Controller
 
     public function pdf(Request $request)
     {
-        $query = Penjualan::with('pelanggan');
+        $query = Penjualan::query()
+            ->with(['pelanggan'])
+            ->select('penjualan.*')
+            ->selectSub(function ($sub) {
+                $sub->from('retur_penjualan as r')
+                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+                    ->selectRaw('COALESCE(SUM(rd.subtotal), 0)')
+                    ->whereColumn('r.penjualan_id', 'penjualan.id');
+            }, 'total_retur');
 
         if ($request->filled('from') && $request->filled('to')) {
             $query->whereBetween('tanggal', [$request->from, $request->to]);
@@ -52,10 +69,18 @@ class LaporanPenjualanController extends Controller
 
         $penjualans = $query->get();
         $totalPenjualan = $penjualans->sum('total');
+        $totalRetur = $penjualans->sum('total_retur');
+        $totalNetto = $penjualans->sum(function ($p) {
+            $total = (float) ($p->total ?? 0);
+            $retur = (float) ($p->total_retur ?? 0);
+            return max(0, $total - $retur);
+        });
 
         $pdf = Pdf::loadView('reports.sales_pdf', [
         'penjualans' => $penjualans,
-        'totalPenjualan' => $totalPenjualan
+        'totalPenjualan' => $totalPenjualan,
+        'totalRetur' => $totalRetur,
+        'totalNetto' => $totalNetto,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('sales_reports.pdf');

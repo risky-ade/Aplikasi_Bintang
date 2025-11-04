@@ -41,7 +41,7 @@
 
       <div class="card">
         <div class="card-header">
-          <form method="GET" action="{{ route('histori-harga.index') }}" class="form-inline">
+          <form method="GET" action="{{ route('histori-harga-jual.index') }}" class="form-inline">
             <div class="form-group mr-2">
               <input type="date" name="tanggal_awal" class="form-control" value="{{ request('tanggal_awal') }}">
             </div>
@@ -68,23 +68,23 @@
             </div> --}}
             <button type="submit" class="btn btn-primary">Filter</button>
             <div class="col-md-2">
-            <a href="{{ route('histori-harga.index') }}" class="btn btn-secondary">Reset</a>
+            <a href="{{ route('histori-harga-jual.index') }}" class="btn btn-secondary">Reset</a>
           </div>
           </form>
         </div>
 
         <div class="card-body table-responsive p-0">
-          <table class="table table-bordered table-hover table-striped">
+          <table id="HistoriTable" class="table table-bordered table-striped table-hover w-100 nowrap">
             <thead class="bg-dark text-white">
               <tr>
                 <th>#</th>
                 <th>Tanggal</th>
                 <th>Produk</th>
-                <th>Harga Jual Umum</th>
+                <th>Harga Jual Dasar</th>
                 <th>Harga Baru</th>
                 {{-- <th>Sumber</th> --}}
-                {{-- <th>Keterangan</th> --}}
                 <th>Pelanggan</th>
+                <th>Keterangan</th>
                 <th>Waktu</th>
               </tr>
             </thead>
@@ -105,9 +105,9 @@
                       <span class="badge badge-secondary">{{ $row->sumber }}</span>
                     @endif
                   </td> --}}
-                  {{-- <td>{{ $row->keterangan ?? '-' }}</td> --}}
                   <td>{{ $row->pelanggan->nama ?? '-' }}</td>
-                  <td>{{ $row->created_at->setTimezone('Asia/Jakarta')->format(' H:i') }}</td>
+                  <td>{{ $row->keterangan ?? '-' }}</td>
+                  <td>{{ $row->created_at->setTimezone('Asia/Jakarta')->format('d-m-Y / H:i') }}</td>
                 </tr>
               @empty
                 <tr>
@@ -124,15 +124,33 @@
       </div>
     </div>
     </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
 
-  <!-- Control Sidebar -->
+  </div>
+
   <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
   </aside>
-  <!-- /.control-sidebar -->
 </div>
-<!-- ./wrapper -->
+<script>
+    $(document).ready(function() {
+    $('#HistoriTable').DataTable({
+      autoWidth: false,    
+      responsive: false,    
+      pageLength: 10,
+      lengthMenu: [10, 15, 25, 50, 100],
+      columnDefs: [
+        { targets: [0,1,2,3,4,5,6,7,8], className: 'text-nowrap' },
+        // { targets: [3], width: '220px' }
+      ],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ baris per halaman",
+        zeroRecords: "Data tidak ditemukan",
+        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        infoEmpty: "Tidak ada data",
+        infoFiltered: "(disaring dari total _MAX_ data)",
+        paginate: { next: "Berikutnya", previous: "Sebelumnya" }
+      },
+    });
+  });
+</script>
 @endsection

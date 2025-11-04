@@ -9,6 +9,7 @@
     max-width: 220px;
     word-wrap: break-word;
   }
+    .nowrap th, .nowrap td { white-space: nowrap; }
 </style>
 <div class="content-wrapper">
   <div class="content-header">
@@ -71,7 +72,8 @@
                   </div>
               </div>
             </form>
-              <table id="FakturTable" class="table table-bordered table-striped">
+            <div class="table-responsive">
+              <table id="FakturTable" class="table table-bordered table-striped table-hover w-100 nowrap">
                 <thead class="bg-secondary text-white">
                     <tr>
                         <th>NO</th>
@@ -80,6 +82,8 @@
                         <th>Pelanggan</th>
                         <th>No PO</th>
                         <th>Total</th>
+                        <th>Total Retur</th>
+                        <th>Total Netto</th>
                         <th>Status Pembayaran</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -94,6 +98,8 @@
                           <td>{{ $jual->pelanggan->nama ?? '-' }}</td>
                           <td>{{ $jual->no_po?? '-'  }}</td>
                           <td>Rp {{ number_format($jual->total, 0, ',', '.') }}</td>
+                          <td>Rp {{ number_format($jual->total_retur ?? 0, 0, ',', '.') }}</td>
+                          <td>Rp {{ number_format(max(0, ($jual->total ?? 0) - ($jual->total_retur ?? 0)), 0, ',', '.') }}</td>
                           <td>
                               @if ($jual->status_pembayaran == 'Lunas')
                                   <span class="badge badge-success">Lunas</span>
@@ -114,7 +120,7 @@
                           @if ($jual->status == 'aktif')
                             <span class="badge badge-success">Aktif</span>
                           @else
-                            <span class="badge badge-danger">Dibatalkan</span>
+                            <span class="badge badge-danger">Batal</span>
                           @endif
                         </td>
                           <td>
@@ -182,7 +188,7 @@
                               </div>
                               <div class="modal-body">
                                 Pembatalan pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
-                                dengan total <strong>{{ rupiah($jual->total) }}</strong><br><br>
+                                dengan total <strong>{{ rupiah(max(0, ($jual->total ?? 0) - ($jual->total_retur ?? 0)), 0, ',', '.') }}</strong><br><br>
                                 <small class="text-muted">
                                     *Batas pembatalan hanya 24 jam sejak approve.
                                 </small>
@@ -210,7 +216,7 @@
                             </div>
                             <div class="modal-body">
                               Konfirmasi pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
-                              dengan total <strong>{{ rupiah($jual->total) }}</strong>
+                              dengan total <strong>{{ rupiah(max(0, ($jual->total ?? 0) - ($jual->total_retur ?? 0)), 0, ',', '.') }}</strong>
                               <hr>
                               <div class="form-group">
                               <label for="paid_date_{{ $jual->id }}">Tanggal Pelunasan</label>
@@ -230,6 +236,7 @@
                 </tbody>
               </table>
             </div>
+            </div>
           </div>
         </div>
     </div>
@@ -240,19 +247,22 @@
 <script>
   $(document).ready(function() {
     $('#FakturTable').DataTable({
-      "pageLength": 10,
-      "lengthMenu": [10, 15, 25, 50, 100],
-      "language": {
-        "search": "Cari:",
-        "lengthMenu": "Tampilkan _MENU_ baris per halaman",
-        "zeroRecords": "Data tidak ditemukan",
-        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-        "infoEmpty": "Tidak ada data",
-        "infoFiltered": "(disaring dari total _MAX_ data)",
-        "paginate": {
-          "next": "Berikutnya",
-          "previous": "Sebelumnya"
-        }
+      autoWidth: false,    
+      responsive: false,    
+      pageLength: 10,
+      lengthMenu: [10, 15, 25, 50, 100],
+      columnDefs: [
+        { targets: [0,1,2,4,5,6,7,8], className: 'text-nowrap' },
+        { targets: [3], width: '220px' }
+      ],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ baris per halaman",
+        zeroRecords: "Data tidak ditemukan",
+        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        infoEmpty: "Tidak ada data",
+        infoFiltered: "(disaring dari total _MAX_ data)",
+        paginate: { next: "Berikutnya", previous: "Sebelumnya" }
       },
     });
   });

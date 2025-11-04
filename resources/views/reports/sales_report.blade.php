@@ -1,5 +1,9 @@
 @extends('layouts.main')
 @section('content')
+<style>
+  /* supaya header & sel tertentu tidak pecah baris */
+  .nowrap th, .nowrap td { white-space: nowrap; }
+</style>
   <div class="content-wrapper">
     <div class="content-header">
       <div class="container-fluid">
@@ -56,9 +60,10 @@
         </div>
       </form>
 
-      <div class="card">
-        <div class="card-body">
-          <table class="table table-bordered table-hover" id="laporanTable">
+      <div class="card container-fluid">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover w-100 nowrap" id="laporanTable">
             <thead class="bg-secondary text-white">
               <tr>
                 <th>No</th>
@@ -67,6 +72,8 @@
                 <th>Pelanggan</th>
                 <th>Nomor PO</th>
                 <th>Total</th>
+                <th>Total Retur</th>
+                <th>Total Netto</th>
                 <th>Status Pembayaran</th>
               </tr>
             </thead>
@@ -79,18 +86,36 @@
                   <td>{{ $penjualan->pelanggan->nama ?? '-' }}</td>
                   <td>{{ $penjualan->no_po ?? '-' }}</td>
                   <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format($penjualan->total_retur ?? 0, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format(max(0, ($penjualan->total ?? 0) - ($penjualan->total_retur ?? 0)), 0, ',', '.') }}</td>
                   <td>{{ ucfirst($penjualan->status_pembayaran) }}</td>
                 </tr>
               @endforeach
             </tbody>
+            <thead class="bg-secondary text-white">
+              <tr>
+                <th>No</th>
+                <th>Tanggal</th>
+                <th>No Faktur</th>
+                <th>Pelanggan</th>
+                <th>Nomor PO</th>
+                <th>Total</th>
+                <th>Total Retur</th>
+                <th>Total Netto</th>
+                <th>Status Pembayaran</th>
+              </tr>
+            </thead>
             <tfoot>
               <tr>
                 <th colspan="5" class="text-right">Total:</th>
-                <th id="totalFooter"></th>
+                <th class="tot-col-5"></th>
+                <th class="tot-col-6"></th>
+                <th class="tot-col-7"></th>
                 <th></th>
               </tr>
             </tfoot>
           </table>
+          </div>
         </div>
       </div>
       </div>
@@ -99,7 +124,7 @@
   </div>
 </div>
 
-<script>
+{{-- <script>
   $(document).ready(function() {
     $('#laporanTable').DataTable({
       "pageLength": 10,
@@ -135,14 +160,87 @@
 
         // Tampilkan di footer
         $(api.column(5).footer()).html(formattedTotal);
+
+        // Total seluruh data retur
+        var total = api
+          .column(6, { page: 'current' })
+          .data()
+          .reduce(function (a, b) {
+            return parseInt(a.toString().replace(/[^\d]/g, '')) + parseInt(b.toString().replace(/[^\d]/g, ''));
+          }, 0);
+
+        // Format angka ke Rupiah
+        var formattedTotal = new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR'
+        }).format(total);
+
+        // Tampilkan di footer
+        $(api.column(6).footer()).html(formattedTotal);
+
+        // Total seluruh data netto
+        var total = api
+          .column(7, { page: 'current' })
+          .data()
+          .reduce(function (a, b) {
+            return parseInt(a.toString().replace(/[^\d]/g, '')) + parseInt(b.toString().replace(/[^\d]/g, ''));
+          }, 0);
+
+        // Format angka ke Rupiah
+        var formattedTotal = new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR'
+        }).format(total);
+
+        // Tampilkan di footer
+        $(api.column(7).footer()).html(formattedTotal);
+      }
+    });
+  });
+</script> --}}
+<script>
+  $(document).ready(function() {
+    $('#laporanTable').DataTable({
+      autoWidth: false,    
+      responsive: false,    
+      pageLength: 10,
+      lengthMenu: [10, 15, 25, 50, 100],
+      columnDefs: [
+        { targets: [0,1,2,4,5,6,7,8], className: 'text-nowrap' },
+        { targets: [3], width: '220px' }
+      ],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ baris per halaman",
+        zeroRecords: "Data tidak ditemukan",
+        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        infoEmpty: "Tidak ada data",
+        infoFiltered: "(disaring dari total _MAX_ data)",
+        paginate: { next: "Berikutnya", previous: "Sebelumnya" }
+      },
+      footerCallback: function (row, data, start, end, display) {
+        const api = this.api();
+
+        function sumCol(idx) {
+          return api.column(idx, { page: 'current' }).data().reduce(function (a, b) {
+            const na = parseInt((a||'0').toString().replace(/[^\d]/g, ''), 10) || 0;
+            const nb = parseInt((b||'0').toString().replace(/[^\d]/g, ''), 10) || 0;
+            return na + nb;
+          }, 0);
+        }
+        function fmtIDR(n) {
+          return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n);
+        }
+
+        const total      = sumCol(5);
+        const totalRetur = sumCol(6);
+        const totalNetto = sumCol(7);
+
+        $(api.column(5).footer()).html(fmtIDR(total));
+        $(api.column(6).footer()).html(fmtIDR(totalRetur));
+        $(api.column(7).footer()).html(fmtIDR(totalNetto));
       }
     });
   });
 </script>
 @endsection
-
-
-{{-- ✅ 5. Filter Faktur Batal dari Laporan (Opsional)
-Jika kamu punya laporan, pastikan hanya mengambil status = 'aktif':
-
-Penjualan::where('status', 'aktif')->get(); --}}

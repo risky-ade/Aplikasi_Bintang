@@ -58,4 +58,16 @@ class Penjualan extends Model
     {
         return $this->hasMany(ReturPenjualan::class, 'penjualan_id');
     }
+
+    public function returDetails() // detail lewat header retur
+    {
+        return $this->hasManyThrough(
+            ReturPenjualanDetail::class,   // model tujuan
+            ReturPenjualan::class,         // model perantara
+            'penjualan_id',                // FK di tabel retur -> ke penjualan
+            'retur_penjualan_id',                    // FK di tabel detail -> ke retur
+            'id',                          // PK penjualan
+            'id'                           // PK retur
+        );
+    }
 }

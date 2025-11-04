@@ -19,13 +19,16 @@ class Pembelian extends Model
         'total',
         'jatuh_tempo',
         'status_pembayaran',
+        'paid_date',
         'status',
         'approved_at',
+        'approved_by',
         'created_by'
     ];
     protected $casts = [
         'tanggal' => 'date',
         'approved_at' => 'datetime',
+        'paid_date'   => 'date',
     ];
 
     protected $dates = ['tanggal'];
