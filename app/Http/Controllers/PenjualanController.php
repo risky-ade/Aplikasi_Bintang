@@ -33,7 +33,16 @@ class PenjualanController extends Controller
                     ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
                     ->selectRaw('COALESCE(SUM(rd.subtotal), 0)')
                     ->whereColumn('r.penjualan_id', 'penjualan.id');
-            }, 'total_retur');
+            }, 'total_retur')
+            // total netto = total - total_retur (ulang subquery supaya kompatibel dengan MySQL alias)
+            ->selectSub(function ($sub) {
+                $sub->from('retur_penjualan as r')
+                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id') // GANTI kalau perlu
+                    ->whereColumn('r.penjualan_id', 'penjualan.id')
+                    ->selectRaw('GREATEST(0, penjualan.total - COALESCE(SUM(rd.subtotal), 0))');
+                // ->withSum(['returPenjualan as total_retur' => fn($q)=>$q/*->where('status','!=','batal')*/], 'total')
+                // ->selectRaw('GREATEST(0, total - IFNULL((select SUM(total) from retur_penjualan r where r.penjualan_id = penjualan.id),0)) as total_netto');
+            }, 'total_netto');
 
     if ($request->filled('no_faktur')) {
         $query->where('no_faktur', 'like', '%' . $request->no_faktur . '%');
@@ -65,6 +74,25 @@ class PenjualanController extends Controller
     }
 
     $penjualans = $query->latest()->get();
+    // Recompute Total Netto yang benar (pajak dihitung dari subtotal net)
+    foreach ($penjualans as $p) {
+        $pajak = (float) ($p->pajak ?? 0);
+        $ongkir = (float) ($p->biaya_kirim ?? 0);
+        $totalRetur = (float) ($p->total_retur ?? 0);
+
+        // subtotal_bruto = (total - ongkir) / (1 + pajak%)
+        $den = 1 + ($pajak / 100);
+        $subtotalBruto = $den != 0 ? (($p->total - $ongkir) / $den) : ($p->total - $ongkir);
+
+        // subtotal_net = max(0, subtotal_bruto - total_retur)
+        $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+
+        // pajak_net = subtotal_net * pajak%
+        $pajakNet = $subtotalNet * ($pajak / 100);
+
+        // total_netto yang benar
+        $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
+    }
 
     return view('sales.sales_invoices.index', compact('penjualans'));
     
@@ -102,7 +130,7 @@ class PenjualanController extends Controller
         $qty = $request->qty[$index];
         $harga = $request->harga_jual[$index];
         $diskon = $request->diskon[$index] ?? 0;
-        $sub = ($qty * $harga) - $diskon;
+        $sub = ($qty * $harga - $qty * $diskon);
 
         $subtotal += $sub;
         $totalDiskon += $diskon;
@@ -136,7 +164,7 @@ class PenjualanController extends Controller
         $qty = $request->qty[$index];
         $harga = $request->harga_jual[$index];
         $diskon = $request->diskon[$index] ?? 0;
-        $sub = ($qty * $harga) - $diskon;
+        $sub = ($qty * $harga - $qty * $diskon);
 
         // Validasi stok
         $produk = MasterProduk::find($produk_id);
@@ -192,7 +220,7 @@ class PenjualanController extends Controller
             ->pluck('total_qty_retur', 'rd.produk_id')
             ->map(fn($v) => (int) $v)
             ->toArray();
-// dd($produkDiretur, $penjualan->detail->pluck('produk_id'));
+// dd($produkDiretur, $penjualan->detail->pluck('produk_id')); 
         $totalRetur = (float) ($penjualan->total_retur ?? 0);
         $totalNetto = max(0, (float) ($penjualan->total ?? 0) - $totalRetur);
 
@@ -261,7 +289,7 @@ class PenjualanController extends Controller
                 $qty     = $request->qty[$i];
                 $harga   = $request->harga_jual[$i];
                 $diskon  = $request->diskon[$i] ?? 0;
-                $subtotal = ($qty * $harga) - $diskon;
+                $subtotal = ($qty * $harga - $qty * $diskon);
 
                 //  Validasi stok
                 $produk = MasterProduk::findOrFail($produk_id);
@@ -348,22 +376,52 @@ class PenjualanController extends Controller
 
     public function suratJalan($id)
     {
-        $penjualan = Penjualan::with('detail.produk', 'pelanggan')->findOrFail($id);
-        return view('sales.sales_invoices.surat_jalan', compact('penjualan'));
+        // $penjualan = Penjualan::with('detail.produk', 'pelanggan')->findOrFail($id);
+        $penjualan = Penjualan::with(['pelanggan','detail.produk'])
+            ->withSum('returPenjualan as total_retur', 'total')
+            ->findOrFail($id);
+        $produkDiretur = DB::table('retur_penjualan as r')
+            ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+            ->where('r.penjualan_id', $penjualan->id)
+            ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+            ->groupBy('rd.produk_id')
+            ->pluck('total_qty_retur', 'rd.produk_id')
+            ->map(fn($v) => (int) $v)
+            ->toArray();
+        return view('sales.sales_invoices.surat_jalan', compact('penjualan','produkDiretur'));
     }
     public function printSuratJalan($id)
     {
         
-        $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        // $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        $penjualan = Penjualan::with(['pelanggan','detail.produk'])
+            ->withSum('returPenjualan as total_retur', 'total')
+            ->findOrFail($id);
+        $produkDiretur = DB::table('retur_penjualan as r')
+            ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+            ->where('r.penjualan_id', $penjualan->id)
+            ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+            ->groupBy('rd.produk_id')
+            ->pluck('total_qty_retur', 'rd.produk_id')
+            ->map(fn($v) => (int) $v)
+            ->toArray();
 
-        return view('sales.sales_invoices.print_surat_jalan', compact('penjualan'));
+        return view('sales.sales_invoices.print_surat_jalan', compact('penjualan','produkDiretur'));
         // $pdf = PDF::loadView('penjualan.print_surat_jalan', compact('penjualan'));
         // return $pdf->stream('surat-jalan-' . $penjualan->no_faktur . '.pdf');
     }
     public function suratJalanPdf($id)
     {
         $penjualan = Penjualan::with(['pelanggan', 'detail.produk.satuan'])->findOrFail($id);
-        $pdf = Pdf::loadView('sales.sales_invoices.print_surat_jalan', compact('penjualan'))->setPaper('A4', 'portrait');
+        $produkDiretur = DB::table('retur_penjualan as r')
+            ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+            ->where('r.penjualan_id', $penjualan->id)
+            ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+            ->groupBy('rd.produk_id')
+            ->pluck('total_qty_retur', 'rd.produk_id')
+            ->map(fn($v) => (int) $v)
+            ->toArray();
+        $pdf = Pdf::loadView('sales.sales_invoices.print_surat_jalan', compact('penjualan','produkDiretur'))->setPaper('A4', 'portrait');
         $filename = 'surat-jalan-' .preg_replace('/[^A-Za-z0-9\-]/', '-', $penjualan->no_faktur) . '.pdf';
         return $pdf->download($filename);
     }
@@ -374,10 +432,21 @@ class PenjualanController extends Controller
         $penjualan = Penjualan::with(['pelanggan','detail.produk'])
             ->withSum('returPenjualan as total_retur', 'total') // jika tabel retur punya kolom total
             ->findOrFail($id);
+        // Pluck qty retur per produk
+        $produkDiretur = DB::table('retur_penjualan as r')
+            ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+            ->where('r.penjualan_id', $penjualan->id)
+            ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+            ->groupBy('rd.produk_id')
+            ->pluck('total_qty_retur', 'rd.produk_id')
+            ->map(fn($v) => (int) $v)
+            ->toArray();
 
-        $totalRetur = (float)($penjualan->total_retur ?? 0);
-        $totalNetto = max(0, (float)$penjualan->total - $totalRetur);
-        return view('sales.sales_invoices.print', compact('penjualan','totalRetur', 'totalNetto'));
+        // $totalRetur = (float)($penjualan->total_retur ?? 0);
+        // $totalNetto = max(0, (float)$penjualan->total - $totalRetur);
+       
+        
+        return view('sales.sales_invoices.print', compact('penjualan','produkDiretur'));
 
         // $pdf = PDF::loadView('penjualan.print', compact('penjualan'));
         // return $pdf->download('invoice-'.$penjualan->no_faktur.'.pdf');
@@ -385,9 +454,20 @@ class PenjualanController extends Controller
 
     public function printPdf($id)
     {
-        $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        // $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        $penjualan = Penjualan::with(['pelanggan','detail.produk'])
+            ->withSum('returPenjualan as total_retur', 'total') // jika tabel retur punya kolom total
+            ->findOrFail($id);
+        $produkDiretur = DB::table('retur_penjualan as r')
+            ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+            ->where('r.penjualan_id', $penjualan->id)
+            ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+            ->groupBy('rd.produk_id')
+            ->pluck('total_qty_retur', 'rd.produk_id')
+            ->map(fn($v) => (int) $v)
+            ->toArray();
 
-        $pdf = Pdf::loadView('sales.sales_invoices.print', compact('penjualan'))->setPaper('A4', 'portrait');
+        $pdf = Pdf::loadView('sales.sales_invoices.print', compact('penjualan','produkDiretur'))->setPaper('A4', 'portrait');
 
         $filename = 'Invoice-' . preg_replace('/[^A-Za-z0-9\-]/', '-', $penjualan->no_faktur) . '.pdf';
         return $pdf->download($filename);

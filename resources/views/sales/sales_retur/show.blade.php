@@ -32,6 +32,7 @@
                 <th>Produk</th>
                 <th>Qty Retur</th>
                 <th>Harga</th>
+                <th>diskon / produk</th>
                 <th>Subtotal</th>
               </tr>
             </thead>
@@ -42,11 +43,12 @@
                 <td>{{ $detail->produk->nama_produk ?? '-' }}</td>
                 <td>{{ $detail->qty_retur }}</td>
                 <td>Rp {{ number_format($detail->harga_jual, 0, ',', '.') }}</td>
+                <td>Rp {{ number_format($detail->diskon, 0, ',', '.') }}</td>
                 <td>Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
               </tr>
               @endforeach
               <tr>
-                <th colspan="4" class="text-right">Total</th>
+                <th colspan="5" class="text-right">Total</th>
                 <th>Rp {{ number_format($retur->total, 0, ',', '.') }}</th>
               </tr>
             </tbody>

@@ -257,12 +257,12 @@ function formatRupiah(angka) {
 function hitungTotal() {
     let total = 0;
     let totalDiskon = 0;
-
+ 
     $('#produk-body tr').each(function () {
         const qty = parseFloat($(this).find('.qty').val()) || 0;
         const harga = parseFloat($(this).find('.harga').val()) || 0; // hidden murni
         const diskon = parseFloat($(this).find('.diskon').val()) || 0; // hidden murni
-        const subtotal = (qty * harga) - diskon;
+        const subtotal = (qty * harga) - (qty * diskon);
 
         $(this).find('.diskon').val(diskon);
         $(this).find('.diskon_display').val(formatRupiah(diskon));

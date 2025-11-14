@@ -87,7 +87,7 @@
                   <td>{{ $penjualan->no_po ?? '-' }}</td>
                   <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format($penjualan->total_retur ?? 0, 0, ',', '.') }}</td>
-                  <td>Rp {{ number_format(max(0, ($penjualan->total ?? 0) - ($penjualan->total_retur ?? 0)), 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format((float)($penjualan->total_netto_calc ?? $penjualan->total ?? 0), 0, ',', '.') }}</td>
                   <td>{{ ucfirst($penjualan->status_pembayaran) }}</td>
                 </tr>
               @endforeach

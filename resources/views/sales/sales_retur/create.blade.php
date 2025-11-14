@@ -14,20 +14,15 @@
         @csrf
         <div class="card">
           <div class="card-body">
-            @if(session('error'))
+            {{-- @if(session('error'))
               <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            @endif --}}
 
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="penjualan_id">Pilih Faktur</label>
                 <select name="penjualan_id" id="penjualan_id" class="form-control select2" required>
-                  {{-- <option value="">-- Pilih Faktur --</option>
-                  @foreach($penjualans as $penjualan)
-                    <option value="{{ $penjualan->id }}">
-                      {{ $penjualan->no_faktur }} - {{ $penjualan->pelanggan->nama ?? '' }}
-                    </option>
-                  @endforeach --}}
+
                 </select>
               </div>
               <div class="col-md-6">
@@ -49,6 +44,7 @@
                     <th>Produk</th>
                     <th>Qty Jual</th>
                     <th>Harga Jual</th>
+                    <th>diskon</th>
                     <th>Qty Retur</th>
                     <th>Subtotal</th>
                   </tr>
@@ -71,77 +67,86 @@
 
 <script>
 $(document).ready(function () {
-    // Inisialisasi select2 AJAX
-$('#penjualan_id').select2({
+  // init select2 (biarkan seperti semula)
+  $('#penjualan_id').select2({
     placeholder: 'Cari nomor faktur atau nama pelanggan',
     allowClear: true,
     ajax: {
       url: '{{ route("ajax.faktur-search") }}',
       dataType: 'json',
       delay: 250,
-      data: function (params) {
-        return {
-          q: params.term
-        };
-      },
-      processResults: function (data) {
-        return {
-          results: data
-        };
-      },
+      data: params => ({ q: params.term }),
+      processResults: data => ({ results: data }),
       cache: true
     }
   });
+
+  // saat pilih faktur -> load detail
   $('#penjualan_id').on('change', function () {
-  const id = $(this).val();
-  if (!id) {
-    $('#detail-penjualan').hide();
-    $('#produk-retur-body').empty();
-    return;
-  }
-  fetch(`/sales/sales_retur/get-detail/${id}`)
-    .then(async (res) => {
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error('HTTP ' + res.status + ' ' + text);
-      }
-      return res.json();
-    })
-    .then(data => {
-      const tbody = $('#produk-retur-body').empty();
-      (data.details || []).forEach((item) => {
-        tbody.append(`
-          <tr>
-            <td>
-              ${item.produk?.nama_produk ?? '-'}
-              <input type="hidden" name="produk_id[]"   value="${item.produk?.id ?? ''}">
-              <input type="hidden" name="harga_jual[]" value="${item.harga_jual}">
-            </td>
-            <td>${item.qty}</td>
-            <td>Rp ${parseInt(item.harga_jual).toLocaleString('id-ID')}</td>
-            <td>
-              <input type="number" name="qty_retur[]" class="form-control qty-retur"
-                     data-harga="${item.harga_jual}" min="0" max="${item.qty}" value="0">
-            </td>
-            <td class="subtotal">Rp 0</td>
-          </tr>
-        `);
+    const id = $(this).val();
+    if (!id) {
+      $('#detail-penjualan').hide();
+      $('#produk-retur-body').empty();
+      return;
+    }
+
+    fetch(`/sales/sales_retur/get-detail/${id}`)
+      .then(async res => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error('HTTP '+res.status+': '+text);
+        }
+        return res.json();
+      })
+      .then(data => {
+        const tbody = $('#produk-retur-body').empty();
+
+        (data.details || []).forEach(item => {
+          const nama  = (item.produk && item.produk.nama_produk) ? item.produk.nama_produk : '-';
+          const pid   = (item.produk && item.produk.id) ? item.produk.id : '';
+          const qty   = Number(item.qty || 0);
+          const harga = Number(item.harga_jual || 0);
+          const discU = Number(item.diskon_unit || 0);
+          const discT = Number(item.diskon || 0);
+
+          tbody.append(`
+            <tr>
+              <td>
+                ${nama}
+                <input type="hidden" name="produk_id[]" value="${pid}">
+              </td>
+              <td>${qty}</td>
+              <td>Rp ${Math.round(harga).toLocaleString('id-ID')}</td>
+              <td>Rp ${Math.round(discT).toLocaleString('id-ID')}</td>
+              <td>
+                <input type="number" name="qty_retur[]" class="form-control qty-retur"
+                       data-harga="${harga}" data-discunit="${discU}"
+                       min="0" max="${qty}" value="0">
+              </td>
+              <td class="subtotal">Rp 0</td>
+            </tr>
+          `);
+        });
+
+        $('#detail-penjualan').show();
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Gagal memuat detail faktur.\n'+err.message);
+        $('#detail-penjualan').hide();
+        $('#produk-retur-body').empty();
       });
-      $('#detail-penjualan').show();
-    })
-    .catch(err => {
-      console.error(err);
-      alert('Gagal memuat detail faktur. Cek konsol & laravel.log');
-    });
-});
+  });
 
-$(document).on('input', '.qty-retur', function () {
-  const harga = Number($(this).data('harga') || 0);
-  const qty   = Number($(this).val() || 0);
-  const sub   = qty * harga;
-  $(this).closest('tr').find('.subtotal').text('Rp ' + sub.toLocaleString('id-ID'));
-});
-
+  // hitung subtotal per baris: qty * (harga - diskon_unit)
+  $(document).on('input', '.qty-retur', function () {
+    const harga    = Number($(this).data('harga') || 0);
+    const discUnit = Number($(this).data('discunit') || 0);
+    const qty      = Number($(this).val() || 0);
+    const netUnit  = Math.max(0, harga - discUnit);
+    const sub      = Math.max(0, qty * netUnit);
+    $(this).closest('tr').find('.subtotal').text('Rp ' + Math.round(sub).toLocaleString('id-ID'));
+  });
 });
 </script>
 

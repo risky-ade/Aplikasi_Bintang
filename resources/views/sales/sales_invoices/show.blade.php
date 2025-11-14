@@ -44,7 +44,7 @@
           <div class="col-md-4">
             <p><strong>Pelanggan:</strong> {{ $penjualan->pelanggan->nama }}</p>
             <p><strong>Alamat:</strong> {{ $penjualan->pelanggan->alamat ?? '-' }}</p>
-            {{-- <p><strong>Telepon:</strong> {{ $penjualan->pelanggan->no_hp ?? '-' }}</p> --}}
+      
           </div>
         </div>
 
@@ -52,6 +52,9 @@
 
         <h5><strong>Daftar Produk</strong></h5>
         <div class="table-responsive">
+          @php
+              $grandNet = 0; // akumulasi total net semua baris
+          @endphp
           <table class="table table-bordered table-striped">
             <thead class="text-white" style="background-color: #001f3f;">
               <tr>
@@ -69,25 +72,33 @@
               @php
                 $pid = (int) $item->master_produk_id; // atau $d->produk_id
                 $retQty = (int) ($produkDiretur[$pid] ?? 0);
+                $qtyAwal = (int)($item ->qty ?? 0);
+                $netQty = max(0, (int)$item->qty - $retQty);
+                $harga    = (float) ($item->harga_jual ?? 0);
+                $discTot   = (float) ($item->diskon ?? 0);
+                $discUnit = $qtyAwal > 0 ? $discTot / $qtyAwal : 0;
+
+                $netSubtotal  = max(0, $netQty * $harga - $netQty * $discTot); //-> pakai ini jika diskon per unit(qty net * disc per unit)
+
+                $grandNet += $netSubtotal;
               @endphp
-              <tr>
+              
+              <tr class="{{ $netQty === 0 ? 'text-muted' : '' }}">
                 <td>{{ $i + 1 }}</td>
                 <td>
                   {{ $item->produk->nama_produk ?? '-' }}
-                  @if($retQty > 0)
-                    <br>
-                    <small class="text-danger"><i class="fas fa-undo"></i> produk diretur {{ $retQty }}</small>
-                  @endif
                 </td>
-                <td class="text-right">{{ $item->qty }}</td>
+                <td class="text-center">
+                  {{ $netQty }}
+                </td>
                 <td class="text-right">{{ rupiah($item->harga_jual) }}</td>
-                <td class="text-right">{{ rupiah($item->diskon) }}</td>
-                <td class="text-right">{{ rupiah($item->subtotal) }}</td>
+                <td class="text-right">{{ rupiah($discTot) }}</td>
+                <td class="text-right">{{ rupiah($netSubtotal, 0, ',', '.') }}</td>
               </tr>
-              @php
-                $total += $item->subtotal;
+              {{-- @php
+                $total += $item->netSubtotal;
                 $total_diskon += $item->diskon;
-              @endphp
+              @endphp --}}
               @endforeach
             </tbody>
           </table>
@@ -95,20 +106,26 @@
 
         <div class="row justify-content-end">
           <div class="col-md-6">
+            @php
+              $pajakPersen = (float) ($penjualan->pajak ?? 0); // misal 10 berarti 10%
+              $biayaKirim  = (float) ($penjualan->biaya_kirim ?? 0);
+              $totalPajak  = ($grandNet * $pajakPersen) / 100;
+              $grandTotal  = $grandNet + $totalPajak + $biayaKirim;
+            @endphp
             <table class="table table-sm table-borderless">
               <tr>
                 <th class="text-right">Subtotal</th>
-                <td class="text-right">{{ rupiah($total) }}</td>
+                <td class="text-right">{{ rupiah($grandNet, 0, ',', '.') }}</td>
               </tr>
-              <tr>
+              {{-- <tr>
                 <th class="text-right">Total Diskon</th>
                 <td class="text-right">{{ rupiah($total_diskon) }}</td>
-              </tr>
+              </tr> --}}
               <tr>
                 <th class="text-right">Pajak ({{ $penjualan->pajak }}%)</th>
                 <td class="text-right">
-                  @php $nilai_pajak = ($total * $penjualan->pajak) / 100; @endphp
-                  {{ rupiah($nilai_pajak) }}
+                  
+                  {{ rupiah($totalPajak, 0, ',', '.') }}
                 </td>
               </tr>
               <tr>
@@ -116,17 +133,10 @@
                 <td class="text-right">{{ rupiah($penjualan->biaya_kirim) }}</td>
               </tr>
               <tr class="font-weight-bold">
-                <th class="text-right">Total</th>
-                <td class="text-right">{{ rupiah($penjualan->total) }}</td>
+                <th class="text-right">Total Bayar</th>
+                <td class="text-right">{{ rupiah($grandTotal, 0, ',', '.') }}</td>
               </tr>
-              <tr>
-                <th class="text-right">Total Retur</th>
-                <td class="text-right text-red">{{ rupiah($totalRetur ?? 0, 0, ',', '.')}}</td>
-              </tr>
-              <tr class="font-weight-bold">
-                <th class="text-right">Total Netto</th>
-                <td class="text-right">{{ rupiah($totalNetto) }}</td>
-              </tr>
+
             </table>
           </div>
         </div>

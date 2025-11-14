@@ -38,6 +38,18 @@ class LaporanPenjualanController extends Controller
         // $penjualans = $query->orderByDesc('tanggal')->paginate($perPage);
         // $pelanggans = Pelanggan::all();
         $penjualans = $query->latest()->get();
+
+        foreach ($penjualans as $p) {
+            $pajak = (float) ($p->pajak ?? 0);
+            $ongkir = (float) ($p->biaya_kirim ?? 0);
+            $totalRetur = (float) ($p->total_retur ?? 0);
+            $den = 1 + ($pajak / 100);
+            $subtotalBruto = $den != 0 ? (($p->total - $ongkir) / $den) : ($p->total - $ongkir);
+            $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+            $pajakNet = $subtotalNet * ($pajak / 100);
+
+            $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
+        }
         $pelanggans = Pelanggan::all();
 
         return view('reports/sales_report', compact('penjualans', 'pelanggans'));

@@ -265,7 +265,7 @@ function hitungTotal() {
         const qty = parseFloat($(this).find('.qty').val()) || 0;
         const harga = parseFloat($(this).find('.harga').val()) || 0;
         const diskon = parseFloat($(this).find('.diskon').val()) || 0; 
-        const subtotal = (qty * harga) - diskon;
+        const subtotal = (qty * harga) - (qty * diskon);
 
         $(this).find('.diskon').val(diskon);
         $(this).find('.diskon_display').val(formatRupiah(diskon));

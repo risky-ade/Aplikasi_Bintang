@@ -50,10 +50,15 @@
                 </thead>
                 <tbody>
                     @foreach ($penjualan->detail as $i => $item)
+                     @php
+                        $pid = (int) $item->master_produk_id; 
+                        $retQty = (int) ($produkDiretur[$pid] ?? 0);
+                        $netQty = max(0, (int)$item->qty - $retQty);
+                    @endphp
                     <tr>
                         <td>{{ $i + 1 }}</td>
                         <td>{{ $item->produk->nama_produk }}</td>
-                        <td>{{ $item->qty }}</td>
+                        <td>{{ $netQty }}</td>
                         <td>{{ $item->produk->satuan->jenis_satuan ?? '-' }}</td>
                     </tr>
                     @endforeach

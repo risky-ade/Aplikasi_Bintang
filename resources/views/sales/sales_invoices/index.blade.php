@@ -81,7 +81,7 @@
                         <th>Tanggal</th>
                         <th>Pelanggan</th>
                         <th>No PO</th>
-                        <th>Total</th>
+                        {{-- <th>Total</th> --}}
                         <th>Total Retur</th>
                         <th>Total Netto</th>
                         <th>Status Pembayaran</th>
@@ -97,9 +97,9 @@
                           <td>{{ $jual->tanggal }}</td>
                           <td>{{ $jual->pelanggan->nama ?? '-' }}</td>
                           <td>{{ $jual->no_po?? '-'  }}</td>
-                          <td>Rp {{ number_format($jual->total, 0, ',', '.') }}</td>
+                          {{-- <td>Rp {{ number_format($jual->total, 0, ',', '.') }}</td> --}}
                           <td>Rp {{ number_format($jual->total_retur ?? 0, 0, ',', '.') }}</td>
-                          <td>Rp {{ number_format(max(0, ($jual->total ?? 0) - ($jual->total_retur ?? 0)), 0, ',', '.') }}</td>
+                          <td>Rp {{ number_format((float)($jual->total_netto_calc ?? $jual->total ?? 0), 0, ',', '.') }}</td>
                           <td>
                               @if ($jual->status_pembayaran == 'Lunas')
                                   <span class="badge badge-success">Lunas</span>

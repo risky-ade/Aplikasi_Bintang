@@ -58,6 +58,9 @@
 </div>
 
 <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
+    @php
+        $grandNet = 0; // akumulasi total net semua baris
+    @endphp
     <thead >
         <tr>
             <th>No</th>
@@ -70,24 +73,54 @@
     </thead>
     <tbody>
         @foreach($penjualan->detail as $i => $item)
+        {{-- @php
+            $pid = (int) $item->master_produk_id; // atau $d->produk_id
+            $retQty = (int) ($produkDiretur[$pid] ?? 0);
+        @endphp --}}
+        @php
+            $pid = (int) $item->master_produk_id; 
+            $retQty = (int) ($produkDiretur[$pid] ?? 0);
+            $qtyAwal = (int)($item ->qty ?? 0);
+            $netQty = max(0, (int)$item->qty - $retQty);
+            $biayaKirim  = (float) ($item->biaya_kirim ?? 0);
+            $harga    = (float) ($item->harga_jual ?? 0);
+            $discTot   = (float) ($item->diskon ?? 0);
+            $discUnit = $qtyAwal > 0 ? $discTot / $qtyAwal : 0;
+
+            $netSubtotal  = max(0, $netQty * $harga - $netQty * $discTot); //-> pakai ini jika diskon per unit(qty net * disc per unit)
+
+            $grandNet += $netSubtotal;
+        @endphp
         <tr>
             <td>{{ $i + 1 }}</td>
-            <td>{{ $item->produk->nama_produk }}</td>
-            <td style="text-align: center;">{{ $item->qty }}</td>
+            <td>
+                {{ $item->produk->nama_produk ?? '-' }}
+                {{-- @if($retQty > 0)
+                <br>
+                <small style="font-style: italic;"> (produk diretur {{ $retQty }})</small>
+                @endif --}}
+            </td>
+            <td style="text-align: center;">{{ $netQty }}</td>
             <td style="text-align: right;">@rupiah($item->harga_jual)</td>
             <td style="text-align: right;">@rupiah($item->diskon)</td>
-            <td style="text-align: right;">@rupiah($item->subtotal)</td>
+            <td style="text-align: right;">@rupiah($netSubtotal)</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 
 <div class="row" style="margin-top: 20px;">
+    @php
+        $pajakPersen = (float) ($penjualan->pajak ?? 0); // misal 10 berarti 10%
+        $biayaKirim  = (float) ($penjualan->biaya_kirim ?? 0);
+        $totalPajak  = ($grandNet * $pajakPersen) / 100;
+        $grandTotal  = $grandNet + $totalPajak + $biayaKirim;
+    @endphp
     <table style="width: 100%;">
         <tr>
             <td style="width: 50%; vertical-align: top;">
                 <p><strong>Terbilang:</strong></p>
-                <p><em>{{ terbilang($totalNetto) }} rupiah</em></p>
+                <p><em>{{ terbilang($grandTotal) }} rupiah</em></p>
                 
                 <p><strong>Rekening Pembayaran:</strong></p>
                 <p>Bank BCA: 123-456-789 a.n. CV. Bintang Empat</p>
@@ -96,27 +129,19 @@
                 <table class="summary-box" style="width: 100%;">
                     <tr>
                         <td><strong>Subtotal</strong></td>
-                        <td style="text-align: right;">@rupiah($penjualan->detail->sum('subtotal'))</td>
+                        <td style="text-align: right;">@rupiah($grandNet)</td>
                     </tr>
                     <tr>
                         <td><strong>PPN ({{ $penjualan->pajak }}%)</strong></td>
-                        <td style="text-align: right;">@rupiah(($penjualan->pajak/100)*$penjualan->detail->sum('subtotal'))</td>
+                        <td style="text-align: right;">@rupiah($totalPajak)</td>
                     </tr>
                     <tr>
                         <td><strong>Biaya Kirim</strong></td>
                         <td style="text-align: right;">@rupiah($penjualan->biaya_kirim)</td>
                     </tr>
                     <tr>
-                        <td><strong>Total</strong></td>
-                        <td style="text-align: right;">@rupiah($penjualan->total)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Total Retur</strong></td>
-                        <td style="text-align: right;">- @rupiah($totalRetur)</td>
-                    </tr>
-                    <tr>
                         <td><strong>Total Netto</strong></td>
-                        <td style="text-align: right;">@rupiah($totalNetto)</td>
+                        <td style="text-align: right;">@rupiah($grandTotal)</td>
                     </tr>
                 </table>
             </td>

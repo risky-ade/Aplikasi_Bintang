@@ -9,10 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MasterProduk extends Model
 {
     use HasFactory;
-    // protected $with = ['master_kategori'];
     public $timestamps = false;
     public $table = "master_produk";
-    // protected $primaryKey = 'master_produk_id';
     protected $fillable = [
         'nama_produk',
         'deskripsi',

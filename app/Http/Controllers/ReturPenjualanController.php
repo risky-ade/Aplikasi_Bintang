@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use id;
 use App\Models\Penjualan;
 use App\Models\MasterProduk;
+use App\Models\PenjualanDetail;
 use Illuminate\Http\Request;
 use App\Models\ReturPenjualan;
 use Illuminate\Support\Facades\DB;
@@ -34,13 +35,17 @@ class ReturPenjualanController extends Controller
         $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
         // $penjualan->where('status', '!=', 'batal');
         $details = $penjualan->detail->map(function ($d) {
+            $qytBaris = max(1, (int) $d->qyt);
+            $diskonUnit = (float) ($d->diskon ??0)/$qytBaris; //diskon total baris->per unit
             return [
                 'produk' => [
                     'id'           => $d->produk?->id,
                     'nama_produk'  => $d->produk?->nama_produk,
                 ],
                 'qty'         => (int) $d->qty,
-                'harga_jual'  => (int) $d->harga_jual,
+                'harga_jual'  => (float) $d->harga_jual,
+                'diskon'      => (int) $d->diskon,
+                'diskon_unit' => (float) $diskonUnit,
                 'subtotal'    => (int) $d->subtotal,
             ];
         })->values();
@@ -83,7 +88,11 @@ class ReturPenjualanController extends Controller
         $request->validate([
             'penjualan_id' => 'required|exists:penjualan,id',
             'tanggal_retur' => 'required|date',
-            'qty_retur.*' => 'nullable|integer|min:0'
+            'produk_id'      => ['required','array','min:1'],
+            'produk_id.*'    => ['required','exists:master_produk,id'],
+            'qty_retur'      => ['required','array','min:1'],
+            'qty_retur.*' => 'nullable|integer|min:0',
+            'alasan'      => 'nullable|string',
         ]);
 
         $last = ReturPenjualan::orderBy('id', 'desc')->first();
@@ -101,26 +110,54 @@ class ReturPenjualanController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
+            
             $total = 0;
             foreach ($request->produk_id as $i => $produkId) {
-                $qtyRetur = (int) $request->qty_retur[$i];
-                $harga = (int) $request->harga_jual[$i];
+                $qtyRetur = (int) ($request->qty_retur[$i] ?? 0);
+                // $harga = (int) $request->harga_jual[$i];
+                // $diskon = (int) $request->diskon[$i];
+                if($qtyRetur <= 0)continue;
+                // if ($qtyRetur > 0) {
+                //     $subtotal = ($qtyRetur * $harga - $qtyRetur * $diskon);
+                $pd = PenjualanDetail::where('penjualan_id', $request->penjualan_id)
+                ->where('master_produk_id', $produkId)
+                ->firstOrFail();
 
-                if ($qtyRetur > 0) {
-                    $subtotal = $qtyRetur * $harga;
+                $sudahRetur = DB::table('retur_penjualan as r')
+                ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id','=', 'r.id')
+                ->where('r.penjualan_id', $request->penjualan_id)
+                ->where('rd.produk_id', $produkId) // (kolom di retur detail)
+                ->sum('rd.qty_retur');
+
+                $sisaBoleh = max(0, (int)$pd->qty - (int)$sudahRetur);
+                if ($qtyRetur > $sisaBoleh) {
+                    throw new \RuntimeException('Qty retur ' . $qtyRetur . ' melebihi sisa boleh retur ' . $sisaBoleh . ' untuk produk tersebut.');
+                }
+
+                // Hitung per unit
+                $hargaUnit   = (float) ($pd->harga_jual ?? 0);
+                // $qtyBaris    = max(1, (int) $pd->qty);
+                // $diskonTotal = (float)($pd->diskon ?? 0); 
+                // $diskonTotal = (float)($pd->diskon ?? 0); 
+                // $diskonUnit  = $diskonTotal / $qtyBaris;
+                $diskonUnit  = (float)($pd->diskon ?? 0);
+
+                $netPerUnit  = max(0, $hargaUnit - $diskonUnit);
+                $subRetur    = $qtyRetur * $netPerUnit;
 
                     ReturPenjualanDetail::create([
                         'retur_penjualan_id' => $retur->id,
                         'produk_id' => $produkId,
                         'qty_retur' => $qtyRetur,
-                        'harga_jual' => $harga,
-                        'subtotal' => $subtotal
+                        'harga_jual' => $hargaUnit, //dibekukan
+                        'diskon_unit' => $diskonUnit, //simpan jejak
+                        'subtotal' => $subRetur,
                     ]);
 
                     MasterProduk::where('id', $produkId)->increment('stok', $qtyRetur);
-                    $total += $subtotal;
+                    $total += $subRetur;
                 }
-            }
+            
 
             $retur->update(['total' => $total]);
             DB::commit();
