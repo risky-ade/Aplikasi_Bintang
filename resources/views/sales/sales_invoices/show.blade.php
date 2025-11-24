@@ -53,7 +53,7 @@
         <h5><strong>Daftar Produk</strong></h5>
         <div class="table-responsive">
           @php
-              $grandNet = 0; // akumulasi total net semua baris
+              $grandNet = 0; 
           @endphp
           <table class="table table-bordered table-striped">
             <thead class="text-white" style="background-color: #001f3f;">

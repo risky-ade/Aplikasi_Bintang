@@ -16,6 +16,7 @@ class Pembelian extends Model
         'catatan',
         'pajak',
         'biaya_kirim',
+        'diskon_nota',
         'total',
         'jatuh_tempo',
         'status_pembayaran',
@@ -47,5 +48,22 @@ class Pembelian extends Model
     public function detail()
     {
         return $this->hasMany(PembelianDetail::class);
+    }
+
+    public function returPembelian()
+    {
+        return $this->hasMany(ReturPembelian::class, 'pembelian_id');
+    }
+
+    public function returDetails() // detail lewat header retur
+    {
+        return $this->hasManyThrough(
+            ReturPembelianDetail::class,   // model tujuan
+            ReturPembelian::class,         // model perantara
+            'pembelian_id',                // FK di tabel retur -> ke pembelian
+            'retur_pembelian_id',          // FK di tabel detail -> ke retur
+            'id',                          // PK pembelian
+            'id'                           // PK retur
+        );
     }
 }

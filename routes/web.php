@@ -10,6 +10,7 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\LaporanPenjualanController;
 use App\Http\Controllers\HistoriHargaPembelianController;
@@ -33,6 +34,7 @@ Route::get('/dashboard', function () {
 })->middleware('auth');
 
 Route::get('/master_produk/search', [MasterProdukController::class, 'search'])->name('produk.search')->middleware('auth');
+Route::get('/master_produk/check-duplicate', [MasterProdukController::class, 'checkDuplicate'])->name('produk.check-duplicate')->middleware('auth');
 Route::resource('/master_produk', MasterProdukController::class)->middleware('auth');
 
 
@@ -81,9 +83,20 @@ Route::prefix('purchases')->group(function () {
     
     // Route::get('purchase_invoices/{id}/print', [PembelianController::class, 'print'])->name('purchase_invoices.print');
 });
-Route::get('/purchases_retur', function () {
-    return view('purchases.purchases_retur.index');
+Route::prefix('purchases/purchases_retur')->middleware('auth')->group(function () {
+    Route::get('/', [ReturPembelianController::class, 'index'])->name('retur-pembelian.index');
+    Route::get('/create', [ReturPembelianController::class, 'create'])->name('retur-pembelian.create');
+    Route::post('/', [ReturPembelianController::class, 'store'])->name('retur-pembelian.store');
+
+    Route::get('/get-detail/{id}', [ReturPembelianController::class, 'getDetailPembelian'])
+        ->name('ajax.pembelian-detail');
+
+    Route::get('/search-faktur', [ReturPembelianController::class, 'searchFaktur'])
+        ->name('ajax.pembelian-search');
+    Route::get('/{id}', [ReturPembelianController::class, 'show'])->name('retur-pembelian.show');
+    Route::delete('/{id}', [ReturPembelianController::class, 'destroy'])->name('retur-pembelian.destroy');
 });
+
 Route::get('/purchases/purchases_histories', [HistoriHargaPembelianController::class, 'index'])->middleware('auth')->name('histori-harga-beli.index');
 
 

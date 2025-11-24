@@ -81,7 +81,7 @@
                         <th>Tanggal</th>
                         <th>Pelanggan</th>
                         <th>No PO</th>
-                        {{-- <th>Total</th> --}}
+                        {{-- <th>Total</th> --}} 
                         <th>Total Retur</th>
                         <th>Total Netto</th>
                         <th>Status Pembayaran</th>
@@ -123,6 +123,7 @@
                             <span class="badge badge-danger">Batal</span>
                           @endif
                         </td>
+                        {{-- tombol aksi --}}
                           <td>
                             <div class="dropdown ">
                               <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-toggle="dropdown">
@@ -137,7 +138,8 @@
                               </a>
                               
                               @if($jual->status_pembayaran == 'Belum Lunas'&& $jual->status != 'batal')
-                              <a href="" class="dropdown-item text-success" data-toggle="modal" data-target="#modalApprove{{ $jual->id }}"><i class="far fa-money-bill-alt"></i> Approve</a>
+                              <a href="" class="dropdown-item text-success" data-toggle="modal" data-target="#modalApprove{{ $jual->id }}">
+                                <i class="far fa-money-bill-alt"></i> Approve</a>
                               @endif
 
                               @if($jual->status_pembayaran === 'Lunas')

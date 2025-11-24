@@ -1,6 +1,7 @@
 <div class="form-group">
     <label>Nama Produk</label>
-    <input type="text" name="nama_produk" class="form-control" value="{{ old('nama_produk', $masterProduk->nama_produk ?? '') }}" required>
+    <input id="nama_produk" type="text" name="nama_produk" class="form-control" value="{{ old('nama_produk', $masterProduk->nama_produk ?? '') }}" required>
+    <div id="namaError" class="invalid-feedback"></div>
 </div>
 
 <div class="form-group">

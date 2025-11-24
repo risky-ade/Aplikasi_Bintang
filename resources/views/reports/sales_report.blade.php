@@ -71,7 +71,7 @@
                 <th>No Faktur</th>
                 <th>Pelanggan</th>
                 <th>Nomor PO</th>
-                <th>Total</th>
+                {{-- <th>Total</th> --}}
                 <th>Total Retur</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
@@ -85,9 +85,9 @@
                   <td>{{ $penjualan->no_faktur }}</td>
                   <td>{{ $penjualan->pelanggan->nama ?? '-' }}</td>
                   <td>{{ $penjualan->no_po ?? '-' }}</td>
-                  <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td>
+                  {{-- <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td> --}}
                   <td>Rp {{ number_format($penjualan->total_retur ?? 0, 0, ',', '.') }}</td>
-                  <td>Rp {{ number_format((float)($penjualan->total_netto_calc ?? $penjualan->total ?? 0), 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format(($penjualan->total_netto_calc ?? $penjualan->total ?? 0), 0, ',', '.') }}</td>
                   <td>{{ ucfirst($penjualan->status_pembayaran) }}</td>
                 </tr>
               @endforeach
@@ -99,7 +99,7 @@
                 <th>No Faktur</th>
                 <th>Pelanggan</th>
                 <th>Nomor PO</th>
-                <th>Total</th>
+                {{-- <th>Total</th> --}}
                 <th>Total Retur</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
@@ -108,9 +108,9 @@
             <tfoot>
               <tr>
                 <th colspan="5" class="text-right">Total:</th>
+                {{-- <th class="tot-col-5"></th> --}}
                 <th class="tot-col-5"></th>
                 <th class="tot-col-6"></th>
-                <th class="tot-col-7"></th>
                 <th></th>
               </tr>
             </tfoot>
@@ -206,7 +206,7 @@
       pageLength: 10,
       lengthMenu: [10, 15, 25, 50, 100],
       columnDefs: [
-        { targets: [0,1,2,4,5,6,7,8], className: 'text-nowrap' },
+        { targets: [0,1,2,4,5,6,7], className: 'text-nowrap' },
         { targets: [3], width: '220px' }
       ],
       language: {
@@ -232,13 +232,13 @@
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n);
         }
 
-        const total      = sumCol(5);
-        const totalRetur = sumCol(6);
-        const totalNetto = sumCol(7);
+        // const total      = sumCol(5);
+        const totalRetur = sumCol(5);
+        const totalNetto = sumCol(6);
 
-        $(api.column(5).footer()).html(fmtIDR(total));
-        $(api.column(6).footer()).html(fmtIDR(totalRetur));
-        $(api.column(7).footer()).html(fmtIDR(totalNetto));
+        // $(api.column(5).footer()).html(fmtIDR(total));
+        $(api.column(5).footer()).html(fmtIDR(totalRetur));
+        $(api.column(6).footer()).html(fmtIDR(totalNetto));
       }
     });
   });

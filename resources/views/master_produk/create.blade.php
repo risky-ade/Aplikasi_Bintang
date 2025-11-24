@@ -26,11 +26,46 @@
             <form action="{{ url('/master_produk') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @include('master_produk.form', ['master_produk' => null])
-                <button type="submit" class="btn btn-primary">Simpan</button>
+                <button type="submit"  id="btnSubmit" class="btn btn-primary">Simpan</button>
                 <a href="{{ url('/master_produk') }}" class="btn btn-secondary">Batal</a>
             </form>
         </div>
         </section>
         {{-- /Main content --}}
     </div>
+    <script>
+$(document).ready(function () {
+
+    $('#nama_produk').on('keyup change', function () {
+        let nama = $(this).val();
+
+        if (nama.length < 2) {
+            // Reset jika kosong
+            $(this).removeClass('is-invalid');
+            $('#namaError').text('');
+            $('#btnSubmit').prop('disabled', false);
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('produk.check-duplicate') }}",
+            type: "GET",
+            data: { nama_produk: nama },
+            success: function (res) {
+                if (res.exists) {
+                    $('#nama_produk').addClass('is-invalid');
+                    $('#namaError').text('Nama produk sudah dipakai!');
+                    $('#btnSubmit').prop('disabled', true);
+                } else {
+                    $('#nama_produk').removeClass('is-invalid');
+                    $('#namaError').text('');
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            }
+        });
+
+    });
+
+});
+</script>
 @endsection

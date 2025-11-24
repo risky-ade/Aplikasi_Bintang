@@ -35,7 +35,7 @@
                 </a>
               </div>
             </div>
-              <!-- /.card-header -->
+
             <div class="card-body">
               <form method="GET" action="{{ route('pembelian.index') }}" class="mb-3">
               <div class="row">
@@ -68,15 +68,17 @@
                   </div>
               </div>
             </form>
-              <table id="FakturTable" class="table table-bordered table-striped">
+            <div class="table-responsive">
+              <table id="FakturTable" class="table table-bordered table-striped table-hover w-100 nowrap">
                 <thead class="bg-secondary text-white">
                     <tr>
                         <th>NO</th>
                         <th>No Faktur</th>
-                        <th>No PO/Nota</th>
                         <th>Tanggal</th>
                         <th>Pemasok</th>
-                        <th>Total</th>
+                        <th>No PO/Nota</th>
+                        <th>Total Retur</th>
+                        <th>Total Netto</th>
                         <th>Status Pembayaran</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -87,10 +89,11 @@
                       <tr>
                           <td>{{ $index + 1 }}</td>
                           <td>{{ $beli->no_faktur }}</td>
-                          <td>{{ $beli->no_po?? '-'  }}</td>
                           <td>{{ $beli->tanggal }}</td>
                           <td>{{ $beli->pemasok->nama ?? '-' }}</td>
-                          <td>Rp {{ number_format($beli->total, 0, ',', '.') }}</td>
+                          <td>{{ $beli->no_po?? '-'  }}</td>
+                          <td>Rp {{ number_format($beli->total_retur, 0, ',', '.') }}</td>
+                          <td>Rp {{ number_format((float)($beli->total_netto_calc ?? $beli->total ?? 0), 0, ',', '.') }}</td>
                           <td>
                               @if ($beli->status_pembayaran == 'Lunas')
                                   <span class="badge badge-success">Lunas</span>
@@ -114,6 +117,7 @@
                             <span class="badge badge-danger">Dibatalkan</span>
                           @endif
                         </td>
+                        {{-- tombol aksi --}}
                           <td>
                             <div class="dropdown ">
                               <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-toggle="dropdown">
@@ -232,6 +236,7 @@
                 </tbody>
               </table>
             </div>
+            </div>
           </div>
         </div>
     </div>
@@ -240,23 +245,33 @@
 </div>
 </div>
 <script>
-  $(document).ready(function() {
+$(document).ready(function() {
     $('#FakturTable').DataTable({
-      "pageLength": 10,
-      "lengthMenu": [10, 15, 25, 50, 100],
-      "language": {
-        "search": "Cari:",
-        "lengthMenu": "Tampilkan _MENU_ baris per halaman",
-        "zeroRecords": "Data tidak ditemukan",
-        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-        "infoEmpty": "Tidak ada data",
-        "infoFiltered": "(disaring dari total _MAX_ data)",
-        "paginate": {
-          "next": "Berikutnya",
-          "previous": "Sebelumnya"
-        }
+      autoWidth: false,    
+      responsive: false,    
+      pageLength: 10,
+      lengthMenu: [10, 15, 25, 50, 100],
+      columnDefs: [
+        { targets: [0,1,2,4,5,6,7,8], className: 'text-nowrap' },
+        { targets: [3], width: '220px' }
+      ],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ baris per halaman",
+        zeroRecords: "Data tidak ditemukan",
+        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        infoEmpty: "Tidak ada data",
+        infoFiltered: "(disaring dari total _MAX_ data)",
+        paginate: { next: "Berikutnya", previous: "Sebelumnya" }
       },
     });
+  });
+  $(document).on('show.bs.modal', '.modal', function () {
+    const inputDate = $(this).find('input[name="approved_at"]');
+    if (inputDate.length && !inputDate.val()) {
+      const today = new Date().toISOString().slice(0,10);
+      inputDate.val(today);
+    }
   });
 </script>
 <script>

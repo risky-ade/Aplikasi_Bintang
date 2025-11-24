@@ -20,7 +20,26 @@ class PembelianController extends Controller
             'tanggal_awal' => 'nullable|date',
             'tanggal_akhir' => 'nullable|date|after_or_equal:tanggal_awal',
         ]);
-        $query = Pembelian::with('pemasok');
+        // $query = Pembelian::with('pemasok');
+        $query = Pembelian::query()
+            ->with(['pemasok'])
+            ->select('pembelian.*')
+            ->selectSub(function ($sub) {
+                $sub->from('retur_pembelian as rb')
+                    ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
+                    ->selectRaw('COALESCE(SUM(rd.subtotal), 0)')
+                    ->whereColumn('rb.pembelian_id', 'pembelian.id');
+            }, 'total_retur')
+            // total netto = total - total_retur (ulang subquery supaya kompatibel dengan MySQL alias)
+            ->selectSub(function ($sub) {
+                $sub->from('retur_pembelian as rb')
+                    ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id') // GANTI kalau perlu
+                    ->whereColumn('rb.pembelian_id', 'pembelian.id')
+                    ->selectRaw('GREATEST(0, pembelian.total - COALESCE(SUM(rd.subtotal), 0))');
+                // ->withSum(['returPenjualan as total_retur' => fn($q)=>$q/*->where('status','!=','batal')*/], 'total')
+                // ->selectRaw('GREATEST(0, total - IFNULL((select SUM(total) from retur_penjualan r where r.penjualan_id = penjualan.id),0)) as total_netto');
+            }, 'total_netto');
+
 
         if ($request->filled('no_faktur')) {
             $query->where('no_faktur', 'like', '%' . $request->no_faktur . '%');
@@ -42,7 +61,27 @@ class PembelianController extends Controller
         $query->where('status_pembayaran', $request->status_pembayaran);
         }
 
-            $pembelians = $query->latest()->paginate(15);
+        $pembelians = $query->latest()->paginate(15);
+        // Recompute Total Netto yang benar (pajak dihitung dari subtotal net)
+        foreach ($pembelians as $p) {
+            $pajak = (float) ($p->pajak ?? 0);
+            $ongkir = (float) ($p->biaya_kirim ?? 0);
+            $totalRetur = (float) ($p->total_retur ?? 0);
+
+            // subtotal_bruto = (total - ongkir) / (1 + pajak%)
+            $den = 1 + ($pajak / 100);
+            $subtotalBruto = $den != 0 ? (($p->total - $ongkir) / $den) : ($p->total - $ongkir);
+
+            // subtotal_net = max(0, subtotal_bruto - total_retur)
+            $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+
+            // pajak_net = subtotal_net * pajak%
+            $pajakNet = $subtotalNet * ($pajak / 100);
+
+            // total_netto yang benar
+            $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
+        }
+
             return view('purchases.purchase_inv.index', compact('pembelians'));
     }
 
@@ -76,29 +115,32 @@ class PembelianController extends Controller
 
         DB::beginTransaction();
         try {
-            // Hitung subtotal & total
             $subtotal = 0; 
             $totalDiskon = 0;
             foreach ($request->produk_id as $i => $pid) {
                 $qty = (int) $request->qty[$i];
                 $harga = $request->harga_beli[$i];
-                $diskon = (float) ($request->diskon[$i] ?? 0);
-                $subtotal += ($qty * $harga) - $diskon;
+                $diskon = ($request->diskon[$i] ?? 0);
+                $subtotal += ($qty * $harga - $qty * $diskon);
                 $totalDiskon += $diskon;
             }
-            $pajakPersen = (float) ($request->pajak ?? 0);
-            $biayaKirim  = (float) ($request->biaya_kirim ?? 0);
-            $totalPajak  = $subtotal * $pajakPersen / 100;
-            $total       = $subtotal + $totalPajak + $biayaKirim;
+            $diskonNota = (float) ($request->diskon_nota ?? 0);
+            $subtotDisc = max(0, $subtotal - $diskonNota);
+
+            $pajakPersen = ($request->pajak ?? 0);
+            $biayaKirim  = ($request->biaya_kirim ?? 0);
+            $totalPajak  = $subtotDisc * $pajakPersen / 100;
+            $total       = $subtotDisc + $totalPajak + $biayaKirim;
 
             $pembelian = Pembelian::create([
                 'no_faktur'         => $this->generateNoFaktur(),
                 'no_po'             => $request->no_po,
                 'tanggal'           => $request->tanggal,
-                'pemasok_id'       => $request->pemasok_id,
+                'pemasok_id'        => $request->pemasok_id,
                 'catatan'           => $request->catatan,
                 'pajak'             => $pajakPersen,
                 'biaya_kirim'       => $biayaKirim,
+                'diskon_nota'       => $diskonNota, 
                 'total'             => $total,
                 'jatuh_tempo'       => $request->jatuh_tempo,
                 'status_pembayaran' => $request->status_pembayaran,
@@ -108,9 +150,9 @@ class PembelianController extends Controller
 
             foreach ($request->produk_id as $i => $pid) {
                 $qty = (int) $request->qty[$i];
-                $harga = (float) $request->harga_beli[$i];
-                $diskon = (float) ($request->diskon[$i] ?? 0);
-                $sub = ($qty * $harga) - $diskon;
+                $harga = $request->harga_beli[$i];
+                $diskon = ($request->diskon[$i] ?? 0);
+                $sub = ($qty * $harga - $qty *$diskon);
 
                 $produk = MasterProduk::find($pid);
 
@@ -153,8 +195,23 @@ class PembelianController extends Controller
 
     public function show($id)
     {
-        $pembelian = Pembelian::with(['pemasok', 'detail.produk'])->findOrFail($id);
-        return view('purchases.purchase_inv.show', compact('pembelian'));
+        $pembelian = Pembelian::with(['pemasok', 'detail.produk'])
+        -> withSum('returPembelian as total_retur', 'total')
+        ->findOrFail($id);
+
+        $produkDiretur = DB::table('retur_pembelian as rb')
+        ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
+        ->where('rb.pembelian_id', $pembelian->id)
+        ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+        ->groupBy('rd.produk_id')
+        ->pluck('total_qty_retur', 'rd.produk_id')
+        ->map(fn($v) => $v)
+        ->toArray();
+
+        $totalRetur = ($pembelian->total_retur ?? 0);
+        $totalNetto = max(0,($pembelian->total ?? 0) - $totalRetur);
+
+        return view('purchases.purchase_inv.show', compact('pembelian','produkDiretur','totalRetur'));
     }
 
     public function print($id)
@@ -167,12 +224,16 @@ class PembelianController extends Controller
     }
     public function edit($id)
     {
-        $pembelian = Pembelian::with('detail', 'pemasok')->findOrFail($id);
+        $pembelian = Pembelian::with('detail', 'pemasok', 'returPembelian')->findOrFail($id);
         // dd($pembelian);
         $pemasok = Pemasok::all();
         if ($pembelian->status_pembayaran === 'Lunas') {
             return redirect()->route('pembelian.index')
                 ->with('error', 'Faktur tidak dapat diedit atau dihapus karena sudah diset sebagai Lunas.');
+        }
+        if ($pembelian->returPembelian->count() > 0) {
+            return redirect()->route('pembelian.index')
+                ->with('error', 'Faktur tidak dapat diedit karena memiliki retur pembelian.');
         }
         $produk = MasterProduk::all();
         
@@ -195,6 +256,7 @@ public function update(Request $request, $id)
         'diskon'           => ['nullable','array'],
         'diskon.*'         => ['nullable','numeric','min:0'],
         'pajak'            => ['nullable','numeric','min:0'], 
+        'diskon_nota'      => ['nullable','numeric','min:0'],
         'biaya_kirim'      => ['nullable','numeric','min:0'],
         'catatan'          => ['nullable','string'],
         'jatuh_tempo'      => ['nullable','date'],
@@ -220,8 +282,8 @@ public function update(Request $request, $id)
 
         $oldQtyMap = []; // [produk_id => total_qty_lama]
         foreach ($oldDetails as $d) {
-            $pid = (int)$d->master_produk_id;
-            $oldQtyMap[$pid] = ($oldQtyMap[$pid] ?? 0) + (int)$d->qty;
+            $pid = $d->master_produk_id;
+            $oldQtyMap[$pid] = ($oldQtyMap[$pid] ?? 0) + $d->qty;
         }
         // Hitung total qty baru per produk dari request
         //    (antisipasi baris produk dobel)
@@ -232,8 +294,8 @@ public function update(Request $request, $id)
         $diskons   = $request->diskon ?? [];
 
         foreach ($produkIds as $i => $pid) {
-            $pid = (int)$pid;
-            $q   = (int)($qtys[$i] ?? 0);
+            $pid = $pid;
+            $q   = ($qtys[$i] ?? 0);
             $newQtyMap[$pid] = ($newQtyMap[$pid] ?? 0) + $q;
         }
 
@@ -241,8 +303,8 @@ public function update(Request $request, $id)
         $allProductIds = array_unique(array_merge(array_keys($oldQtyMap), array_keys($newQtyMap)));
 
         foreach ($allProductIds as $pid) {
-            $old   = (int)($oldQtyMap[$pid] ?? 0);
-            $new   = (int)($newQtyMap[$pid] ?? 0);
+            $old   = ($oldQtyMap[$pid] ?? 0);
+            $new   = ($newQtyMap[$pid] ?? 0);
             $delta = $new - $old; // + tambah stok, - kurangi stok
 
             if ($delta !== 0) {
@@ -269,12 +331,13 @@ public function update(Request $request, $id)
         $subtotalHeader = 0;
 
         foreach ($produkIds as $i => $pid) {
-            $pid      = (int)$pid;
-            $qty      = (int)$qtys[$i];
-            $harga    = (float)$parseMoney($hargas[$i] ?? 0);
-            $diskon   = (float)$parseMoney($diskons[$i] ?? 0);
+            $pid      = $pid;
+            $qty      = $qtys[$i];
+            $harga    = $parseMoney($hargas[$i] ?? 0);
+            $diskon   = $parseMoney($diskons[$i] ?? 0);
+            
 
-            $subtotal = max(0, ($qty * $harga) - $diskon);
+            $subtotal = max(0, ($qty * $harga - $qty * $diskon));
             $subtotalHeader += $subtotal;
 
             $detailRows[] = [
@@ -293,20 +356,21 @@ public function update(Request $request, $id)
             PembelianDetail::insert($detailRows);
         }
 
-        $pajakPersen = (float)$parseMoney($request->pajak ?? 0);         
-        $biayaKirim  = (float)$parseMoney($request->biaya_kirim ?? 0);
+        $diskonNota = ($request->diskon_nota ?? 0);
+        $subtotDisc = max(0, $subtotalHeader - $diskonNota);
 
-        $totalPajak  = ($subtotalHeader * $pajakPersen) / 100;
-        $grandTotal  = $subtotalHeader + $totalPajak + $biayaKirim;
+        $pajakPersen = $parseMoney($request->pajak ?? 0);         
+        $biayaKirim  = $parseMoney($request->biaya_kirim ?? 0);
+        $totalPajak  = ($subtotDisc * $pajakPersen) / 100;
+        $grandTotal  = $subtotDisc + $totalPajak + $biayaKirim;
 
         $produkHargaBaru = []; // [produk_id => harga_baru]
         foreach ($request->produk_id as $i => $pid) {
             $produkHargaBaru[(int)$pid] = (float)$parseMoney($request->harga_beli[$i] ?? 0);
         }
 
-        // Tanggal histori: pakai nilai mentah dari DB (aman Y-m-d)
+        // Tanggal histori
         $tanggalHist = $pembelian->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString();
-
         foreach ($produkHargaBaru as $pid => $hargaBaru) {
             $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
 
@@ -337,6 +401,7 @@ public function update(Request $request, $id)
             'catatan'          => $request->catatan,
             'pajak'            => $pajakPersen,
             'biaya_kirim'      => $biayaKirim,
+            'diskon_nota'      => $diskonNota,
             'total'            => $grandTotal,
             'jatuh_tempo'      => $request->jatuh_tempo,
             'status_pembayaran'=> $request->status_pembayaran ?? $pembelian->status_pembayaran,
@@ -510,9 +575,9 @@ public function update(Request $request, $id)
             return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah dibayar.');
         }
         // Cegah jika sudah ada retur penjualan
-        // if ($pembelian->returPembelian && $pembelian->returPembelian->count() > 0) {
-        //     return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah memiliki retur penjualan.');
-        // }
+        if ($pembelian->returPembelian && $pembelian->returPembelian->count() > 0) {
+            return back()->with('error', 'Faktur tidak dapat dibatalkan karena memiliki retur pembelian.');
+        }
         if ($pembelian->status === 'batal') {
             return back()->with('error', 'Faktur sudah dibatalkan sebelumnya.');
         }
@@ -527,7 +592,6 @@ public function update(Request $request, $id)
             'status' => 'batal'
         ]);
 
-        // return response()->json(['message' => 'Faktur berhasil dibatalkan.']);
         return redirect()->route('pembelian.index')->with('success', 'Faktur berhasil dibatalkan.');
     }
 }

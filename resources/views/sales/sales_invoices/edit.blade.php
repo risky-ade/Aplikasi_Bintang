@@ -169,13 +169,13 @@
                     <input type="text" class="form-control biaya_kirim_display number-input" value="{{ rupiah($penjualan->biaya_kirim) }}"readonly>
                   </td>
                 </tr>
-                <tr>
+                {{-- <tr>
                   <th>Total Diskon</th>
                   <td>
                     <input type="hidden" name="total_diskon" class="total_diskon">
                     <input type="text" class="form-control total_diskon_display number-input " readonly>
                   </td>
-                </tr>
+                </tr> --}}
                 <tr>
                   <th>Total Bayar</th>
                   <td>

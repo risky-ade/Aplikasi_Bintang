@@ -43,7 +43,7 @@ class MasterProdukController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_produk' =>'required',
+            'nama_produk' =>'required|unique:master_produk,nama_produk',
             'kategori_id' =>'required|exists:kategori,id',
             'satuan_id' =>'required',
             'harga_dasar' =>'required|numeric',
@@ -51,6 +51,8 @@ class MasterProdukController extends Controller
             'include_pajak' =>'required',
             'stok' =>'required|integer',
             'gambar'=>'nullable|image|max:2048'
+        ], [
+            'nama_produk.unique' => 'Nama produk sudah digunakan. Silakan gunakan nama lain.',
         ]);
         $data = $request->all();
 
@@ -75,6 +77,16 @@ class MasterProdukController extends Controller
     public function show(string $id)
     {
         //
+    }
+    public function checkDuplicate(Request $request)
+    {
+        $nama = $request->nama_produk;
+
+        $exists = MasterProduk::where('nama_produk', $nama)->exists();
+
+        return response()->json([
+            'exists' => $exists
+        ]);
     }
 
     /**

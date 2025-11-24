@@ -50,6 +50,9 @@
 
         <h5><strong>Daftar Produk</strong></h5>
         <div class="table-responsive">
+          @php
+              $grandNet = 0;
+          @endphp
           <table class="table table-bordered table-striped">
             <thead class="text-white" style="background-color: #001f3f;">
               <tr>
@@ -64,18 +67,38 @@
             <tbody>
               @php $total = 0; $total_diskon = 0; @endphp
               @foreach ($pembelian->detail as $i => $item)
-              <tr>
+               @php
+                $pid = $item->master_produk_id; // atau $d->produk_id
+                $retQty = ($produkDiretur[$pid] ?? 0);
+                $qtyAwal = ($item ->qty ?? 0);
+                $netQty = max(0, $item->qty - $retQty);
+                $harga    = ($item->harga_beli ?? 0);
+                $discTot   = ($item->diskon ?? 0);
+                $discUnit = $qtyAwal > 0 ? $discTot / $qtyAwal : 0;
+
+                $netSubtotal  = max(0, $netQty * $harga - $netQty * $discTot); 
+                $grandNet += $netSubtotal;
+              @endphp
+              <tr class="{{ $netQty === 0 ? 'text-muted' : '' }}">
                 <td>{{ $i+1 }}</td>
                 <td>{{ $item->produk->nama_produk ?? '-' }}</td>
-                <td class="text-right">{{ $item->qty }}</td>
+                <td class="text-right">{{ $netQty }}</td>
                 <td class="text-right">{{ rupiah($item->harga_beli) }}</td>
-                <td class="text-right">{{ rupiah($item->diskon) }}</td>
-                <td class="text-right">{{ rupiah($item->subtotal) }}</td>
+                <td class="text-right">{{ rupiah($discTot) }}</td>
+                <td class="text-right">{{ rupiah($netSubtotal) }}</td>
               </tr>
-              @php
+              {{-- @php
                 $total += $item->subtotal;
-                $total_diskon += $item->diskon;
-              @endphp
+
+                $pajakPersen = ($pembelian->pajak ?? 0); // misal 10 berarti 10%
+                $biayaKirim  = ($pembelian->biaya_kirim ?? 0);
+
+                $diskonNota = ($pembelian->diskon_nota ?? 0);
+                $subtotDisc = max(0, $total - $diskonNota);
+                $totalPajak  = ($subtotDisc * $pajakPersen) / 100;
+                $grandTotal  = $subtotDisc + $totalPajak + $biayaKirim;
+                // $diskon_nota+= $item->diskon_nota;
+              @endphp --}}
               @endforeach
             </tbody>
           </table>
@@ -83,29 +106,43 @@
 
         <div class="row justify-content-end">
           <div class="col-md-6">
+             @php
+              // $pajakPersen = ($pembelian->pajak ?? 0); 
+              // $diskonNota  = ($pembelian->diskon_nota ?? 0);
+              // $biayaKirim  = ($pembelian->biaya_kirim ?? 0);
+              // $totalPajak  = ($grandNet * $pajakPersen) / 100;
+              // $grandTotal  = $grandNet - $diskonNota + $totalPajak + $biayaKirim;
+
+              $diskonNota = (float) ($pembelian->diskon_nota ?? 0);
+              $subtotDisc = max(0, $grandNet - $diskonNota);
+
+              $pajakPersen = ($pembelian->pajak ?? 0);
+              $biayaKirim  = ($pembelian->biaya_kirim ?? 0);
+              $totalPajak  = $subtotDisc * $pajakPersen / 100;
+              $total       = $subtotDisc + $totalPajak + $biayaKirim;
+            @endphp
             <table class="table table-sm table-borderless">
               <tr>
                 <th class="text-right">Subtotal</th>
-                <td class="text-right">{{ rupiah($total) }}</td>
+                <td class="text-right">{{ rupiah($grandNet) }}</td>
               </tr>
               <tr>
-                <th class="text-right">Total Diskon</th>
-                <td class="text-right">{{ rupiah($total_diskon) }}</td>
+                <th class="text-right">Diskon Nota</th>
+                <td class="text-right">{{ rupiah($diskonNota) }}</td>
               </tr>
               <tr>
                 <th class="text-right">Pajak ({{ $pembelian->pajak }}%)</th>
                 <td class="text-right">
-                  @php $nilai_pajak = ($total * $pembelian->pajak) / 100; @endphp
-                  {{ rupiah($nilai_pajak) }}
+                  {{ rupiah($totalPajak) }}
                 </td>
               </tr>
               <tr>
                 <th class="text-right">Biaya Kirim</th>
-                <td class="text-right">{{ rupiah($pembelian->biaya_kirim) }}</td>
+                <td class="text-right">{{ rupiah($biayaKirim) }}</td>
               </tr>
               <tr class="font-weight-bold">
                 <th class="text-right">Total Bayar</th>
-                <td class="text-right">{{ rupiah($pembelian->total) }}</td>
+                <td class="text-right">{{ rupiah($total) }}</td>
               </tr>
             </table>
           </div>

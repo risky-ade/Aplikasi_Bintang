@@ -4,7 +4,7 @@
   <div class="content-header"><div class="container-fluid"><h3>Faktur Pembelian</h3></div></div>
 <style>
     thead tr {
-        background-color: #001f3f; /* biru navy */
+        background-color: #001f3f; 
         color: white;
     }
 
@@ -116,15 +116,15 @@
                   </td>
                 </tr>
                 <tr>
-                  <th>PPN / Pajak (%)</th>
-                  <td><input type="number" name="pajak" class="form-control number-input" value="0"></td>
+                  <th>Diskon Nota</th>
+                  <td>
+                    <input type="hidden" name="diskon_nota" class="diskon_nota">
+                    <input type="text" class="form-control diskon_nota_display number-input" value="0">
+                  </td>
                 </tr>
                 <tr>
-                    <th>Total Diskon</th>
-                    <td>
-                      <input type="hidden" name="total_diskon" class="total_diskon">
-                      <input type="text" class="form-control total_diskon_display number-input" readonly>
-                    </td>
+                  <th>PPN / Pajak (%)</th>
+                  <td><input type="number" name="pajak" class="form-control number-input" value="0" min="0"></td>
                 </tr>
                 <tr>
                   <th>Biaya Kirim</th>
@@ -220,7 +220,7 @@ function hitungTotal() {
         const qty = parseFloat($(this).find('.qty').val()) || 0;
         const harga = parseFloat($(this).find('.harga').val()) || 0; 
         const diskon = parseFloat($(this).find('.diskon').val()) || 0; 
-        const subtotal = (qty * harga) - diskon;
+        const subtotal = (qty * harga) - (qty * diskon);
 
         $(this).find('.diskon').val(diskon);
         $(this).find('.diskon_display').val(formatRupiah(diskon));
@@ -233,18 +233,21 @@ function hitungTotal() {
 
     const pajak = parseFloat($('[name="pajak"]').val()) || 0;
     const biayaKirim = parseFloat($('.biaya_kirim').val()) || 0;
-    const totalPajak = (total * pajak) / 100;
-    const grandTotal = total + totalPajak + biayaKirim;
+    const diskonNota  = parseFloat($('.diskon_nota').val()) || 0;
+
+    const subtotDisc = Math.max(0, total - diskonNota);
+    const totalPajak = (subtotDisc * pajak) / 100;
+    const grandTotal = subtotDisc + totalPajak + biayaKirim;
 
   
     $('[name="total_subtotal"]').val(total);
-    $('[name="total_diskon"]').val(totalDiskon);
+    $('[name="diskon_nota"]').val(diskonNota);
     $('[name="biaya_kirim"]').val(biayaKirim);
     $('[name="total"]').val(grandTotal);
 
  
     $('.total_subtotal_display').val(formatRupiah(total));
-    $('.total_diskon_display').val(formatRupiah(totalDiskon));
+    $('.diskon_nota_display').val(formatRupiah(diskonNota));
     $('.biaya_kirim_display').val(formatRupiah(biayaKirim));
     $('.total_display').val(formatRupiah(grandTotal));
 }
@@ -254,7 +257,7 @@ $(document).ready(function () {
     hitungTotal();
 
     // trigger total setiap input berubah
-    $(document).on('input', '.qty, .harga_display, .diskon_display, .biaya_kirim_display, [name="pajak"]', function () {
+    $(document).on('input', '.qty, .harga_display, .diskon_display, .biaya_kirim_display, [name="pajak"], .diskon_nota_display', function () {
         // konversi display ke hidden murni dulu
         if ($(this).hasClass('harga_display')) {
             let value = $(this).val().replace(/[^0-9]/g, '');
@@ -263,6 +266,10 @@ $(document).ready(function () {
         if ($(this).hasClass('diskon_display')) {
             let value = $(this).val().replace(/[^0-9]/g, '');
             $(this).closest('tr').find('.diskon').val(value);
+        }
+        if ($(this).hasClass('diskon_nota_display')) {
+            let value = $(this).val().replace(/[^0-9]/g, '');
+            $('.diskon_nota').val(value);
         }
         if ($(this).hasClass('biaya_kirim_display')) {
             let value = $(this).val().replace(/[^0-9]/g, '');
