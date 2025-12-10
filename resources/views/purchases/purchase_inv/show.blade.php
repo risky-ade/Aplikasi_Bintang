@@ -87,18 +87,6 @@
                 <td class="text-right">{{ rupiah($discTot) }}</td>
                 <td class="text-right">{{ rupiah($netSubtotal) }}</td>
               </tr>
-              {{-- @php
-                $total += $item->subtotal;
-
-                $pajakPersen = ($pembelian->pajak ?? 0); // misal 10 berarti 10%
-                $biayaKirim  = ($pembelian->biaya_kirim ?? 0);
-
-                $diskonNota = ($pembelian->diskon_nota ?? 0);
-                $subtotDisc = max(0, $total - $diskonNota);
-                $totalPajak  = ($subtotDisc * $pajakPersen) / 100;
-                $grandTotal  = $subtotDisc + $totalPajak + $biayaKirim;
-                // $diskon_nota+= $item->diskon_nota;
-              @endphp --}}
               @endforeach
             </tbody>
           </table>
@@ -107,12 +95,6 @@
         <div class="row justify-content-end">
           <div class="col-md-6">
              @php
-              // $pajakPersen = ($pembelian->pajak ?? 0); 
-              // $diskonNota  = ($pembelian->diskon_nota ?? 0);
-              // $biayaKirim  = ($pembelian->biaya_kirim ?? 0);
-              // $totalPajak  = ($grandNet * $pajakPersen) / 100;
-              // $grandTotal  = $grandNet - $diskonNota + $totalPajak + $biayaKirim;
-
               $diskonNota = (float) ($pembelian->diskon_nota ?? 0);
               $subtotDisc = max(0, $grandNet - $diskonNota);
 

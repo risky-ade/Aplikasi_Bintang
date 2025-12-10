@@ -68,25 +68,47 @@
         </tr>
     </thead>
     <tbody>
+        @php $total = 0; $total_diskon = 0; $grandNet = 0;@endphp
         @foreach($pembelian->detail as $i => $item)
+         @php
+                $pid = $item->master_produk_id; 
+                $retQty = ($produkDiretur[$pid] ?? 0);
+                $qtyAwal = ($item ->qty ?? 0);
+                $netQty = max(0, $item->qty - $retQty);
+                $harga    = ($item->harga_beli ?? 0);
+                $discTot   = ($item->diskon ?? 0);
+                $discUnit = $qtyAwal > 0 ? $discTot / $qtyAwal : 0;
+
+                $netSubtotal  = max(0, $netQty * $harga - $netQty * $discTot); 
+                $grandNet += $netSubtotal;
+              @endphp
         <tr>
             <td>{{ $i + 1 }}</td>
             <td>{{ $item->produk->nama_produk }}</td>
-            <td style="text-align: center;">{{ $item->qty }}</td>
+            <td style="text-align: center;">{{ $netQty }}</td>
             <td style="text-align: right;">@rupiah($item->harga_beli)</td>
-            <td style="text-align: right;">@rupiah($item->diskon)</td>
-            <td style="text-align: right;">@rupiah($item->subtotal)</td>
+            <td style="text-align: right;">@rupiah($discTot)</td>
+            <td style="text-align: right;">@rupiah($netSubtotal)</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 
 <div class="row" style="margin-top: 20px;">
+    @php
+        $diskonNota = (float) ($pembelian->diskon_nota ?? 0);
+        $subtotDisc = max(0, $grandNet - $diskonNota);
+
+        $pajakPersen = ($pembelian->pajak ?? 0);
+        $biayaKirim  = ($pembelian->biaya_kirim ?? 0);
+        $totalPajak  = $subtotDisc * $pajakPersen / 100;
+        $total       = $subtotDisc + $totalPajak + $biayaKirim;
+    @endphp
     <table style="width: 100%;">
         <tr>
             <td style="width: 50%; vertical-align: top;">
                 <p><strong>Terbilang:</strong></p>
-                <p><em>{{ terbilang($pembelian->total) }} rupiah</em></p>
+                <p><em>{{ terbilang($total) }} rupiah</em></p>
                 
                 {{-- <p><strong>Rekening Pembayaran:</strong></p>
                 <p>Bank BCA: 123-456-789 a.n. CV. Bintang Empat</p> --}}
@@ -95,19 +117,23 @@
                 <table class="summary-box" style="width: 100%;">
                     <tr>
                         <td><strong>Subtotal</strong></td>
-                        <td style="text-align: right;">@rupiah($pembelian->detail->sum('subtotal'))</td>
+                        <td style="text-align: right;">@rupiah($grandNet)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Diskon Nota </strong></td>
+                        <td style="text-align: right;">{{ rupiah($diskonNota) }}</td>
                     </tr>
                     <tr>
                         <td><strong>PPN ({{ $pembelian->pajak }}%)</strong></td>
-                        <td style="text-align: right;">@rupiah(($pembelian->pajak/100)*$pembelian->detail->sum('subtotal'))</td>
+                        <td style="text-align: right;">@rupiah($totalPajak)</td>
                     </tr>
                     <tr>
                         <td><strong>Biaya Kirim</strong></td>
-                        <td style="text-align: right;">@rupiah($pembelian->biaya_kirim)</td>
+                        <td style="text-align: right;">@rupiah($biayaKirim)</td>
                     </tr>
                     <tr>
                         <td><strong>Total</strong></td>
-                        <td style="text-align: right;">@rupiah($pembelian->total)</td>
+                        <td style="text-align: right;">@rupiah($total)</td>
                     </tr>
                 </table>
             </td>

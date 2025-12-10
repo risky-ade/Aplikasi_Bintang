@@ -211,7 +211,7 @@ class PenjualanController extends Controller
             ->withSum('returPenjualan as total_retur', 'total')
             ->findOrFail($id);
 
-        // Pluck qty retur per produk
+        
         $produkDiretur = DB::table('retur_penjualan as r')
             ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
             ->where('r.penjualan_id', $penjualan->id)

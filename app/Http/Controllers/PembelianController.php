@@ -216,8 +216,23 @@ class PembelianController extends Controller
 
     public function print($id)
     {
-        $pembelian = Pembelian::with(['pemasok', 'detail.produk'])->findOrFail($id);
-        return view('purchases.purchase_inv.print', compact('pembelian'));
+        // $pembelian = Pembelian::with(['pemasok', 'detail.produk'])->findOrFail($id);
+        $pembelian = Pembelian::with(['pemasok', 'detail.produk'])
+        -> withSum('returPembelian as total_retur', 'total')
+        ->findOrFail($id);
+
+        $produkDiretur = DB::table('retur_pembelian as rb')
+        ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
+        ->where('rb.pembelian_id', $pembelian->id)
+        ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+        ->groupBy('rd.produk_id')
+        ->pluck('total_qty_retur', 'rd.produk_id')
+        ->map(fn($v) => $v)
+        ->toArray();
+
+        $totalRetur = ($pembelian->total_retur ?? 0);
+        $totalNetto = max(0,($pembelian->total ?? 0) - $totalRetur);
+        return view('purchases.purchase_inv.print', compact('pembelian','produkDiretur','totalRetur'));
 
         // $pdf = PDF::loadView('penjualan.print', compact('penjualan'));
         // return $pdf->download('invoice-'.$penjualan->no_faktur.'.pdf');

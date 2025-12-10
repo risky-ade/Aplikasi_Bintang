@@ -127,16 +127,6 @@
                               <a href="{{ route('pembelian.show', $beli->id) }}" class="dropdown-item text-info">
                                     <i class="fa fa-eye"></i> Lihat
                                </a>
-                              {{-- <a href="{{ route('pembelian.edit',$beli->id) }}" class="dropdown-item text-primary"
-                                        type="button"><i class="fa fa-edit"></i> Edit
-                              </a> --}}
-                              {{-- <a href="{{ route('penjualan.print', $jual->id) }}" class="btn btn-secondary btn-sm" target="_blank">
-                                  <i class="fa fa-print"></i>
-                              </a> --}}
-                              {{-- <a href="{{ route('sales.sales_invoices.surat-jalan', $beli->id) }}" class="btn btn-sm btn-secondary">
-                                <i class="fas fa-file-alt"></i>
-                              </a> --}}
-
                               <!-- Tombol -->
                               @if($beli->status_pembayaran == 'Belum Lunas'&& $beli->status != 'batal')
                               <a href="" class="dropdown-item text-success" data-toggle="modal" data-target="#modalApprove{{ $beli->id }}"><i class="far fa-money-bill-alt"></i> Approve</a>
@@ -189,7 +179,7 @@
                               </div>
                               <div class="modal-body">
                                 Pembatalan pembayaran invoice <strong>{{ $beli->no_faktur }}</strong> <br>
-                                dengan total <strong>{{ rupiah($beli->total) }}</strong><br><br>
+                                dengan total <strong>{{ rupiah(($beli->total_netto_calc ?? $beli->total ?? 0), 0, ',', '.') }}</strong><br><br>
                                 <small class="text-muted">
                                     *Batas pembatalan hanya 24 jam sejak approve.
                                 </small>
@@ -216,7 +206,7 @@
                             </div>
                             <div class="modal-body">
                               Konfirmasi pembayaran invoice <strong>{{ $beli->no_faktur }}</strong> <br>
-                              dengan total <strong>{{ rupiah($beli->total) }}</strong>
+                              dengan total <strong>{{ rupiah(($beli->total_netto_calc ?? $beli->total ?? 0), 0, ',', '.') }}</strong>
                               <hr>
                               <div class="form-group">
                               <label for="paid_date_{{ $beli->id }}">Tanggal Pelunasan</label>

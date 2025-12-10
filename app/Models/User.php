@@ -47,4 +47,34 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role && $this->role->name === 'superadmin';
+    }
+
+    public function hasRole(string|array $roles): bool
+    {
+        if (!$this->role) return false;
+
+        if (is_array($roles)) {
+            return in_array($this->role->name, $roles);
+        }
+
+        return $this->role->name === $roles;
+    }
+
+    public function hasPermission(string $permissionName): bool
+    {
+        if ($this->isSuperAdmin()) return true; // superadmin bisa semua
+
+        if (!$this->role) return false;
+
+        return $this->role->permissions->contains('name', $permissionName);
+    }
 }

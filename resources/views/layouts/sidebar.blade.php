@@ -146,7 +146,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="/purchases_report" class="nav-link">
+                            <a href="/reports/purchases_report" class="nav-link">
                                 <i class="nav-icon fas fa-clipboard-list"></i>
                                 <p>Laporan Pembelian</p>
                             </a>

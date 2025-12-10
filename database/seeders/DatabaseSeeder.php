@@ -2,11 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\MasterKategori;
-use App\Models\Pelanggan;
-use App\Models\Satuan;
+use run;
 use App\Models\User;
+use App\Models\Satuan;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Pelanggan;
+use App\Models\MasterKategori;
+use App\Models\Permission;
+use Database\Seeders\SuperAdminSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -18,13 +21,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::create([
-            'name' => 'Risky Ade Sucahyo',
-            'username' => 'riskyade',
-            'email' => 'riskyadesucahyo@gmail.com',
-            'password' => bcrypt('12345'),
+        // User::create([
+        //     'name' => 'Risky Ade Sucahyo',
+        //     'username' => 'riskyade',
+        //     'email' => 'riskyadesucahyo@gmail.com',
+        //     'password' => bcrypt('12345'),
             
-        ]);
+        // ]);
 
         // Satuan::create([
         //     'jenis_satuan'=>'PAC',
@@ -36,14 +39,21 @@ class DatabaseSeeder extends Seeder
         //     'nama_kategori'=>'Kertas',
         // ]);
 
-        Pelanggan::create([
-            'nama'=>'Risky',
-            'email'=>'risky.gmail.com',
-            'npwp'=>'12345678',
-            'no_hp'=>'12345678',
-            'kota'=>'surabaya',
-            'provinsi'=>'Jawa Timur',
-            'alamat'=>'jl sby',
+        // Pelanggan::create([
+        //     'nama'=>'Risky',
+        //     'email'=>'risky.gmail.com',
+        //     'npwp'=>'12345678',
+        //     'no_hp'=>'12345678',
+        //     'kota'=>'surabaya',
+        //     'provinsi'=>'Jawa Timur',
+        //     'alamat'=>'jl sby',
+        // ]);
+
+
+        $this->call([
+            SuperAdminSeeder::class,
+            PermissionSeeder::class,
         ]);
     }
+ 
 }

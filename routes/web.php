@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\SatuanController;
 
+use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PelangganController;
@@ -12,14 +13,24 @@ use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReturPenjualanController;
+use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\LaporanPembelianController;
 use App\Http\Controllers\LaporanPenjualanController;
 use App\Http\Controllers\HistoriHargaPembelianController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
+use App\Http\Controllers\UserController;
 
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    // Manajemen Role & Permission
+    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('/roles/{role}/edit', [RoleController::class, 'editPermissions'])->name('roles.edit');
+    Route::put('/roles/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.update');
 
-// Route::get('/login', function () {
-//     return view('login.index');
-// });
+    // Manajemen User (assign role ke user)
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+});
 
 Route::get('/login', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate']);
@@ -107,32 +118,29 @@ Route::post('/categories', [KategoriController::class, 'store'])->middleware('au
 // Route::post('/categories/update', [KategoriController::class, 'update'])->name('categories.update')->middleware('auth');
 Route::delete('/categories/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy')->middleware('auth');
 
-// Route::get('/units', [SatuanController::class, 'index'])->middleware('auth');
 Route::resource('/units',SatuanController::class)->middleware('auth');
 // Route::post('/units', [SatuanController::class, 'store'])->name('satuan.store')->middleware('auth');
 // Route::get('/units/edit/{id}', [SatuanController::class, 'edit'])->name('edit')->middleware('auth');
 // Route::post('/units/update', [SatuanController::class, 'update'])->name('satuan.update')->middleware('auth');
 // Route::delete('/units/{id}', [SatuanController::class, 'destroy'])->name('units.destroy')->middleware('auth');
 
-
-// Route::get('/sales_report', function () {
-//     return view('reports.sales_report');
-// });
 Route::get('/reports/sales_report', [LaporanPenjualanController::class, 'index'])->name('sales_report.index')->middleware('auth');
 Route::get('/reports/sales_pdf', [LaporanPenjualanController::class, 'pdf'])->name('sales_report.sales_pdf')->middleware('auth');
-Route::get('/purchases_report', function () {
-    return view('reports.purchases_report');
-});
+
+Route::get('/reports/purchases_pdf', [LaporanPembelianController::class, 'beliPdf'])->name('purchase_report.purchases_pdf')->middleware('auth');
+Route::get('/reports/purchases_report', [LaporanPembelianController::class, 'index'])->name('purchases_report.index')->middleware('auth');
 
 Route::resource('customers', PelangganController::class)->middleware('auth');
-// Route::get('/customers', function () {
-    //     return view('customers.index');
-    // });
-Route::resource('suppliers', PemasokController::class)->middleware('auth');
 
-Route::get('/users', function () {
-    return view('users.index');
-});
+Route::resource('suppliers', PemasokController::class)->middleware('auth');
+// Route::resource('users', UserManagementController::class)->middleware('auth');
+Route::get('users',[UserManagementController::class, 'index'])->name('users.index')->middleware('auth');
+Route::get('users/{id}/edit',[UserManagementController::class, 'edit'])->name('users.edit')->middleware('auth');
+Route::put('users/{id}',[UserManagementController::class, 'update'])->name('users.update')->middleware('auth');
+
+// Route::get('/users', function () {
+//     return view('users.index');
+// });
 Route::get('/profile', function () {
     return view('profiles.profile');
 });

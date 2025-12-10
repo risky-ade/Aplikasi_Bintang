@@ -2,85 +2,81 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pelanggan;
-use App\Models\Penjualan;
+use App\Models\Pemasok;
+use App\Models\Pembelian;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class LaporanPenjualanController extends Controller
+class LaporanPembelianController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Penjualan::query()
-            ->with(['pelanggan'])
-            ->select('penjualan.*')
+        $query = Pembelian::query()
+            ->with(['pemasok'])
+            ->select('pembelian.*')
             ->selectSub(function ($sub) {
-                $sub->from('retur_penjualan as r')
-                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+                $sub->from('retur_pembelian as rb')
+                    ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
                     ->selectRaw('COALESCE(SUM(rd.subtotal), 0)')
-                    ->whereColumn('r.penjualan_id', 'penjualan.id');
+                    ->whereColumn('rb.pembelian_id', 'pembelian.id');
             }, 'total_retur');
 
         if ($request->filled('from') && $request->filled('to')) {
             $query->whereBetween('tanggal', [$request->from, $request->to]);
         }
 
-        if ($request->filled('pelanggan_id')) {
-            $query->where('pelanggan_id', $request->pelanggan_id);
+        if ($request->filled('pemasok_id')) {
+            $query->where('pemasok_id', $request->pemasok_id);
         }
         if ($request->filled('status_pembayaran')) {
             $query->where('status_pembayaran', $request->status_pembayaran);
         }
         $query->where('status', '!=', 'batal'); 
 
-        $penjualans = $query->latest()->get();
+        $pembelians = $query->latest()->get();
 
-        foreach ($penjualans as $p) {
-            $pajak      = (float) ($p->pajak ?? 0);
-            $ongkir     = (float) ($p->biaya_kirim ?? 0);
-            $totalRetur = (float) ($p->total_retur ?? 0);
-
-            // total = subtotal_bruto + pajak(subtotal_bruto) + ongkir
+        foreach ($pembelians as $p) {
+            $pajak = ($p->pajak ?? 0);
+            $ongkir = ($p->biaya_kirim ?? 0);
+            $totalRetur = ($p->total_retur ?? 0);
             $den = 1 + ($pajak / 100);
             $subtotalBruto = $den != 0 ? (($p->total - $ongkir) / $den) : ($p->total - $ongkir);
-
             $subtotalNet = max(0, $subtotalBruto - $totalRetur);
             $pajakNet = $subtotalNet * ($pajak / 100);
 
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
-        $pelanggans = Pelanggan::all();
+        $pemasoks = Pemasok::all();
 
-        return view('reports/sales_report', compact('penjualans', 'pelanggans'));
+        return view('reports/purchases_report', compact('pembelians', 'pemasoks'));
     }
-
-    public function pdf(Request $request)
+    public function beliPdf(Request $request)
     {
-        $query = Penjualan::query()
-            ->with(['pelanggan'])
-            ->select('penjualan.*')
+        $query = Pembelian::query()
+            ->with(['pemasok'])
+            ->select('pembelian.*')
             ->selectSub(function ($sub) {
-                $sub->from('retur_penjualan as r')
-                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+                $sub->from('retur_pembelian as r')
+                    ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'r.id')
                     ->selectRaw('COALESCE(SUM(rd.subtotal), 0)')
-                    ->whereColumn('r.penjualan_id', 'penjualan.id');
+                    ->whereColumn('r.pembelian_id', 'pembelian.id');
             }, 'total_retur');
 
         if ($request->filled('from') && $request->filled('to')) {
             $query->whereBetween('tanggal', [$request->from, $request->to]);
         }
 
-        if ($request->filled('pelanggan_id')) {
-            $query->where('pelanggan_id', $request->pelanggan_id);
+        if ($request->filled('pemasok_id')) {
+            $query->where('pemasok_id', $request->pemasok_id);
         }
         if ($request->filled('status_pembayaran')) {
             $query->where('status_pembayaran', $request->status_pembayaran);
         }
         $query->where('status', '!=', 'batal'); 
 
-        $penjualans = $query->get();
+        $pembelians = $query->get();
 
-        foreach ($penjualans as $p) {
+        foreach ($pembelians as $p) {
             $pajak      = ($p->pajak ?? 0);
             $ongkir     = ($p->biaya_kirim ?? 0);
             $totalRetur = ($p->total_retur ?? 0);
@@ -94,15 +90,15 @@ class LaporanPenjualanController extends Controller
 
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
-        $totalRetur     = $penjualans->sum('total_retur');
-        $totalNetto     = $penjualans->sum('total_netto_calc');
+        $totalRetur     = $pembelians->sum('total_retur');
+        $totalNetto     = $pembelians->sum('total_netto_calc');
 
-        $pdf = Pdf::loadView('reports.sales_pdf', [
-        'penjualans' => $penjualans,
+        $pdf = Pdf::loadView('reports.purchases_pdf', [
+        'pembelians' => $pembelians,
         'totalRetur' => $totalRetur,
         'totalNetto' => $totalNetto,
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->download('sales_reports.pdf');
+        return $pdf->download('purchase_reports.pdf');
     }
 }

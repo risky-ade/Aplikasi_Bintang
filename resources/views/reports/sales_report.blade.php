@@ -1,7 +1,6 @@
 @extends('layouts.main')
 @section('content')
 <style>
-  /* supaya header & sel tertentu tidak pecah baris */
   .nowrap th, .nowrap td { white-space: nowrap; }
 </style>
   <div class="content-wrapper">
@@ -71,7 +70,6 @@
                 <th>No Faktur</th>
                 <th>Pelanggan</th>
                 <th>Nomor PO</th>
-                {{-- <th>Total</th> --}}
                 <th>Total Retur</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
@@ -85,7 +83,6 @@
                   <td>{{ $penjualan->no_faktur }}</td>
                   <td>{{ $penjualan->pelanggan->nama ?? '-' }}</td>
                   <td>{{ $penjualan->no_po ?? '-' }}</td>
-                  {{-- <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td> --}}
                   <td>Rp {{ number_format($penjualan->total_retur ?? 0, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format(($penjualan->total_netto_calc ?? $penjualan->total ?? 0), 0, ',', '.') }}</td>
                   <td>{{ ucfirst($penjualan->status_pembayaran) }}</td>
@@ -99,7 +96,6 @@
                 <th>No Faktur</th>
                 <th>Pelanggan</th>
                 <th>Nomor PO</th>
-                {{-- <th>Total</th> --}}
                 <th>Total Retur</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
@@ -108,7 +104,6 @@
             <tfoot>
               <tr>
                 <th colspan="5" class="text-right">Total:</th>
-                {{-- <th class="tot-col-5"></th> --}}
                 <th class="tot-col-5"></th>
                 <th class="tot-col-6"></th>
                 <th></th>
@@ -120,84 +115,9 @@
       </div>
       </div>
     </section>
-    <!-- /.content -->
   </div>
 </div>
 
-{{-- <script>
-  $(document).ready(function() {
-    $('#laporanTable').DataTable({
-      "pageLength": 10,
-      "lengthMenu": [10, 15, 25, 50, 100],
-      "language": {
-        "search": "Cari:",
-        "lengthMenu": "Tampilkan _MENU_ baris per halaman",
-        "zeroRecords": "Data tidak ditemukan",
-        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-        "infoEmpty": "Tidak ada data",
-        "infoFiltered": "(disaring dari total _MAX_ data)",
-        "paginate": {
-          "next": "Berikutnya",
-          "previous": "Sebelumnya"
-        }
-      },
-      footerCallback: function (row, data, start, end, display) {
-        var api = this.api();
-
-        // Total seluruh data
-        var total = api
-          .column(5, { page: 'current' })
-          .data()
-          .reduce(function (a, b) {
-            return parseInt(a.toString().replace(/[^\d]/g, '')) + parseInt(b.toString().replace(/[^\d]/g, ''));
-          }, 0);
-
-        // Format angka ke Rupiah
-        var formattedTotal = new Intl.NumberFormat('id-ID', {
-          style: 'currency',
-          currency: 'IDR'
-        }).format(total);
-
-        // Tampilkan di footer
-        $(api.column(5).footer()).html(formattedTotal);
-
-        // Total seluruh data retur
-        var total = api
-          .column(6, { page: 'current' })
-          .data()
-          .reduce(function (a, b) {
-            return parseInt(a.toString().replace(/[^\d]/g, '')) + parseInt(b.toString().replace(/[^\d]/g, ''));
-          }, 0);
-
-        // Format angka ke Rupiah
-        var formattedTotal = new Intl.NumberFormat('id-ID', {
-          style: 'currency',
-          currency: 'IDR'
-        }).format(total);
-
-        // Tampilkan di footer
-        $(api.column(6).footer()).html(formattedTotal);
-
-        // Total seluruh data netto
-        var total = api
-          .column(7, { page: 'current' })
-          .data()
-          .reduce(function (a, b) {
-            return parseInt(a.toString().replace(/[^\d]/g, '')) + parseInt(b.toString().replace(/[^\d]/g, ''));
-          }, 0);
-
-        // Format angka ke Rupiah
-        var formattedTotal = new Intl.NumberFormat('id-ID', {
-          style: 'currency',
-          currency: 'IDR'
-        }).format(total);
-
-        // Tampilkan di footer
-        $(api.column(7).footer()).html(formattedTotal);
-      }
-    });
-  });
-</script> --}}
 <script>
   $(document).ready(function() {
     $('#laporanTable').DataTable({
@@ -232,11 +152,9 @@
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n);
         }
 
-        // const total      = sumCol(5);
         const totalRetur = sumCol(5);
         const totalNetto = sumCol(6);
 
-        // $(api.column(5).footer()).html(fmtIDR(total));
         $(api.column(5).footer()).html(fmtIDR(totalRetur));
         $(api.column(6).footer()).html(fmtIDR(totalNetto));
       }
