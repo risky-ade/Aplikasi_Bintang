@@ -2,8 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\LoginController;
+use App\Http\Controllers\UserController;
 
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\KategoriController;
@@ -16,9 +17,10 @@ use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\LaporanPembelianController;
 use App\Http\Controllers\LaporanPenjualanController;
+use App\Http\Controllers\AdminPasswordResetController;
+use App\Http\Controllers\ForgotPasswordRequestController;
 use App\Http\Controllers\HistoriHargaPembelianController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
-use App\Http\Controllers\UserController;
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     // Manajemen Role & Permission
@@ -28,13 +30,27 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
     // Manajemen User (assign role ke user)
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
     Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
 });
 
 Route::get('/login', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate']);
 Route::post('/logout', [LoginController::class, 'logout']);
+
+Route::get('/forgot-password', [ForgotPasswordRequestController::class, 'create'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordRequestController::class, 'store'])->name('password.request.store');
+
+Route::middleware(['auth','role:superadmin'])->group(function () {
+    Route::get('/settings/password-reset-requests', [AdminPasswordResetController::class, 'index'])
+        ->name('password_reset_requests.index');
+
+    Route::post('/settings/password-reset-requests/{req}/reset', [AdminPasswordResetController::class, 'reset'])
+        ->name('password_reset_requests.reset');
+});
 
 Route::get('/', function () {
     return view('dashboard');

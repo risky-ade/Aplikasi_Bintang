@@ -9,8 +9,6 @@
 
   <section class="content">
     <div class="container-fluid">
-      @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
-      @if(session('error')) <div class="alert alert-danger">{{ session('error') }}</div> @endif
 
       <div class="card">
         <div class="card-body">
@@ -44,7 +42,9 @@
           </table>
         </div>
       </div>
-
+      <div class="card-footer text-right">
+        <a href="{{ route('users.index') }}" class="btn btn-secondary">Kembali</a>
+      </div>
     </div>
   </section>
 </div>

@@ -26,7 +26,6 @@
   <link rel="stylesheet" href="template/plugins/daterangepicker/daterangepicker.css">
   <!-- summernote -->
   <link rel="stylesheet" href="template/plugins/summernote/summernote-bs4.min.css">
-  {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"> --}}
 </head>
 <body class="hold-transition login-page bg-secondary">
    @if (session()->has('success'))
@@ -43,10 +42,8 @@
         </div>
       @endif
 <div class="login-box">
-  <!-- /.login-logo -->
   <div class="card card-outline card-primary">
     <div class="card-header text-center">
-      {{-- <a href="../../index2.html" class="h1"><b>Admin</b>LTE</a> --}}
       <img width="200" src="img/logo1.png" alt="bintang4">
     </div>
     <div class="card-body">
@@ -54,13 +51,15 @@
       <form action="/login" method="post">
         @csrf
         <div class="input-group mb-3">
-          <input type="username" name="username" class="form-control @error('username') is-invalid @enderror" id="username" placeholder="Username" autofocus required value="{{ old('username') }}">
+          <input type="text" name="login" class="form-control @error('login') 
+          is-invalid @enderror" id="login" 
+          placeholder="Username atau Email" autofocus required value="{{ old('login') }}">
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-user"></span>
             </div>
           </div>
-          @error('username')
+          @error('login')
           <div class="invalid-feedback">
             {{ $message }}
           </div>
@@ -76,40 +75,19 @@
             </div>
           </div>
         </div>
-        <!-- /.col -->
-          <div class="col-4">
+          <div class="col-5 justify-content-center">
             <button type="submit" class="btn btn-primary btn-block">Login</button>
+            <a href="{{ route('password.request') }}" class="text-decoration-none">
+              Lupa password?
+            </a>
           </div>
-          <!-- /.col -->
-
       </form>
 
-      {{-- <p class="mb-1">
-        <a href="forgot-password.html">I forgot my password</a>
-      </p>
-      <p class="mb-0">
-        <a href="register.html" class="text-center">Register a new membership</a>
-      </p> --}}
     </div>
-    <!-- /.card-body -->
   </div>
-  <!-- /.card -->
 </div>
-<!-- /.login-box -->
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-<!-- DataTables  & Plugins -->
-  <script src="template/plugins/datatables/jquery.dataTables.min.js"></script>
-  <script src="template/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-  <script src="template/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
-  <script src="template/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
-  <script src="template/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
-  <script src="template/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
-  <script src="template/plugins/jszip/jszip.min.js"></script>
-  <script src="template/plugins/pdfmake/pdfmake.min.js"></script>
-  <script src="template/plugins/pdfmake/vfs_fonts.js"></script>
-  <script src="template/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-  <script src="template/plugins/datatables-buttons/js/buttons.print.min.js"></script>
-  <script src="template/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 </body>
 </html>

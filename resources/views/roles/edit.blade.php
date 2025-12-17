@@ -12,7 +12,7 @@
       @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
       @if(session('error')) <div class="alert alert-danger">{{ session('error') }}</div> @endif
 
-      <form method="POST" action="{{ route('roles.update-permissions', $role->id) }}">
+      <form method="POST" action="{{ route('roles.update', $role->id) }}">
         @csrf
         @method('PUT')
 
