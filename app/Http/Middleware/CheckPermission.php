@@ -18,7 +18,10 @@ class CheckPermission
         $user = $request->user();
 
         if (!$user || !$user->hasPermission($permission)) {
-            abort(403, 'Tidak memiliki akses.');
+            if ($request->expectsJson()) {
+                return response()->json(['message'=>'Anda tidak punya akses untuk aksi ini.'], 403);
+            }
+            return redirect()->back()->with('error', 'Anda tidak punya akses untuk aksi ini.');
         }
         return $next($request);
     }

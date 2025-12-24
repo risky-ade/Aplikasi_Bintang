@@ -17,12 +17,13 @@ class CheckRole
     {
         $user = $request->user();
         if (!$user || !$user->role) {
-            abort(403, 'Tidak memiliki akses.');
+           return redirect()->back()->with('error', 'Anda tidak punya akses untuk aksi ini.');
         }
 
         if (!in_array($user->role->name, $roles, true)) {
-            abort(403, 'Tidak memiliki akses.');
+            return redirect()->back()->with('error', 'Anda tidak punya akses untuk aksi ini.');
         }
+         
         return $next($request);
     }
 }

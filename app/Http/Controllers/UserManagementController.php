@@ -64,36 +64,48 @@ class UserManagementController extends Controller
     public function update(Request $request, User $user)
     {
         if ($user->isSuperAdmin() && $user->id === 1) {
-            // superadmin default: role tidak boleh diganti
+        // superadmin default: role & username tidak boleh diganti (kalau mau boleh username, tinggal tambahkan)
             $rules = [
-                'name'  => ['required','string','max:255'],
-                'email' => ['required','email','max:255','unique:users,email,'.$user->id],
-                'password'  => ['required','min:6','confirmed'],
+                'name'     => ['required','string','max:255'],
+                'email'    => ['required','email','max:255','unique:users,email,'.$user->id],
+                'photo'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
+                // 'password' => ['nullable','min:6','confirmed'],
             ];
         } else {
             $rules = [
-                'name'      => ['required','string','max:255'],
-                'username'  => ['required','string','max:50','alpha_dash','unique:users,username,'.$user->id],
-                'email'     => ['required','email','max:255','unique:users,email,'.$user->id],
-                'role_id'   => ['required','exists:roles,id'],
-                'photo'     => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
-                'password'  => ['nullable','min:6','confirmed'],
+                'name'     => ['required','string','max:255'],
+                'username' => ['required','string','max:50','alpha_dash','unique:users,username,'.$user->id],
+                'email'    => ['required','email','max:255','unique:users,email,'.$user->id],
+                'role_id'  => ['required','exists:roles,id'],
+                'photo'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
+                'password' => ['nullable','min:6','confirmed'],
             ];
         }
 
         $data = $request->validate($rules);
 
+        // UPLOAD FOTO (kalau ada file baru)
         if ($request->hasFile('photo')) {
+            // hapus foto lama
             if ($user->photo && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }
-            $user->photo = $request->file('photo')->store('users', 'public');
-        }
-        // password opsional
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
+
+            $data['photo'] = $request->file('photo')->store('users', 'public');
         }
 
+        // PASSWORD OPSIONAL (hash kalau diisi)
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        } else {
+            unset($data['password']); // jangan overwrite password lama
+        }
+
+        // PROTEKSI EXTRA: pastikan superadmin default tidak bisa ganti role walaupun dikirim
+        if ($user->isSuperAdmin() && $user->id === 1) {
+            unset($data['role_id']);
+            unset($data['username']); // jika kamu tidak ingin username berubah
+        }
 
         $user->update($data);
 
@@ -103,7 +115,7 @@ class UserManagementController extends Controller
     public function destroy(User $user)
     {
         // proteksi: superadmin default (misal id=1) tidak bisa dihapus
-        if ($user->id === 1) {
+        if ($user->isSuperAdmin() && (int)$user->id === 1) {
             return back()->with('error', 'Akun superadmin default tidak dapat dihapus.');
         }
 

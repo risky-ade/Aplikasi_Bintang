@@ -60,9 +60,15 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('auth');
 
+// Route::resource('/master_produk', MasterProdukController::class)->middleware(['auth']);
+Route::get('/master_produk', [MasterProdukController::class, 'index'])->name('master_produk.index')->middleware(['auth']);
 Route::get('/master_produk/search', [MasterProdukController::class, 'search'])->name('produk.search')->middleware('auth');
 Route::get('/master_produk/check-duplicate', [MasterProdukController::class, 'checkDuplicate'])->name('produk.check-duplicate')->middleware('auth');
-Route::resource('/master_produk', MasterProdukController::class)->middleware('auth');
+Route::get('/master_produk/create', [MasterProdukController::class, 'create'])->name('produk.create')->middleware(['auth','permission:master_produk.create']);
+Route::post('/master_produk', [MasterProdukController::class, 'store'])->name('produk.store')->middleware(['auth','permission:master_produk.store']);
+Route::get('/master_produk/{id}/edit', [MasterProdukController::class, 'edit'])->name('produk.edit')->middleware(['auth','permission:produk.edit']);
+Route::delete('master_produk/{id}', [MasterProdukController::class, 'destroy'])->name('produk.destroy')->middleware(['auth','permission:produk.destroy']);
+// Route::put('/master_produk/{id}', [MasterProdukController::class, 'update'])->name('produk.update')->middleware(['auth','permission:produk.update']);
 
 
 
@@ -75,11 +81,11 @@ Route::get('/sales/sales_invoices/create', [PenjualanController::class, 'create'
 Route::post('/sales/sales_invoices', [PenjualanController::class, 'store'])->name('penjualan.store')->middleware('auth');
 Route::get('sales/sales_invoices/{id}/edit', [PenjualanController::class, 'edit'])->name('penjualan.edit');
 Route::put('/sales/sales_invoices/{id}', [PenjualanController::class, 'update'])->name('penjualan.update');
-Route::get('sales/sales_invoices/{id}', [PenjualanController::class, 'show'])->name('penjualan.show')->middleware('auth');
+Route::get('sales/sales_invoices/{id}', [PenjualanController::class, 'show'])->name('penjualan.show')->middleware(['auth','permission:penjualan.show']);
 Route::get('sales_invoices/{id}/print', [PenjualanController::class, 'print'])->name('penjualan.print')->middleware('auth');
-Route::delete('sales/sales_invoices/{id}', [PenjualanController::class, 'destroy'])->name('penjualan.destroy')->middleware('auth');
+Route::delete('sales/sales_invoices/{id}', [PenjualanController::class, 'destroy'])->name('penjualan.destroy')->middleware(['auth','permission:penjualan.destroy']);
 Route::get('sales/sales_invoices/{id}/print-pdf', [PenjualanController::class, 'printPdf'])->name('penjualan.print-pdf')->middleware('auth');
-Route::put('sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve')->middleware('auth');
+Route::put('sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve')->middleware(['auth','permission:penjualan.approve']);
 Route::put('sales/sales_invoices/{id}/unapprove', [PenjualanController::class, 'unapprove'])->name('penjualan.unapprove')->middleware('auth');
 Route::put('sales/sales_invoices/{id}/batal', [PenjualanController::class, 'batal'])->name('penjualan.batal')->middleware('auth');
 // Route::post('sales/sales_invoices/{id}/cancel-approve', [PenjualanController::class, 'cancelApprove'])->name('penjualan.cancelApprove')->middleware('auth');
@@ -150,9 +156,9 @@ Route::resource('customers', PelangganController::class)->middleware('auth');
 
 Route::resource('suppliers', PemasokController::class)->middleware('auth');
 // Route::resource('users', UserManagementController::class)->middleware('auth');
-Route::get('users',[UserManagementController::class, 'index'])->name('users.index')->middleware('auth');
-Route::get('users/{id}/edit',[UserManagementController::class, 'edit'])->name('users.edit')->middleware('auth');
-Route::put('users/{id}',[UserManagementController::class, 'update'])->name('users.update')->middleware('auth');
+// Route::get('users',[UserManagementController::class, 'index'])->name('users.index')->middleware('auth');
+// Route::get('users/{id}/edit',[UserManagementController::class, 'edit'])->name('users.edit')->middleware('auth');
+// Route::put('users/{id}',[UserManagementController::class, 'update'])->name('users.update')->middleware('auth');
 
 // Route::get('/users', function () {
 //     return view('users.index');

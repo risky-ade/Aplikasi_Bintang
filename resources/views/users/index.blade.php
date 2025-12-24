@@ -33,9 +33,17 @@
             </a>
         </div>
         <div class="card-body">
+          {{-- Flash message -> SweetAlert --}}
+          @if(session('success'))
+            <div class="d-none" id="swal-success" data-msg="{{ session('success') }}"></div>
+          @endif
+          @if(session('error'))
+            <div class="d-none" id="swal-error" data-msg="{{ session('error') }}"></div>
+          @endif
           <table class="table table-bordered table-striped" id="DataTable">
             <thead class="bg-secondary text-white">
               <tr>
+                <th style="width:70px">Foto</th>
                 <th>Nama</th>
                 <th>Username</th>
                 <th>Email</th>
@@ -46,6 +54,17 @@
             <tbody>
               @foreach($users as $user)
                 <tr>
+                  <td class="text-center">
+                    @if($user->photo)
+                      <img src="{{ asset('storage/'.$user->photo) }}"
+                           alt="photo"
+                           style="width:42px;height:42px;object-fit:cover;border-radius:50%;">
+                    @else
+                      <div style="width:42px;height:42px;border-radius:50%;background:#e9ecef;display:inline-flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-user text-muted"></i>
+                      </div>
+                    @endif
+                  </td>
                   <td>{{ $user->name }}</td>
                   <td>{{ $user->username }}</td>
                   <td>{{ $user->email }}</td>
@@ -53,15 +72,20 @@
                   <td>
                     <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-primary">Edit</a>
                
-                    @if($user->id !== 1)
-                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline;"
-                          onsubmit="return confirm('Yakin hapus user ini?')">
-                      @csrf
-                      @method('DELETE')
-                      <button class="btn btn-danger btn-sm">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </form>
+                     @if($user->id !== 1)
+                      <form id="delete-form-{{ $user->id }}"
+                            action="{{ route('users.destroy', $user->id) }}"
+                            method="POST"
+                            style="display:inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button"
+                                class="btn btn-danger btn-sm btn-delete-user"
+                                data-id="{{ $user->id }}"
+                                data-name="{{ $user->name }}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
                     @endif
                   </td>
                 </tr>
@@ -93,6 +117,38 @@
         }
       },
     });
+
+    // SweetAlert flash
+    const ok = document.getElementById('swal-success');
+    if (ok) {
+      Swal.fire({ icon:'success', title:'Berhasil', text: ok.dataset.msg });
+    }
+    const err = document.getElementById('swal-error');
+    if (err) {
+      Swal.fire({ icon:'error', title:'Gagal', text: err.dataset.msg });
+    }
+
+    // SweetAlert delete
+    $(document).on('click', '.btn-delete-user', function () {
+      const id = $(this).data('id');
+      const name = $(this).data('name');
+
+      Swal.fire({
+        title: 'Hapus user?',
+        text: `User "${name}" akan dihapus permanen.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById('delete-form-' + id).submit();
+        }
+      });
+    });
+
   });
 </script>
 @endsection

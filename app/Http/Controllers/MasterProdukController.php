@@ -59,13 +59,6 @@ class MasterProdukController extends Controller
         if ($request->hasFile('gambar')) {
             $data['gambar'] = $request->file('gambar')->store('gambar_produk', 'public');
         }
-        // if($file=$request->file('gambar')
-        // {
-        //     $destinationPatch = 'produk_img/';
-        //     $imageName=time().'_'.$file->getClientOriginalName();
-        //     $file->move($destinationPatch, $imageName);
-        //     $data['gambar'] = $imageName;
-        // });
 
         MasterProduk::create($data);
         return redirect('/master_produk')->with('success', 'Produk berhasil ditambahkan');
@@ -95,6 +88,11 @@ class MasterProdukController extends Controller
     public function edit($id)
     {
         $masterProduk = MasterProduk::findOrFail($id);
+        if ($masterProduk->penjualanDetail()->exists() ||$masterProduk->pembelianDetail()->exists() || $masterProduk->returPenjualanDetail()->exists()) {
+            return redirect()->route('master_produk.index')
+                ->with('error', 'Produk tidak dapat diedit karena sudah digunakan dalam transaksi.');
+        }
+
         $kategori = Kategori::all();
         $satuan = Satuan::all();
         return view('master_produk.edit', compact('masterProduk', 'kategori', 'satuan'));
@@ -117,17 +115,7 @@ class MasterProdukController extends Controller
             'gambar'=>'nullable|image|max:2048'
         ]);
         $data = $request->all();
-        // Di controller atau observer saat update produk
-        // if ($data->isDirty('harga_jual')) {
-        //     HistoriHargaPenjualan::create([
-        //         'produk_id' => $request->id,
-        //         'sumber' => 'produk',
-        //         'harga_lama' => $request->getOriginal('harga_jual'),
-        //         'harga_baru' => $request->harga_jual,
-        //         'tanggal' => now(),
-        //         'keterangan' => 'Update harga master produk',
-        //     ]);
-        // }
+
         if ($request->hasFile('gambar')) {
         // Hapus gambar lama jika ada
             if ($masterProduk->gambar) {
@@ -168,23 +156,12 @@ class MasterProdukController extends Controller
         if($produk->gambar && Storage::disk('public')->exists($produk->gambar)){
             Storage::disk('public')->delete($produk->gambar);
         }
-        // if ($produk->gambar && file_exists(public_path($produk->gambar))) {
-        //     unlink(public_path($produk->gambar));
-        // }
+
 
         $produk->delete();
 
         return response()->json(['message' => 'Produk berhasil dihapus.']);
-        // $data = MasterProduk::findOrFail($id);
 
-        // //hapus gambar jika ada
-
-        // if($data->gambar && Storage::disk('public')->exists($data->gambar)){
-        //     Storage::disk('public')->delete($data->gambar);
-        // }
-        // $data->delete();
-
-        // return redirect('/master_produk')->with('success', 'Produk berhasil dihapus');
     }
     //fungsi search untuk cari produk pada kolom add penjualan
     public function search(Request $request)
@@ -203,5 +180,14 @@ class MasterProdukController extends Controller
         }
         
         return response()->json(['results' => $results]);
+    }
+
+    public function __construct()
+    {
+        // $this->middleware('permission:produk.lihat')->only(['index']);
+        // $this->middleware('permission:produk.tambah')->only(['create','store']);
+        // $this->middleware('permission:produk.edit')->only(['edit','update']);
+        // $this->middleware('permission:produk.hapus')->only(['destroy']);
+        // $this->middleware('permission:produk.lihat')->only(['search','checkDuplicate']);
     }
 }
