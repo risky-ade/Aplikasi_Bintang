@@ -18,6 +18,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\LaporanPembelianController;
 use App\Http\Controllers\LaporanPenjualanController;
 use App\Http\Controllers\AdminPasswordResetController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForgotPasswordRequestController;
 use App\Http\Controllers\HistoriHargaPembelianController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
@@ -47,18 +48,20 @@ Route::post('/forgot-password', [ForgotPasswordRequestController::class, 'store'
 Route::middleware(['auth','role:superadmin'])->group(function () {
     Route::get('/settings/password-reset-requests', [AdminPasswordResetController::class, 'index'])
         ->name('password_reset_requests.index');
-
     Route::post('/settings/password-reset-requests/{req}/reset', [AdminPasswordResetController::class, 'reset'])
         ->name('password_reset_requests.reset');
+
+    Route::delete('/password_reset_requests/{id}', [AdminPasswordResetController::class, 'destroy'])
+        ->name('password_reset_requests.destroy');
+    Route::delete('/password_reset_requests', [AdminPasswordResetController::class, 'destroyProcessed'])
+        ->name('password_reset_requests.destroyProcessed');
 });
 
-Route::get('/', function () {
-    return view('dashboard');
-})->middleware('auth');
+Route::get('/',[DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware('auth');
 
 // Route::resource('/master_produk', MasterProdukController::class)->middleware(['auth']);
 Route::get('/master_produk', [MasterProdukController::class, 'index'])->name('master_produk.index')->middleware(['auth']);
@@ -66,9 +69,10 @@ Route::get('/master_produk/search', [MasterProdukController::class, 'search'])->
 Route::get('/master_produk/check-duplicate', [MasterProdukController::class, 'checkDuplicate'])->name('produk.check-duplicate')->middleware('auth');
 Route::get('/master_produk/create', [MasterProdukController::class, 'create'])->name('produk.create')->middleware(['auth','permission:master_produk.create']);
 Route::post('/master_produk', [MasterProdukController::class, 'store'])->name('produk.store')->middleware(['auth','permission:master_produk.store']);
-Route::get('/master_produk/{id}/edit', [MasterProdukController::class, 'edit'])->name('produk.edit')->middleware(['auth','permission:produk.edit']);
-Route::delete('master_produk/{id}', [MasterProdukController::class, 'destroy'])->name('produk.destroy')->middleware(['auth','permission:produk.destroy']);
+Route::get('/master_produk/{id}/edit', [MasterProdukController::class, 'edit'])->name('produk.edit')->middleware(['auth','permission:master_produk.edit']);
+Route::delete('master_produk/{id}', [MasterProdukController::class, 'destroy'])->name('produk.destroy')->middleware(['auth','permission:master_produk.destroy']);
 // Route::put('/master_produk/{id}', [MasterProdukController::class, 'update'])->name('produk.update')->middleware(['auth','permission:produk.update']);
+Route::put('/master_produk/{id}/toggle', [MasterProdukController::class, 'toggleActive'])->name('master_produk.toggle')->middleware(['auth','permission:master_produk.toggle']);
 
 
 
@@ -86,8 +90,8 @@ Route::get('sales_invoices/{id}/print', [PenjualanController::class, 'print'])->
 Route::delete('sales/sales_invoices/{id}', [PenjualanController::class, 'destroy'])->name('penjualan.destroy')->middleware(['auth','permission:penjualan.destroy']);
 Route::get('sales/sales_invoices/{id}/print-pdf', [PenjualanController::class, 'printPdf'])->name('penjualan.print-pdf')->middleware('auth');
 Route::put('sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve')->middleware(['auth','permission:penjualan.approve']);
-Route::put('sales/sales_invoices/{id}/unapprove', [PenjualanController::class, 'unapprove'])->name('penjualan.unapprove')->middleware('auth');
-Route::put('sales/sales_invoices/{id}/batal', [PenjualanController::class, 'batal'])->name('penjualan.batal')->middleware('auth');
+Route::put('sales/sales_invoices/{id}/unapprove', [PenjualanController::class, 'unapprove'])->name('penjualan.unapprove')->middleware(['auth','permission:penjualan.unapprove']);
+Route::put('sales/sales_invoices/{id}/batal', [PenjualanController::class, 'batal'])->name('penjualan.batal')->middleware(['auth','permission:penjualan.batal']);
 // Route::post('sales/sales_invoices/{id}/cancel-approve', [PenjualanController::class, 'cancelApprove'])->name('penjualan.cancelApprove')->middleware('auth');
 // Route::patch('/sales/sales_invoices/{id}/approve', [PenjualanController::class, 'approve'])->name('penjualan.approve');
 Route::prefix('sales')->group(function () {
@@ -95,7 +99,7 @@ Route::prefix('sales')->group(function () {
     Route::get('sales_retur/create', [ReturPenjualanController::class, 'create'])->name('retur-penjualan.create')->middleware('auth');
     Route::post('sales_retur/store', [ReturPenjualanController::class, 'store'])->name('retur-penjualan.store')->middleware('auth');
     Route::get('sales_retur/get-detail/{id}', [ReturPenjualanController::class, 'getDetailPenjualan'])->name('retur-penjualan.get-detail')->middleware('auth');
-    Route::delete('/sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy')->middleware('auth');
+    Route::delete('/sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy')->middleware(['auth','permission:retur-penjualan.destroy']);
     Route::get('sales_retur/{id}', [ReturPenjualanController::class, 'show'])->name('retur-penjualan.show')->middleware('auth');
 });
 Route::get('/ajax/faktur-search', [ReturPenjualanController::class, 'searchFaktur'])->name('ajax.faktur-search')->middleware('auth');
@@ -110,24 +114,24 @@ Route::prefix('purchases')->group(function () {
     Route::get('purchase_inv/{id}/print', [PembelianController::class,'print'])->name('pembelian.print')->middleware('auth');
     Route::get('purchase_inv/{id}/edit', [PembelianController::class,'edit'])->name('pembelian.edit')->middleware('auth');
     Route::put('purchase_inv/{id}', [PembelianController::class,'update'])->name('pembelian.update')->middleware('auth');
-    Route::put('purchase_inv/{id}/approve', [PembelianController::class,'approve'])->name('pembelian.approve')->middleware('auth');
-    Route::put('purchase_inv/{id}/unapprove', [PembelianController::class,'unapprove'])->name('pembelian.unapprove')->middleware('auth');
-    Route::put('purchase_inv/{id}/batal', [PembelianController::class,'batal'])->name('pembelian.batal')->middleware('auth');
+    Route::put('purchase_inv/{id}/approve', [PembelianController::class,'approve'])->name('pembelian.approve')->middleware(['auth','permission:pembelian.approve']);
+    Route::put('purchase_inv/{id}/unapprove', [PembelianController::class,'unapprove'])->name('pembelian.unapprove')->middleware(['auth','permission:pembelian.unapprove']);
+    Route::put('purchase_inv/{id}/batal', [PembelianController::class,'batal'])->name('pembelian.batal')->middleware(['auth','permission:pembelian.batal']);
     
     // Route::get('purchase_invoices/{id}/print', [PembelianController::class, 'print'])->name('purchase_invoices.print');
 });
-Route::prefix('purchases/purchases_retur')->middleware('auth')->group(function () {
-    Route::get('/', [ReturPembelianController::class, 'index'])->name('retur-pembelian.index');
-    Route::get('/create', [ReturPembelianController::class, 'create'])->name('retur-pembelian.create');
-    Route::post('/', [ReturPembelianController::class, 'store'])->name('retur-pembelian.store');
+Route::prefix('purchases/purchases_retur')->group(function () {
+    Route::get('/', [ReturPembelianController::class, 'index'])->name('retur-pembelian.index')->middleware('auth');
+    Route::get('/create', [ReturPembelianController::class, 'create'])->name('retur-pembelian.create')->middleware('auth');
+    Route::post('/', [ReturPembelianController::class, 'store'])->name('retur-pembelian.store')->middleware('auth');
 
     Route::get('/get-detail/{id}', [ReturPembelianController::class, 'getDetailPembelian'])
-        ->name('ajax.pembelian-detail');
+        ->name('ajax.pembelian-detail')->middleware('auth');
 
     Route::get('/search-faktur', [ReturPembelianController::class, 'searchFaktur'])
-        ->name('ajax.pembelian-search');
-    Route::get('/{id}', [ReturPembelianController::class, 'show'])->name('retur-pembelian.show');
-    Route::delete('/{id}', [ReturPembelianController::class, 'destroy'])->name('retur-pembelian.destroy');
+        ->name('ajax.pembelian-search')->middleware('auth');
+    Route::get('/{id}', [ReturPembelianController::class, 'show'])->name('retur-pembelian.show')->middleware('auth');
+    Route::delete('/{id}', [ReturPembelianController::class, 'destroy'])->name('retur-pembelian.destroy')->middleware(['auth','permission:retur-pembelian.destroy']);
 });
 
 Route::get('/purchases/purchases_histories', [HistoriHargaPembelianController::class, 'index'])->middleware('auth')->name('histori-harga-beli.index');
@@ -138,7 +142,7 @@ Route::resource('categories', KategoriController::class)->except(['create','show
 Route::post('/categories', [KategoriController::class, 'store'])->middleware('auth');
 // Route::get('/categories/edit/{id}', [KategoriController::class, 'edit'])->name('categories.edit')->middleware('auth');
 // Route::post('/categories/update', [KategoriController::class, 'update'])->name('categories.update')->middleware('auth');
-Route::delete('/categories/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy')->middleware('auth');
+Route::delete('/categories/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy')->middleware(['auth','permission:kategory.destroy']);
 
 Route::resource('/units',SatuanController::class)->middleware('auth');
 // Route::post('/units', [SatuanController::class, 'store'])->name('satuan.store')->middleware('auth');
@@ -146,11 +150,11 @@ Route::resource('/units',SatuanController::class)->middleware('auth');
 // Route::post('/units/update', [SatuanController::class, 'update'])->name('satuan.update')->middleware('auth');
 // Route::delete('/units/{id}', [SatuanController::class, 'destroy'])->name('units.destroy')->middleware('auth');
 
-Route::get('/reports/sales_report', [LaporanPenjualanController::class, 'index'])->name('sales_report.index')->middleware('auth');
+Route::get('/reports/sales_report', [LaporanPenjualanController::class, 'index'])->name('sales_report.index')->middleware(['auth','permission:sales_report.index']);
 Route::get('/reports/sales_pdf', [LaporanPenjualanController::class, 'pdf'])->name('sales_report.sales_pdf')->middleware('auth');
 
 Route::get('/reports/purchases_pdf', [LaporanPembelianController::class, 'beliPdf'])->name('purchase_report.purchases_pdf')->middleware('auth');
-Route::get('/reports/purchases_report', [LaporanPembelianController::class, 'index'])->name('purchases_report.index')->middleware('auth');
+Route::get('/reports/purchases_report', [LaporanPembelianController::class, 'index'])->name('purchases_report.index')->middleware(['auth','permission:purchases_report.index']);
 
 Route::resource('customers', PelangganController::class)->middleware('auth');
 

@@ -38,7 +38,7 @@
                                     <thead>
                                         <tr>
                                             <th>No</th>
-                                            <th>Jenis Satuan</th>
+                                            <th>Satuan</th>
                                             <th>Keterangan Satuan</th>
                                             <th>Aksi</th>
                                         </tr>

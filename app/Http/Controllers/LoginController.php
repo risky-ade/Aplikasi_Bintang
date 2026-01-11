@@ -39,7 +39,7 @@ class LoginController extends Controller
         }
 
         return back()
-        ->with(['login' => 'Login gagal, username atau password salah.'])
+        ->with(['loginError' => 'Login gagal, username atau password salah.'])
         ->withInput($request->only('login'));
 
         // return back()->with('loginError', 'Login failed!');

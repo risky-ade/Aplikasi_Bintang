@@ -3,9 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -79,5 +80,14 @@ class User extends Authenticatable
         if (!$this->role) return false;
 
         return $this->role->permissions->contains('name', $permissionName);
+    }
+
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo && Storage::disk('public')->exists($this->photo)) {
+            return asset('storage/' . $this->photo);
+        }
+
+        return asset('template/dist/img/user2-160x160.jpg');
     }
 }

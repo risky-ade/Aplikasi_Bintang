@@ -22,7 +22,10 @@ class PasswordResetRequestedMail extends Mailable
     public function build()
     {
         return $this->subject('Permintaan Reset Password')
-            ->view('emails.password_reset_requested');
+            // ->view('emails.password_reset_requested');
+            ->markdown('emails.password_reset_requested', [
+                'ticket' => $this->ticket,
+            ]);
     }
 
     /**

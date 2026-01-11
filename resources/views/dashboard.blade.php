@@ -25,177 +25,103 @@
             <div class="container-fluid">
                 <!-- Small boxes (Stat box) -->
                 <div class="row">
-                    <div class="col-lg-3 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-info">
-                            <div class="inner">
-                                <h3>150</h3>
-
-                                <p>Penjualan</p>
-                            </div>
-                            <div class="icon">
-                                <i class="ion ion-bag"></i>
-                            </div>
-                            <a href="/items" class="small-box-footer">More info <i
-                                    class="fas fa-arrow-circle-right"></i></a>
-                        </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ $totalPenjualan }}</h3>
+                        <p>Penjualan</p>
                     </div>
-                    <!-- ./col -->
-                    <div class="col-lg-3 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-success">
-                            <div class="inner">
-                                <h3>53</h3>
-
-                                <p>Produk</p>
-                            </div>
-                            <div class="icon">
-                                <i class="ion ion-stats-bars"></i>
-                            </div>
-                            <a href="#" class="small-box-footer">More info <i
-                                    class="fas fa-arrow-circle-right"></i></a>
-                        </div>
+                    <div class="icon"><i class="fas fa-shopping-cart"></i></div>
+                    <a href="/sales/sales_invoices" class="small-box-footer">Selengkapnya <i
+                    class="fas fa-arrow-circle-right"></i></a>
                     </div>
-                    <!-- ./col -->
-                    <div class="col-lg-3 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-warning">
-                            <div class="inner">
-                                <h3>44</h3>
+                </div>
 
-                                <p>Pelanggan</p>
-                            </div>
-                            <div class="icon">
-                                <i class="ion ion-person-add"></i>
-                            </div>
-                            <a href="#" class="small-box-footer">More info <i
-                                    class="fas fa-arrow-circle-right"></i></a>
-                        </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>{{ $totalProduk }}</h3>
+                        <p>Produk</p>
                     </div>
-                    <!-- ./col -->
-                    <div class="col-lg-3 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-danger">
-                            <div class="inner">
-                                <h3>65</h3>
+                    <div class="icon"><i class="fas fa-box"></i></div>
+                    <a href="/master_produk" class="small-box-footer">Selengkapnya <i
+                    class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
 
-                                <p>Supplier</p>
-                            </div>
-                            <div class="icon">
-                                <i class="ion ion-pie-graph"></i>
-                            </div>
-                            <a href="#" class="small-box-footer">More info <i
-                                    class="fas fa-arrow-circle-right"></i></a>
-                        </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{ $totalPelanggan }}</h3>
+                        <p>Pelanggan</p>
                     </div>
-                    <!-- ./col -->
+                    <div class="icon"><i class="fas fa-users"></i></div>
+                    <a href="/customers" class="small-box-footer">Selengkapnya <i
+                    class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>{{ $totalPembelian }}</h3>
+                        <p>Pembelian</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-truck"></i></div>
+                    <a href="/purchases/purchase_inv" class="small-box-footer">Selengkapnya <i
+                    class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
                 </div>
                 <!-- Main row -->
                 <div class="row">
-                    <!-- Left col -->
-                    <section class="col-lg-7 connectedSortable">
-                        <!-- Custom tabs (Charts with tabs)-->
+                    <section class="col-lg-6 connectedSortable"> 
+                        
                         <div class="card">
-
                             <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="fas fa-chart-pie mr-1"></i>
-                                    Sales
-                                </h3>
-                            </div><!-- /.card-header -->
-                            <div class="card-body">
-                                <div class="tab-content p-0">
-                                    <!-- Morris chart - Sales -->
-                                    <div class="chart tab-pane active" id="revenue-chart"
-                                        style="position: relative; height: 300px;">
-                                        <canvas id="revenue-chart-canvas" height="300" style="height: 300px;"></canvas>
-                                    </div>
-                                </div>
-                            </div><!-- /.card-body -->
-                        </div>
-                        <!-- Calendar -->
-                        <div class="card bg-gradient-success">
-                            <div class="card-header border-0">
-
-                                <h3 class="card-title">
-                                    <i class="far fa-calendar-alt"></i>
-                                    Calendar
-                                </h3>
-                                <!-- tools card -->
-                                <div class="card-tools">
-
-                                    <button type="button" class="btn btn-success btn-sm" data-card-widget="collapse">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-success btn-sm" data-card-widget="remove">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <!-- /. tools -->
-                            </div>
-                            <!-- /.card-header -->
-                            <div class="card-body pt-0">
-                                <!--The calendar -->
-                                <div id="calendar" style="width: 100%"></div>
-                            </div>
-                            <!-- /.card-body -->
-                        </div>
-
-                        <!-- Map card -->
-                        <div class="card ">
-                            <!-- /.card-body-->
-                            <div class="card-footer bg-transparent">
+                                <h3 class="card-title">Grafik Penjualan & Pembelian</h3>
+                                <form method="GET" >
                                 <div class="row">
-                                    <div class="col-4 text-center">
-                                        <div id="sparkline-1"></div>
-                                        <div class="text-white">-</div>
+                                    <div class="col">
+                                    <select name="year" class="form-control" onchange="this.form.submit()">
+                                        @for($y = now()->year; $y >= now()->year - 1; $y--)
+                                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>
+                                            Tahun {{ $y }}
+                                        </option>
+                                        @endfor
+                                    </select>
                                     </div>
-                                    <!-- ./col -->
-                                    <div class="col-4 text-center">
-                                        <div id="sparkline-2"></div>
-                                        <div class="text-white">-</div>
-                                    </div>
-                                    <!-- ./col -->
-                                    <div class="col-4 text-center">
-                                        <div id="sparkline-3"></div>
-                                        <div class="text-white">-</div>
-                                    </div>
-                                    <!-- ./col -->
                                 </div>
-                                <!-- /.row -->
+                                </form>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="salesChart" height="120"></canvas>
                             </div>
                         </div>
-                        <!-- /.card -->
-
                     </section>
-                    <!-- /.Left col -->
 
-                    <!-- right col (We are only adding the ID to make the widgets sortable)-->
                     <section class="col-lg-5 connectedSortable">
-                        <div class="row ">
-                            <div class="card container col-lg-10">
-                                <div class="card-header  bg-gray">
-                                    <h3 class="card-title">
-                                        <i class="fas fa-money-bill mr-1"></i>
-                                        Total Penjualan
-                                    </h3>
-                                </div>
-                                <div class="container text-justify">
-                                    <h2>RP. 123.456</h2>
-                                </div>
-                            </div>
-                            <div class="card container col-lg-10">
-                                <div class="card-header bg-gray">
-                                    <h3 class="card-title ">
-                                        <i class="fas fa-money-bill mr-1"></i>
-                                        Total Pembelian
-                                    </h3>
-                                </div>
-                                <div class="container text-justify">
-                                    <h2>RP. 123.456</h2>
-                                </div>
-                            </div>
+                    <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-box">
+                        <span class="info-box-icon bg-success"><i class="fas fa-coins"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Penjualan</span>
+                            <span class="info-box-number">{{ rupiah($totalNominalPenjualan) }}</span>
                         </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="info-box">
+                        <span class="info-box-icon bg-info"><i class="fas fa-wallet"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Penghasilan</span>
+                            <span class="info-box-number">{{ rupiah($penghasilanBulanIni) }}</span>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
 
                     </section>
 
@@ -204,5 +130,41 @@
         </section>
     </div>
     </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<script>
+const chartData = @json($months);
+
+const penjualan = chartData.map(m => m.penjualan);
+const pembelian = chartData.map(m => m.pembelian);
+
+const ctx = document.getElementById('salesChart').getContext('2d');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+        datasets: [
+            {
+                label: 'Penjualan',
+                data: penjualan,
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Pembelian',
+                data: pembelian,
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' }
+        }
+    }
+});
+</script>
 @endsection

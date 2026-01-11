@@ -61,7 +61,7 @@ class PembelianController extends Controller
         $query->where('status_pembayaran', $request->status_pembayaran);
         }
 
-        $pembelians = $query->latest()->paginate(15);
+        $pembelians = $query->latest()->get();
         // Recompute Total Netto yang benar (pajak dihitung dari subtotal net)
         foreach ($pembelians as $p) {
             $pajak = (float) ($p->pajak ?? 0);
@@ -80,6 +80,7 @@ class PembelianController extends Controller
 
             // total_netto yang benar
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
+            $p->save();
         }
 
             return view('purchases.purchase_inv.index', compact('pembelians'));

@@ -75,12 +75,12 @@
             </div>
           </div>
         </div>
-          <div class="col-5 justify-content-center">
+          {{-- <div class="col-5 justify-content-center"> --}}
             <button type="submit" class="btn btn-primary btn-block">Login</button>
             <a href="{{ route('password.request') }}" class="text-decoration-none">
               Lupa password?
             </a>
-          </div>
+          {{-- </div> --}}
       </form>
 
     </div>

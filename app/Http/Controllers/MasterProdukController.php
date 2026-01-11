@@ -18,12 +18,20 @@ class MasterProdukController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         // return view('master_produk.index',[
         //     'items' => MasterProduk::all()
         // ]);
-        $masterProduk = MasterProduk::with(['kategori', 'satuan'])->get();
+        $query = MasterProduk::with(['kategori', 'satuan']);
+
+        if ($request->status === 'aktif') {
+            $query->where('is_active', true);
+        } elseif ($request->status === 'nonaktif') {
+            $query->where('is_active', false);
+        }
+
+        $masterProduk = $query->get();
         return view('master_produk.index', compact('masterProduk'));
     }
 
@@ -146,9 +154,14 @@ class MasterProdukController extends Controller
     {
         $produk = MasterProduk::findOrFail($id);
 
-        if ($produk->penjualanDetail()->exists() || $produk->returPenjualanDetail()->exists()) {
+        // if ($produk->penjualanDetail()->exists() || $produk->returPenjualanDetail()->exists()) {
+        //     return response()->json([
+        //         'message' => 'Produk tidak dapat dihapus karena sudah digunakan dalam transaksi.'
+        //     ], 400);
+        // }
+        if ($produk->isUsedInTransaction()) {
             return response()->json([
-                'message' => 'Produk tidak dapat dihapus karena sudah digunakan dalam transaksi.'
+                'message' => 'Produk tidak bisa dihapus karena sudah ada riwayat transaksi. Gunakan Nonaktif.'
             ], 400);
         }
 
@@ -167,7 +180,10 @@ class MasterProdukController extends Controller
     public function search(Request $request)
     {
         $term = $request->term;
-        $produk = MasterProduk::where('nama_produk', 'LIKE', "%$term%")->get();
+        // $produk = MasterProduk::where('nama_produk', 'LIKE', "%$term%")->get();
+        $produk = MasterProduk::where('is_active', true)
+            ->where('nama_produk', 'LIKE', "%$term%")
+            ->get();
 
         $results = [];
         foreach ($produk as $item) {
@@ -182,12 +198,25 @@ class MasterProdukController extends Controller
         return response()->json(['results' => $results]);
     }
 
-    public function __construct()
+    public function toggleActive($id)
     {
-        // $this->middleware('permission:produk.lihat')->only(['index']);
-        // $this->middleware('permission:produk.tambah')->only(['create','store']);
-        // $this->middleware('permission:produk.edit')->only(['edit','update']);
-        // $this->middleware('permission:produk.hapus')->only(['destroy']);
-        // $this->middleware('permission:produk.lihat')->only(['search','checkDuplicate']);
+        $produk = MasterProduk::findOrFail($id);
+
+        $produk->update([
+            'is_active' => !$produk->is_active
+        ]);
+
+        return response()->json([
+            'message' => $produk->is_active ? 'Produk diaktifkan.' : 'Produk dinonaktifkan.'
+        ]);
     }
+
+    // public function __construct()
+    // {
+    //     // $this->middleware('permission:produk.lihat')->only(['index']);
+    //     // $this->middleware('permission:produk.tambah')->only(['create','store']);
+    //     // $this->middleware('permission:produk.edit')->only(['edit','update']);
+    //     // $this->middleware('permission:produk.hapus')->only(['destroy']);
+    //     // $this->middleware('permission:produk.lihat')->only(['search','checkDuplicate']);
+    // }
 }

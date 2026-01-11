@@ -78,7 +78,10 @@
                                                         type="button"><i class="fa fa-edit"></i> </a>
                                                     <button class="btn btn-danger btn-sm btn-delete" data-id="{{ $row->id }}" data-nama="{{ $row->nama_produk }}">
                                                         <i class="fas fa-trash"></i>
-                                                    </button>                                        
+                                                    </button>
+                                                    <button type="button"class="btn btn-sm {{ $row->is_active ? 'btn-warning' : 'btn-success' }} btn-toggle" data-id="{{ $row->id }}">
+                                                    {{ $row->is_active ? 'Nonaktif' : 'Aktif' }}
+                                                    </button>                                  
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -94,8 +97,62 @@
     </div>
 
     </div>
-
 <script>
+$(document).on('click', '.btn-toggle', function () {
+  const id = $(this).data('id');
+
+  Swal.fire({
+    title: 'Ubah status produk?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya',
+    cancelButtonText: 'Batal'
+  }).then((r) => {
+    if (!r.isConfirmed) return;
+
+    $.ajax({
+      url: `/master_produk/${id}/toggle`,
+      method: 'PUT',
+      data: { _token: '{{ csrf_token() }}' },
+      success: function(res){
+        Swal.fire('Berhasil', res.message, 'success').then(()=>location.reload());
+      },
+      error: function(xhr){
+        Swal.fire('Gagal', xhr.responseJSON?.message || 'Terjadi kesalahan', 'error');
+      }
+    });
+  });
+});
+
+$(document).on('click', '.btn-delete', function () {
+  const id = $(this).data('id');
+
+  Swal.fire({
+    title: 'Hapus produk permanen?',
+    text: 'Hanya bisa jika produk belum pernah dipakai transaksi.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'Ya, Hapus',
+    cancelButtonText: 'Batal'
+  }).then((r) => {
+    if (!r.isConfirmed) return;
+
+    $.ajax({
+      url: `/master_produk/${id}`,
+      method: 'DELETE',
+      data: { _token: '{{ csrf_token() }}' },
+      success: function(res){
+        Swal.fire('Berhasil', res.message, 'success').then(()=>location.reload());
+      },
+      error: function(xhr){
+        Swal.fire('Tidak bisa', xhr.responseJSON?.message || 'Terjadi kesalahan', 'error');
+      }
+    });
+  });
+});
+</script>
+{{-- <script>
   $(document).on('click', '.btn-delete', function (e) {
     e.preventDefault();
 
@@ -142,5 +199,5 @@
       }
     });
   });
-</script>
+</script> --}}
 @endsection

@@ -32,7 +32,7 @@
         @csrf
 
         <div class="input-group mb-3">
-          <input type="text" name="login" class="form-control" placeholder="Username atau Email" required>
+          <input type="text" name="login" class="form-control" placeholder="Masukkan Email" required>
           <div class="input-group-append">
             <div class="input-group-text"><span class="fas fa-user"></span></div>
           </div>

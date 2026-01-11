@@ -18,7 +18,7 @@ class SuperAdminSeeder extends Seeder
         $role = Role::where('name', 'superadmin')->first();
 
         $user = User::firstOrCreate(
-            ['email' => 'superadmin@example.com'],
+            ['email' => 'bintangempat2020.com'],
             [
                 'name'     => 'Super Admin',
                 'username'     => 'superadmin',

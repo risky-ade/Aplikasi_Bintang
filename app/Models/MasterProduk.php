@@ -22,6 +22,7 @@ class MasterProduk extends Model
         'stok',
         'stok_minimal',
         'gambar',
+        'is_active',
         'update_at',
     ];
 
@@ -47,5 +48,18 @@ class MasterProduk extends Model
     public function pembelianDetail()
     {
         return $this->hasMany(PembelianDetail::class, 'master_produk_id');
+    }
+
+    public function returPembelianDetail()
+    {
+        return $this->hasMany(ReturPembelianDetail::class, 'produk_id');
+    }
+
+    public function isUsedInTransaction(): bool
+    {
+        return $this->penjualanDetail()->exists()
+            || $this->pembelianDetail()->exists()
+            || $this->returPenjualanDetail()->exists()
+            || $this->returPembelianDetail()->exists();
     }
 }

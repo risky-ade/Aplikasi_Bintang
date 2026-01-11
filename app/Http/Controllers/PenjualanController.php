@@ -24,7 +24,6 @@ class PenjualanController extends Controller
             'tanggal_awal' => 'nullable|date',
             'tanggal_akhir' => 'nullable|date|after_or_equal:tanggal_awal',
         ]);
-        // $query = Penjualan::with('pelanggan');
         $query = Penjualan::query()
             ->with(['pelanggan'])
             ->select('penjualan.*')
@@ -37,11 +36,9 @@ class PenjualanController extends Controller
             // total netto = total - total_retur (ulang subquery supaya kompatibel dengan MySQL alias)
             ->selectSub(function ($sub) {
                 $sub->from('retur_penjualan as r')
-                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id') // GANTI kalau perlu
+                    ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
                     ->whereColumn('r.penjualan_id', 'penjualan.id')
                     ->selectRaw('GREATEST(0, penjualan.total - COALESCE(SUM(rd.subtotal), 0))');
-                // ->withSum(['returPenjualan as total_retur' => fn($q)=>$q/*->where('status','!=','batal')*/], 'total')
-                // ->selectRaw('GREATEST(0, total - IFNULL((select SUM(total) from retur_penjualan r where r.penjualan_id = penjualan.id),0)) as total_netto');
             }, 'total_netto');
 
     if ($request->filled('no_faktur')) {
@@ -51,10 +48,6 @@ class PenjualanController extends Controller
     if ($request->filled('no_po')) {
         $query->where('no_po', 'like', '%' . $request->no_po . '%');
     }
-
-    // if ($request->filled('tanggal')) {
-    //     $query->whereDate('tanggal', $request->tanggal);
-    // }
 
     if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
         $query->whereBetween('tanggal', [$request->tanggal_awal, $request->tanggal_akhir]);
@@ -92,6 +85,7 @@ class PenjualanController extends Controller
 
         // total_netto yang benar
         $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
+        $p->save();
     }
 
     return view('sales.sales_invoices.index', compact('penjualans'));
@@ -122,7 +116,7 @@ class PenjualanController extends Controller
         'harga_jual.*' => 'required|numeric|min:0',
         'status_pembayaran' => 'required|in:Belum Lunas,Lunas',
     ]);
-        // dd($request);
+        
     $subtotal = 0;
     $totalDiskon = 0;
 

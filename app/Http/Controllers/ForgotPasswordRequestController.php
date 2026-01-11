@@ -27,6 +27,7 @@ class ForgotPasswordRequestController extends Controller
         $user = User::where('username', $login)
             ->orWhere('email', $login)
             ->first();
+        
 
         $ticket = PasswordResetRequest::create([
             'login'   => $login,
@@ -37,10 +38,15 @@ class ForgotPasswordRequestController extends Controller
 
         // kirim email ke semua superadmin
         $superadminRoleId = Role::where('name','superadmin')->value('id');
-        $superadmins = User::where('role_id', $superadminRoleId)->pluck('email')->filter()->toArray();
+        $superadmins = User::where('role_id', $superadminRoleId)
+        ->pluck('email')
+        ->filter()
+        ->unique()
+        ->values()
+        ->toArray();
 
         if (!empty($superadmins)) {
-            // Mail::to($superadmins)->send(new \App\Mail\PasswordResetRequestedMail($ticket));
+            Mail::to($superadmins)->send(new \App\Mail\PasswordResetRequestedMail($ticket));
         }
 
         return back()->with('success', 'Permintaan reset password sudah dikirim ke admin.');

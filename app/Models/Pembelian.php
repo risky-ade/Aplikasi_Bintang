@@ -18,6 +18,7 @@ class Pembelian extends Model
         'biaya_kirim',
         'diskon_nota',
         'total',
+        'total_netto_calc',
         'jatuh_tempo',
         'status_pembayaran',
         'paid_date',

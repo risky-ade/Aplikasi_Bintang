@@ -21,6 +21,7 @@ class Penjualan extends Model
         'pajak',
         'biaya_kirim',
         'total',
+        'total_netto_calc',
         'jatuh_tempo',
         'status_pembayaran',
         'paid_date',
