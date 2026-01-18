@@ -190,13 +190,13 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="/users" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="nav-icon fas fa-user"></i>
                                 <p>Pengguna</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="/profile" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                            <a href="{{ route('profil.edit') }}" class="nav-link">
+                                <i class="nav-icon fas fa-building"></i>
                                 <p>Profil Perusahaan</p>
                             </a>
                         </li>

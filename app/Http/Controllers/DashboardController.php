@@ -11,8 +11,6 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // $users = User::with('role')->orderBy('name')->get();
-        // return view('dashboard', compact('users'));
         $year = $request->get('year', now()->year);
 
 
@@ -36,6 +34,11 @@ class DashboardController extends Controller
             // ->whereYear('tanggal', $year)
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'lunas')
+            ->sum('total_netto_calc');
+        $totalPiutangPenjualan = DB::table('penjualan')
+            // ->whereYear('tanggal', $year)
+            ->where('status', '!=', 'batal')
+            ->where('status_pembayaran', 'Belum Lunas')
             ->sum('total_netto_calc');
 
         $totalNominalPembelian = DB::table('pembelian')
@@ -93,12 +96,11 @@ class DashboardController extends Controller
             'totalProduk',
             'totalPelanggan',
             'totalNominalPenjualan',
+            'totalPiutangPenjualan',
             'totalNominalPembelian',
             'penghasilanBulanIni',
             'months',
             'year',
-            // 'penjualanChart',
-            // 'pembelianChart'
         ));
     }
 }

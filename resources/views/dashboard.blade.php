@@ -1,29 +1,26 @@
 @extends('layouts.main')
 @section('content')
-    <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
                         <h1 class="m-0">Dashboard</h1>
-                    </div><!-- /.col -->
+                    </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="#">Home</a></li>
                             <li class="breadcrumb-item active">Dashboard</li>
                         </ol>
-                    </div><!-- /.col -->
-                </div><!-- /.row -->
-            </div><!-- /.container-fluid -->
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- /.content-header -->
+        
 
         <!-- Main content -->
         <section class="content">
             <div class="container-fluid">
-                <!-- Small boxes (Stat box) -->
                 <div class="row">
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-info">
@@ -100,14 +97,32 @@
                         </div>
                     </section>
 
-                    <section class="col-lg-5 connectedSortable">
+                    <section class="col-lg-6 connectedSortable">
                     <div class="row">
                     <div class="col-md-6">
                         <div class="info-box">
                         <span class="info-box-icon bg-success"><i class="fas fa-coins"></i></span>
                         <div class="info-box-content">
-                            <span class="info-box-text">Total Penjualan</span>
+                            <span class="info-box-text">Total Penjualan (Lunas)</span>
                             <span class="info-box-number">{{ rupiah($totalNominalPenjualan) }}</span>
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box">
+                        <span class="info-box-icon bg-danger"><i class="fas fa-coins"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Pembelian (Lunas)</span>
+                            <span class="info-box-number">{{ rupiah($totalNominalPembelian) }}</span>
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box">
+                        <span class="info-box-icon bg-warning"><i class="fas fa-coins"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Piutang Penjualan</span>
+                            <span class="info-box-number">{{ rupiah($totalPiutangPenjualan) }}</span>
                         </div>
                         </div>
                     </div>

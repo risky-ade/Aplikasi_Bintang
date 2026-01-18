@@ -10,7 +10,7 @@ class Penjualan extends Model
     const STATUS_AKTIF = 'aktif';
     const STATUS_BATAL = 'batal';
     protected $table = 'penjualan';
-    protected $casts = ['approved_at'=>'datetime','jatuh_tempo' => 'date','paid_date'   => 'date',];
+    protected $casts = ['approved_at'=>'datetime','jatuh_tempo'=>'date','paid_date'=>'date',];
     protected $fillable = [
         'no_faktur',
         'no_po',
@@ -60,7 +60,7 @@ class Penjualan extends Model
         return $this->hasMany(ReturPenjualan::class, 'penjualan_id');
     }
 
-    public function returDetails() // detail lewat header retur
+    public function returDetails() 
     {
         return $this->hasManyThrough(
             ReturPenjualanDetail::class,   // model tujuan

@@ -1,84 +1,125 @@
-{{-- @extends('layouts.main')
-@section('content') --}}
-
 @php
     use App\Helpers\Helper;
     use Illuminate\Support\Str;
 @endphp
 
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        color: #000;
-    }
-    .table-bordered th, .table-bordered td {
-        border: 1px solid #000;
-        padding: 6px;
-    }
-    .summary-box td {
-        padding: 4px 8px;
-    }
-    .signature-box {
-        border: 1px solid #000;
-        padding: 20px;
-        height: 100px;
-        text-align: center;
-        vertical-align: bottom;
-    }
-    .no-border td { border: none; }
-    .center { text-align: center; }
-    .ttd td { padding-top: 60px; text-align: center; }
-</style>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+        }
+        .header-table td {
+            vertical-align: top;
+        }
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .invoice-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-bordered th, .table-bordered td {
+            border: 1px solid #000;
+            padding: 6px;
+        }
+        .table-bordered th {
+            background: #f2f2f2;
+            text-align: center;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
 
+        .summary-table td {
+            padding: 5px;
+        }
+        .summary-table tr:last-child td {
+            font-weight: bold;
+            border-top: 1px solid #000;
+        }
+
+        .terbilang-box {
+            border: 1px solid #000;
+            padding: 8px;
+            margin-top: 8px;
+        }
+
+        .ttd-table td {
+            text-align: center;
+            padding-top: 60px;
+        }
+    </style>
+</head>
 <body>
-<div style="width: 100%; margin-bottom: 20px;">
-    <h2 style="text-align: center">SALES INVOICE</h2>
-    <table style="width: 100%;">
-        <tr>
-            <td style="width: 60%;">
-                <strong>No Faktur:</strong> {{ $penjualan->no_faktur }}<br>
-                <strong>Tanggal:</strong> {{ $penjualan->tanggal }}<br>
-                <strong>Jatuh Tempo:</strong> {{ $penjualan->jatuh_tempo }}<br>
-                <strong>No PO:</strong> {{ $penjualan->no_po }}<br>
-            </td>
-            <td style="width: 60%;">
-                <table class="summary-box" style="width: 100%;">
-                    <tr>
-                        <td><strong>Pelanggan:</strong>
-                        {{ $penjualan->pelanggan->nama }}<br>
-                        <strong>Alamat:</strong><br>
-                        {{ $penjualan->pelanggan->alamat }}
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</div>
 
-<table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
-    @php
-        $grandNet = 0; // akumulasi total net semua baris
-    @endphp
-    <thead >
+<div class="invoice-title">Sales Invoice</div>
+
+<!-- HEADER -->
+<table class="header-table">
+    <tr>
+        <td width="55%">
+            <div class="company-name">{{ $profil->nama_perusahaan }}</div>
+            {{ $profil->alamat }}<br>
+            Telp: {{ $profil->telepon }}<br>
+            Email: {{ $profil->email }}
+        </td>
+        <td width="45%">
+            <table>
+                <tr><td>No Faktur</td><td>: {{ $penjualan->no_faktur }}</td></tr>
+                <tr><td>Tanggal</td><td>: {{ $penjualan->tanggal }}</td></tr>
+                <tr><td>Jatuh Tempo</td><td>: {{ $penjualan->jatuh_tempo->format('d-m-Y') }}</td></tr>
+                <tr><td>No PO</td><td>: {{ $penjualan->no_po }}</td></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<hr>
+
+<!-- PELANGGAN -->
+<table>
+    <tr>
+        <td width="15%"><strong>Pelanggan</strong></td>
+        <td width="85%">: {{ $penjualan->pelanggan->nama }}</td>
+    </tr>
+    <tr>
+        <td><strong>Alamat</strong></td>
+        <td>: {{ $penjualan->pelanggan->alamat }}</td>
+    </tr>
+</table>
+
+<br>
+
+<!-- ITEM TABLE -->
+@php $grandNet = 0; @endphp
+
+<table class="table-bordered">
+    <thead>
         <tr>
-            <th>No</th>
+            <th width="4%">No</th>
             <th>Produk</th>
-            <th>Qty</th>
-            <th>Harga</th>
-            <th>Diskon</th>
-            <th>Subtotal</th>
+            <th width="8%">Qty</th>
+            <th width="15%">Harga</th>
+            <th width="15%">Diskon</th>
+            <th width="18%">Subtotal</th>
         </tr>
     </thead>
     <tbody>
         @foreach($penjualan->detail as $i => $item)
-        {{-- @php
-            $pid = (int) $item->master_produk_id; // atau $d->produk_id
-            $retQty = (int) ($produkDiretur[$pid] ?? 0);
-        @endphp --}}
         @php
-            $pid = (int) $item->master_produk_id; 
+            $pid = (int) $item->master_produk_id;
             $retQty = (int) ($produkDiretur[$pid] ?? 0);
             $qtyAwal = (int)($item ->qty ?? 0);
             $netQty = max(0, (int)$item->qty - $retQty);
@@ -87,81 +128,85 @@
             $discTot   = (float) ($item->diskon ?? 0);
             $discUnit = $qtyAwal > 0 ? $discTot / $qtyAwal : 0;
 
-            $netSubtotal  = max(0, $netQty * $harga - $netQty * $discTot); //-> pakai ini jika diskon per unit(qty net * disc per unit)
-
+            $netSubtotal  = max(0, $netQty * $harga - $netQty * $discTot);
             $grandNet += $netSubtotal;
         @endphp
         <tr>
-            <td>{{ $i + 1 }}</td>
-            <td>
-                {{ $item->produk->nama_produk ?? '-' }}
-                {{-- @if($retQty > 0)
-                <br>
-                <small style="font-style: italic;"> (produk diretur {{ $retQty }})</small>
-                @endif --}}
-            </td>
-            <td style="text-align: center;">{{ $netQty }}</td>
-            <td style="text-align: right;">@rupiah($item->harga_jual)</td>
-            <td style="text-align: right;">@rupiah($item->diskon)</td>
-            <td style="text-align: right;">@rupiah($netSubtotal)</td>
+            <td class="text-center">{{ $i + 1 }}</td>
+            <td>{{ $item->produk->nama_produk }}</td>
+            <td class="text-center">{{ $netQty }}</td>
+            <td class="text-right">@rupiah($harga)</td>
+            <td class="text-right">@rupiah($discTot)</td>
+            <td class="text-right">@rupiah($netSubtotal)</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 
-<div class="row" style="margin-top: 20px;">
-    @php
-        $pajakPersen = (float) ($penjualan->pajak ?? 0); // misal 10 berarti 10%
-        $biayaKirim  = (float) ($penjualan->biaya_kirim ?? 0);
-        $totalPajak  = ($grandNet * $pajakPersen) / 100;
-        $grandTotal  = $grandNet + $totalPajak + $biayaKirim;
-    @endphp
-    <table style="width: 100%;">
-        <tr>
-            <td style="width: 50%; vertical-align: top;">
-                <p><strong>Terbilang:</strong></p>
-                <p><em>{{ terbilang($grandTotal) }} rupiah</em></p>
-                
-                <p><strong>Rekening Pembayaran:</strong></p>
-                <p>Bank BCA: 123-456-789 a.n. CV. Bintang Empat</p>
-            </td>
-            <td style="width: 30%;">
-                <table class="summary-box" style="width: 100%;">
-                    <tr>
-                        <td><strong>Subtotal</strong></td>
-                        <td style="text-align: right;">@rupiah($grandNet)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>PPN ({{ $penjualan->pajak }}%)</strong></td>
-                        <td style="text-align: right;">@rupiah($totalPajak)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Biaya Kirim</strong></td>
-                        <td style="text-align: right;">@rupiah($penjualan->biaya_kirim)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Total Netto</strong></td>
-                        <td style="text-align: right;">@rupiah($grandTotal)</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <br>
-    <table class="no-border ttd">
-        <tr>
-            <td>Disiapkan Oleh</td>
-            <td>Diperiksa Oleh</td>
-            <td>Dikirim Oleh</td>
-            <td>Diterima Oleh</td>
-        </tr>
-        <tr>
-            <td>________________</td>
-            <td>________________</td>
-            <td>________________</td>
-            <td>________________</td>
-        </tr>
-    </table>
-</div>
+<br>
+
+<!-- TOTAL -->
+@php
+    $pajakPersen = (float) ($penjualan->pajak ?? 0);
+    $biayaKirim = (float) ($penjualan->biaya_kirim ?? 0);
+    $totalPajak = ($grandNet * $pajakPersen) / 100;
+    $grandTotal = $grandNet + $totalPajak + $biayaKirim;
+@endphp
+
+<table>
+    <tr>
+        <td width="55%" valign="top">
+            <div class="terbilang-box">
+                <strong>Terbilang:</strong><br>
+                <em>{{ terbilang($grandTotal) }} rupiah</em>
+            </div>
+
+            <div class="terbilang-box">
+                <strong>Pembayaran:</strong><br>
+                {{ $profil->nama_bank }}<br>
+                No Rek: {{ $profil->no_rekening }}
+            </div>
+        </td>
+        <td width="45%">
+            <table class="summary-table">
+                <tr>
+                    <td>Subtotal</td>
+                    <td class="text-right">@rupiah($grandNet)</td>
+                </tr>
+                <tr>
+                    <td>PPN ({{ $pajakPersen }}%)</td>
+                    <td class="text-right">@rupiah($totalPajak)</td>
+                </tr>
+                <tr>
+                    <td>Biaya Kirim</td>
+                    <td class="text-right">@rupiah($biayaKirim)</td>
+                </tr>
+                <tr>
+                    <td>Total Netto</td>
+                    <td class="text-right">@rupiah($grandTotal)</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<br><br>
+
+<!-- TTD -->
+<table class="ttd-table">
+    <tr>
+        <td>Disiapkan Oleh</td>
+        <td>Diperiksa Oleh</td>
+        <td>Dikirim Oleh</td>
+        <td>Diterima Oleh</td>
+    </tr>
+    <tr>
+        <td>( __________ )</td>
+        <td>( __________ )</td>
+        <td>( __________ )</td>
+        <td>( __________ )</td>
+    </tr>
+</table>
+
 </body>
-{{-- @endsection --}}
+</html>

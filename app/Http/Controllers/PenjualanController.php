@@ -11,6 +11,7 @@ use App\Models\ReturPenjualan;
 use Illuminate\Support\Carbon;
 use App\Models\PenjualanDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\ProfilePerusahaan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\HistoriHargaPenjualan;
@@ -388,6 +389,7 @@ class PenjualanController extends Controller
     {
         
         // $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        $profil = ProfilePerusahaan::first();
         $penjualan = Penjualan::with(['pelanggan','detail.produk'])
             ->withSum('returPenjualan as total_retur', 'total')
             ->findOrFail($id);
@@ -400,7 +402,7 @@ class PenjualanController extends Controller
             ->map(fn($v) => (int) $v)
             ->toArray();
 
-        return view('sales.sales_invoices.print_surat_jalan', compact('penjualan','produkDiretur'));
+        return view('sales.sales_invoices.print_surat_jalan', compact('penjualan','produkDiretur','profil'));
         // $pdf = PDF::loadView('penjualan.print_surat_jalan', compact('penjualan'));
         // return $pdf->stream('surat-jalan-' . $penjualan->no_faktur . '.pdf');
     }
@@ -423,6 +425,7 @@ class PenjualanController extends Controller
     public function print($id)
     {
         // $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        $profil = ProfilePerusahaan::first();
         $penjualan = Penjualan::with(['pelanggan','detail.produk'])
             ->withSum('returPenjualan as total_retur', 'total') // jika tabel retur punya kolom total
             ->findOrFail($id);
@@ -440,7 +443,7 @@ class PenjualanController extends Controller
         // $totalNetto = max(0, (float)$penjualan->total - $totalRetur);
        
         
-        return view('sales.sales_invoices.print', compact('penjualan','produkDiretur'));
+        return view('sales.sales_invoices.print', compact('penjualan','produkDiretur','profil'));
 
         // $pdf = PDF::loadView('penjualan.print', compact('penjualan'));
         // return $pdf->download('invoice-'.$penjualan->no_faktur.'.pdf');
@@ -449,8 +452,9 @@ class PenjualanController extends Controller
     public function printPdf($id)
     {
         // $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
+        $profil = ProfilePerusahaan::first();
         $penjualan = Penjualan::with(['pelanggan','detail.produk'])
-            ->withSum('returPenjualan as total_retur', 'total') // jika tabel retur punya kolom total
+            ->withSum('returPenjualan as total_retur', 'total')
             ->findOrFail($id);
         $produkDiretur = DB::table('retur_penjualan as r')
             ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
@@ -461,7 +465,7 @@ class PenjualanController extends Controller
             ->map(fn($v) => (int) $v)
             ->toArray();
 
-        $pdf = Pdf::loadView('sales.sales_invoices.print', compact('penjualan','produkDiretur'))->setPaper('A4', 'portrait');
+        $pdf = Pdf::loadView('sales.sales_invoices.print', compact('penjualan','produkDiretur','profil'))->setPaper('A4', 'portrait');
 
         $filename = 'Invoice-' . preg_replace('/[^A-Za-z0-9\-]/', '-', $penjualan->no_faktur) . '.pdf';
         return $pdf->download($filename);

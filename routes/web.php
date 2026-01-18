@@ -8,6 +8,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
@@ -17,8 +18,8 @@ use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\LaporanPembelianController;
 use App\Http\Controllers\LaporanPenjualanController;
+use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\AdminPasswordResetController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForgotPasswordRequestController;
 use App\Http\Controllers\HistoriHargaPembelianController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
@@ -164,9 +165,8 @@ Route::resource('suppliers', PemasokController::class)->middleware('auth');
 // Route::get('users/{id}/edit',[UserManagementController::class, 'edit'])->name('users.edit')->middleware('auth');
 // Route::put('users/{id}',[UserManagementController::class, 'update'])->name('users.update')->middleware('auth');
 
-// Route::get('/users', function () {
-//     return view('users.index');
-// });
-Route::get('/profile', function () {
-    return view('profiles.profile');
+Route::middleware(['auth','permission:profiles'])->group(function () {
+    Route::get('/profiles', [ProfilePerusahaanController::class, 'edit'])->name('profil.edit');
+    Route::post('/profiles', [ProfilePerusahaanController::class, 'update'])->name('profil.update');
 });
+

@@ -30,9 +30,26 @@ class MasterProdukController extends Controller
         } elseif ($request->status === 'nonaktif') {
             $query->where('is_active', false);
         }
+        if ($request->filled('nama')) {
+            $query->where('nama_produk', 'like', '%' . $request->nama . '%');
+        }
 
-        $masterProduk = $query->get();
-        return view('master_produk.index', compact('masterProduk'));
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', $request->kategori_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status);
+        }
+
+        $masterProduk = $query
+            ->orderBy('nama_produk')
+            ->paginate(10)
+            ->withQueryString();
+
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+
+        // $masterProduk = $query->get();
+        return view('master_produk.index', compact('masterProduk','kategoris'));
     }
 
     /**

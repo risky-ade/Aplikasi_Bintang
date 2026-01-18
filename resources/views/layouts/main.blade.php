@@ -103,8 +103,8 @@
 <!-- Sparkline -->
 <script src="{{ asset('js/sparkline.js') }}"></script>
 <!-- JQVMap -->
-<script src="{{ asset('template/plugins/jqvmap/jquery.vmap.min.js') }}"></script>
-<script src="{{ asset('template/plugins/jqvmap/maps/jquery.vmap.usa.js') }}"></script>
+{{-- <script src="{{ asset('template/plugins/jqvmap/jquery.vmap.min.js') }}"></script>
+<script src="{{ asset('template/plugins/jqvmap/maps/jquery.vmap.usa.js') }}"></script> --}}
 <!-- jQuery Knob Chart -->
 <script src="{{ asset('template/plugins/jquery-knob/jquery.knob.min.js') }}"></script>
 <!-- daterangepicker -->

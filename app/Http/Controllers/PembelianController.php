@@ -11,6 +11,7 @@ use App\Models\PembelianDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\HistoriHargaPembelian;
+use App\Models\ProfilePerusahaan;
 
 class PembelianController extends Controller
 {
@@ -217,7 +218,7 @@ class PembelianController extends Controller
 
     public function print($id)
     {
-        // $pembelian = Pembelian::with(['pemasok', 'detail.produk'])->findOrFail($id);
+        $profil = ProfilePerusahaan::first();
         $pembelian = Pembelian::with(['pemasok', 'detail.produk'])
         -> withSum('returPembelian as total_retur', 'total')
         ->findOrFail($id);
@@ -233,7 +234,7 @@ class PembelianController extends Controller
 
         $totalRetur = ($pembelian->total_retur ?? 0);
         $totalNetto = max(0,($pembelian->total ?? 0) - $totalRetur);
-        return view('purchases.purchase_inv.print', compact('pembelian','produkDiretur','totalRetur'));
+        return view('purchases.purchase_inv.print', compact('pembelian','produkDiretur','totalRetur','profil'));
 
         // $pdf = PDF::loadView('penjualan.print', compact('penjualan'));
         // return $pdf->download('invoice-'.$penjualan->no_faktur.'.pdf');
@@ -280,7 +281,6 @@ public function update(Request $request, $id)
         'status'           => ['nullable','in:aktif,batal'],
     ]);
 
-    // Helper parsing angka kalau form pakai "Rp 1.000.000"
     $parseMoney = function($v){
         if ($v === null) return 0;
         if (is_numeric($v)) return (float)$v;
