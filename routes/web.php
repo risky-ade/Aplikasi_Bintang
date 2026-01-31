@@ -3,12 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\DashboardController;
+// use App\Http\Controllers\LogViewerController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
@@ -170,3 +173,15 @@ Route::middleware(['auth','permission:profiles'])->group(function () {
     Route::post('/profiles', [ProfilePerusahaanController::class, 'update'])->name('profil.update');
 });
 
+Route::middleware(['auth','permission:backup'])
+    ->group(function () {
+        Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
+        Route::post('/backup/run', [BackupController::class, 'run'])->name('backup.run');
+        Route::get('/backup/download/{file}', [BackupController::class, 'download'])
+        ->name('backup.download');
+        Route::post('/backup/{file}/delete', [BackupController::class, 'destroy'])->where('file', '.*')->name('backup.destroy');
+    });
+
+Route::middleware(['auth', 'role:superadmin'])
+->get('/logs', [LogViewerController::class, 'index'])
+->name('logs.index');

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use id;
 use App\Models\Pelanggan;
 use App\Models\Penjualan;
 use App\Models\MasterProduk;
@@ -13,6 +12,7 @@ use App\Models\PenjualanDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ProfilePerusahaan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\HistoriHargaPenjualan;
 
@@ -97,106 +97,134 @@ class PenjualanController extends Controller
     {
         $produk = MasterProduk::all();
         $pelanggan = Pelanggan::all();
-        // Generate No Faktur Otomatis
         $lastId = Penjualan::where('tanggal',now()->format('Y-m-d'))->count();
         // dd($lastId);
         $no_faktur = 'FPJ-' . date('Ymd') . '/' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
-        $tanggal = now()->format('Y-m-d'); // atau date('Y-m-d')
+        $tanggal = now()->format('Y-m-d'); 
 
         return view('sales.sales_invoices.create', compact('produk', 'pelanggan', 'no_faktur', 'tanggal', ));
     }
     public function store(Request $request)
     {
-       $request->validate([
-        'no_faktur' => 'required|unique:penjualan,no_faktur',
-        'tanggal' => 'required|date',
-        'pelanggan_id' => 'required',
-        'produk_id' => 'required|array',
-        'produk_id.*' => 'required|exists:master_produk,id',
-        'qty.*' => 'required|integer|min:1',
-        'harga_jual.*' => 'required|numeric|min:0',
-        'status_pembayaran' => 'required|in:Belum Lunas,Lunas',
-    ]);
-        
-    $subtotal = 0;
-    $totalDiskon = 0;
-
-    foreach ($request->produk_id as $index => $produk_id) {
-        $qty = $request->qty[$index];
-        $harga = $request->harga_jual[$index];
-        $diskon = $request->diskon[$index] ?? 0;
-        $sub = ($qty * $harga - $qty * $diskon);
-
-        $subtotal += $sub;
-        $totalDiskon += $diskon;
-    }
-
-    $pajak = $request->pajak ?? 0;
-    $biayaKirim = $request->biaya_kirim ?? 0;
-    $totalPajak = ($subtotal * $pajak) / 100;
-
-    $total = $subtotal + $totalPajak + $biayaKirim;
-
-    $noSuratJalan = 'SJ-' . str_pad(Penjualan::count() + 1, 5, '0', STR_PAD_LEFT);
-    // Simpan ke tabel penjualan
-    $penjualan = Penjualan::create([
-        'no_faktur'     => $request->no_faktur,
-        'no_po'         => $request->no_po,
-        'no_surat_jalan' => $noSuratJalan,
-        'tanggal'       => $request->tanggal,
-        'pelanggan_id'  => $request->pelanggan_id,
-        'catatan'       => $request->catatan,
-        'pajak'         => $pajak,
-        'biaya_kirim'   => $biayaKirim,
-        'total'         => $total,
-        'jatuh_tempo'   => $request->jatuh_tempo,
-        'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
-        'created_by'    => Auth::id(),
-    ]);
-// dd($penjualan);
-    // Proses detail penjualan & stok
-    foreach ($request->produk_id as $index => $produk_id) {
-        $qty = $request->qty[$index];
-        $harga = $request->harga_jual[$index];
-        $diskon = $request->diskon[$index] ?? 0;
-        $sub = ($qty * $harga - $qty * $diskon);
-
-        // Validasi stok
-        $produk = MasterProduk::find($produk_id);
-        if ($produk->stok < $qty) {
-            return back()->with('error', 'Stok produk ' . $produk->nama_produk . ' tidak mencukupi. Tersedia: ' . $produk->stok);
-        }
-
-        // Simpan detail
-        PenjualanDetail::create([
-            'penjualan_id'      => $penjualan->id,
-            'master_produk_id'  => $produk_id,
-            'qty'               => $qty,
-            'harga_jual'        => $harga,
-            'diskon'            => $diskon,
-            'subtotal'          => $sub,
-        ]);
-
-        //  Cek hanya buat histori jika harga berbeda dengan harga default produk
-        $lastHistori = HistoriHargaPenjualan::where('produk_id', $produk->id)
-            ->latest('id')
-            ->first();
-        if ($harga != $produk->harga_jual && (!$lastHistori || $lastHistori->harga_baru != $harga)) {
-            $tanggalHist = $penjualan->getRawOriginal('tanggal');
-            HistoriHargaPenjualan::create([
-                'produk_id' => $produk->id,
-                'pelanggan_id'     => $penjualan->pelanggan_id,
-                'harga_lama'       => $produk->harga_jual,
-                'harga_baru'       => $harga,
-                'sumber'           => 'penjualan',
-                'tanggal'          => $tanggalHist,
-                'keterangan'       => 'Perubahan harga saat transaksi Faktur ' . $penjualan->no_faktur,
+        DB::beginTransaction();
+        try{
+            Log::channel('penjualan')->info('Mulai proses simpan penjualan', [
+                'no_faktur' => $request->no_faktur,
+                'user_id' => Auth::id(),
             ]);
+            
+             $request->validate([
+                'no_faktur' => 'required|unique:penjualan,no_faktur',
+                'tanggal' => 'required|date',
+                'pelanggan_id' => 'required',
+                'produk_id' => 'required|array',
+                'produk_id.*' => 'required|exists:master_produk,id',
+                'qty.*' => 'required|integer|min:1',
+                'harga_jual.*' => 'required|numeric|min:0',
+                'status_pembayaran' => 'required|in:Belum Lunas,Lunas',
+            ]);
+                
+            $subtotal = 0;
+            $totalDiskon = 0;
+
+            foreach ($request->produk_id as $index => $produk_id) {
+                $qty = $request->qty[$index];
+                $harga = $request->harga_jual[$index];
+                $diskon = $request->diskon[$index] ?? 0;
+                $sub = ($qty * $harga - $qty * $diskon);
+
+                $subtotal += $sub;
+                $totalDiskon += $diskon;
+            }
+
+            $pajak = $request->pajak ?? 0;
+            $biayaKirim = $request->biaya_kirim ?? 0;
+            $totalPajak = ($subtotal * $pajak) / 100;
+
+            $total = $subtotal + $totalPajak + $biayaKirim;
+
+            $noSuratJalan = 'SJ-' . str_pad(Penjualan::count() + 1, 5, '0', STR_PAD_LEFT);
+            // Simpan ke tabel penjualan
+            $penjualan = Penjualan::create([
+                'no_faktur'     => $request->no_faktur,
+                'no_po'         => $request->no_po,
+                'no_surat_jalan' => $noSuratJalan,
+                'tanggal'       => $request->tanggal,
+                'pelanggan_id'  => $request->pelanggan_id,
+                'catatan'       => $request->catatan,
+                'pajak'         => $pajak,
+                'biaya_kirim'   => $biayaKirim,
+                'total'         => $total,
+                'jatuh_tempo'   => $request->jatuh_tempo,
+                'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
+                'created_by'    => Auth::id(),
+            ]);
+        // dd($penjualan);
+            // Proses detail penjualan & stok
+            foreach ($request->produk_id as $index => $produk_id) {
+                $qty = $request->qty[$index];
+                $harga = $request->harga_jual[$index];
+                $diskon = $request->diskon[$index] ?? 0;
+                $sub = ($qty * $harga - $qty * $diskon);
+
+                // Validasi stok
+                $produk = MasterProduk::find($produk_id);
+                if ($produk->stok < $qty) {
+                    return back()->with('error', 'Stok produk ' . $produk->nama_produk . ' tidak mencukupi. Tersedia: ' . $produk->stok);
+                }
+
+                // Simpan detail
+                PenjualanDetail::create([
+                    'penjualan_id'      => $penjualan->id,
+                    'master_produk_id'  => $produk_id,
+                    'qty'               => $qty,
+                    'harga_jual'        => $harga,
+                    'diskon'            => $diskon,
+                    'subtotal'          => $sub,
+                ]);
+
+                //  Cek hanya buat histori jika harga berbeda dengan harga default produk
+                $lastHistori = HistoriHargaPenjualan::where('produk_id', $produk->id)
+                    ->latest('id')
+                    ->first();
+                if ($harga != $produk->harga_jual && (!$lastHistori || $lastHistori->harga_baru != $harga)) {
+                    $tanggalHist = $penjualan->getRawOriginal('tanggal');
+                    HistoriHargaPenjualan::create([
+                        'produk_id' => $produk->id,
+                        'pelanggan_id'     => $penjualan->pelanggan_id,
+                        'harga_lama'       => $produk->harga_jual,
+                        'harga_baru'       => $harga,
+                        'sumber'           => 'penjualan',
+                        'tanggal'          => $tanggalHist,
+                        'keterangan'       => 'Perubahan harga saat transaksi Faktur ' . $penjualan->no_faktur,
+                    ]);
+                }
+                // Kurangi stok
+                $produk->decrement('stok', $qty);
+            }
+            DB::commit();
+
+            Log::channel('penjualan')->info('Penjualan berhasil disimpan', [
+                'penjualan_id' => $penjualan->id,
+                'no_faktur' => $penjualan->no_faktur,
+                'total' => $penjualan->total,
+            ]);
+
+            return redirect()->route('penjualan.index')
+            ->with('success', 'Transaksi penjualan berhasil disimpan.');
+        }catch (\Throwable $e){
+            DB::rollBack();
+
+            Log::channel('penjualan')->error('Gagal simpan penjualan', [
+                'no_faktur' => $request->no_faktur ?? null,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan penjualan');
         }
-        // Kurangi stok
-        $produk->decrement('stok', $qty);
-    }
-    return redirect()->route('penjualan.index')->with('success', 'Transaksi penjualan berhasil disimpan.');
+      
+    // return redirect()->route('penjualan.index')->with('success', 'Transaksi penjualan berhasil disimpan.');
      
     }
 
@@ -427,7 +455,7 @@ class PenjualanController extends Controller
         // $penjualan = Penjualan::with(['pelanggan', 'detail.produk'])->findOrFail($id);
         $profil = ProfilePerusahaan::first();
         $penjualan = Penjualan::with(['pelanggan','detail.produk'])
-            ->withSum('returPenjualan as total_retur', 'total') // jika tabel retur punya kolom total
+            ->withSum('returPenjualan as total_retur', 'total') 
             ->findOrFail($id);
         // Pluck qty retur per produk
         $produkDiretur = DB::table('retur_penjualan as r')
@@ -438,9 +466,6 @@ class PenjualanController extends Controller
             ->pluck('total_qty_retur', 'rd.produk_id')
             ->map(fn($v) => (int) $v)
             ->toArray();
-
-        // $totalRetur = (float)($penjualan->total_retur ?? 0);
-        // $totalNetto = max(0, (float)$penjualan->total - $totalRetur);
        
         
         return view('sales.sales_invoices.print', compact('penjualan','produkDiretur','profil'));
@@ -527,11 +552,10 @@ class PenjualanController extends Controller
     {
         $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
 
-        // Cegah jika status pembayaran sudah Lunas
         if ($penjualan->status_pembayaran === 'Lunas') {
             return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah dibayar.');
         }
-        // Cegah jika sudah ada retur penjualan
+        
         if ($penjualan->returPenjualan && $penjualan->returPenjualan->count() > 0) {
             return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah memiliki retur penjualan.');
         }
@@ -549,7 +573,6 @@ class PenjualanController extends Controller
             'status' => 'batal'
         ]);
 
-        // return response()->json(['message' => 'Faktur berhasil dibatalkan.']);
         return redirect()->route('penjualan.index')->with('success', 'Faktur berhasil dibatalkan.');
     }
 

@@ -57,6 +57,12 @@ return [
             'throw' => false,
         ],
 
+        'backup' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backup'),
+            'throw' => false,
+        ],
+
     ],
 
     /*

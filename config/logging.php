@@ -127,6 +127,65 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        // 'backup' => [
+        //     'driver' => 'single',
+        //     'path' => storage_path('logs/backup.log'),
+        //     'level' => 'info',
+        // ],
+
+        // 'auth' => [
+        //     'driver' => 'single',
+        //     'path' => storage_path('logs/auth.log'),
+        //     'level' => 'warning',
+        // ],
+        // AUTH
+        'auth' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/auth.log'),
+            'level' => 'info',
+            'days' => 14,
+        ],
+
+        // PRODUK
+        'produk' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/produk.log'),
+            'level' => 'info',
+            'days' => 14,
+        ],
+
+        // PENJUALAN
+        'penjualan' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/penjualan.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+
+        // BACKUP
+        'backup' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/backup.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+
+        // QUEUE / JOB
+        'queue' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/queue.log'),
+            'level' => 'info',
+            'days' => 14,
+        ],
+
+        // ERROR KHUSUS
+        'error' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/error.log'),
+            'level' => 'error',
+            'days' => 30,
+        ],
+
     ],
 
 ];

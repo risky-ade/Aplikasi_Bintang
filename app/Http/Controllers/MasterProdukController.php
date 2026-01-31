@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use id;
 use App\Models\Satuan;
 use App\Models\Kategori;
 use App\Models\MasterProduk;
 use Illuminate\Http\Request;
 use App\Models\MasterKategori;
-use Illuminate\Support\Facades\File;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use App\Models\HistoriHargaPenjualan;
 use Illuminate\Support\Facades\Storage;
 use function PHPUnit\Framework\returnSelf;
@@ -20,9 +23,6 @@ class MasterProdukController extends Controller
      */
     public function index(Request $request)
     {
-        // return view('master_produk.index',[
-        //     'items' => MasterProduk::all()
-        // ]);
         $query = MasterProduk::with(['kategori', 'satuan']);
 
         if ($request->status === 'aktif') {
@@ -87,6 +87,7 @@ class MasterProdukController extends Controller
 
         MasterProduk::create($data);
         return redirect('/master_produk')->with('success', 'Produk berhasil ditambahkan');
+
     }
 
     /**
@@ -197,7 +198,6 @@ class MasterProdukController extends Controller
     public function search(Request $request)
     {
         $term = $request->term;
-        // $produk = MasterProduk::where('nama_produk', 'LIKE', "%$term%")->get();
         $produk = MasterProduk::where('is_active', true)
             ->where('nama_produk', 'LIKE', "%$term%")
             ->get();
@@ -228,12 +228,4 @@ class MasterProdukController extends Controller
         ]);
     }
 
-    // public function __construct()
-    // {
-    //     // $this->middleware('permission:produk.lihat')->only(['index']);
-    //     // $this->middleware('permission:produk.tambah')->only(['create','store']);
-    //     // $this->middleware('permission:produk.edit')->only(['edit','update']);
-    //     // $this->middleware('permission:produk.hapus')->only(['destroy']);
-    //     // $this->middleware('permission:produk.lihat')->only(['search','checkDuplicate']);
-    // }
 }
