@@ -69,7 +69,7 @@
             <thead class="bg-secondary text-white">
               <tr>
                 <th>#</th>
-                <th>Tanggal</th>
+                <th>Tanggal Faktur</th>
                 <th>Produk</th>
                 <th>Harga Beli Dasar</th>
                 <th>Harga Baru</th>
@@ -122,8 +122,8 @@ $(function () {
             }
         },
         columnDefs: [
-            { targets: [0,1,2,5,7], className: 'text-nowrap' },
-            { targets: [3,4], className: 'text-right' }
+            { targets: [0,2,5,7], className: 'text-nowrap' },
+            { targets: [1,3,4], className: 'text-center' }
         ]
     });
 });

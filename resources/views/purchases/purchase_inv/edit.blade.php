@@ -44,10 +44,12 @@
             </div>
             <div class="col-md-3">
               <label>Pemasok</label>
-              <select name="pemasok_id" class="form-control" required>
+              <select name="pemasok_id" id="pemasok_id" class="form-control" required>
                 <option value="">-- Pilih Pemasok --</option>
                 @foreach($pemasok as $s)
-                  <option value="{{ $s->id }}"{{ $pembelian->pemasok_id == $s->id? 'selected' : ''}}>{{ $s->nama }}</option>
+                  <option value="{{ $s->id }}" {{old('pemasok_id',$pembelian->pemasok_id ??'') == $s->id ? 'selected' : ''}}>
+                    {{ $s->nama }}
+                  </option>
                 @endforeach
               </select>
             </div>
@@ -111,7 +113,7 @@
           <div class="row">
             <div class="col-md-6">
               <label>Catatan</label>
-              <textarea name="catatan" rows="5" class="form-control" placeholder="Opsional..."></textarea>
+              <textarea name="catatan" rows="5" class="form-control" placeholder="Opsional...">{{ $pembelian->catatan }}</textarea>
             </div>
             <div class="col-md-6">
               <table class="table table-bordered">
@@ -287,5 +289,14 @@ $(document).ready(function () {
     });
 });
 
+</script>
+<script>
+$(function () {
+    $('#pemasok_id').select2({
+        placeholder: 'Pilih Pemasok',
+        allowClear: true,
+        width: '100%'
+    });
+});
 </script>
 @endsection

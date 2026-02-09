@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\HistoriHargaPenjualan;
-
+use Exception;
+use FontLib\Table\Type\cvt;
 
 class PenjualanController extends Controller
 {
@@ -84,7 +85,7 @@ class PenjualanController extends Controller
         // pajak_net = subtotal_net * pajak%
         $pajakNet = $subtotalNet * ($pajak / 100);
 
-        // total_netto yang benar
+        // total_netto
         $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         $p->save();
     }
@@ -112,7 +113,7 @@ class PenjualanController extends Controller
                 'no_faktur' => $request->no_faktur,
                 'user_id' => Auth::id(),
             ]);
-            
+
              $request->validate([
                 'no_faktur' => 'required|unique:penjualan,no_faktur',
                 'tanggal' => 'required|date',
@@ -282,6 +283,10 @@ class PenjualanController extends Controller
         $penjualan = Penjualan::with('detail')->findOrFail($id);
 
         DB::beginTransaction();
+        Log::channel('penjualan')->info('Mulai update faktur penjualan', [
+            'penjualan_id' => $id,
+            'user_id'      => Auth::id(),
+        ]);
         try {
             // Kembalikan stok lama sebelum update
             foreach ($penjualan->detail as $d) {
@@ -343,6 +348,13 @@ class PenjualanController extends Controller
                 $hargaLama = $lastHistori ? $lastHistori->harga_baru : $produk->harga_jual;
                 //Catat hanya jika harga BERBEDA dari histori terakhir
                 if ($harga != $hargaLama) {
+                    Log::channel('penjualan')->info('Perubahan harga jual produk', [
+                        'produk_id'   => $produk->id,
+                        'nama_produk' => $produk->nama_produk,
+                        'harga_lama'  => $produk->harga_jual,
+                        'harga_baru'  => $harga,
+                        'pelanggan_id'  => $request->pelanggan_id,
+                    ]);
                     HistoriHargaPenjualan::create([
                         'produk_id' => $produk->id,
                         'pelanggan_id'     => $penjualan->pelanggan_id,
@@ -364,10 +376,19 @@ class PenjualanController extends Controller
             $penjualan->update(['total' => $total]);
 
             DB::commit();
+            Log::channel('penjualan')->info('Faktur penjualan berhasil diupdate', [
+                'penjualan_id' => $penjualan->id,
+                'no_faktur' => $penjualan->no_faktur,
+            ]);
             return redirect()->route('penjualan.index')->with('success', 'Data penjualan berhasil diperbarui.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::channel('penjualan')->error('Gagal update faktur penjualan', [
+                'penjualan_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             return back()->with('error', 'Gagal update faktur: ' . $e->getMessage());
         }
     }
@@ -500,80 +521,139 @@ class PenjualanController extends Controller
 
     public function approve($id, Request $request)
     {
-        $request->validate([
-        'paid_date' => ['required','date_format:Y-m-d'],
-        ],[
-            'paid_date.required' => 'Tanggal pelunasan wajib diisi.',
-        ]);
-        $penjualan = Penjualan::findOrFail($id);
+        // DB::beginTransaction();
+        try{
+            $request->validate([
+            'paid_date' => ['required','date_format:Y-m-d'],
+            ],[
+                'paid_date.required' => 'Tanggal pelunasan wajib diisi.',
+            ]);
+            $penjualan = Penjualan::findOrFail($id);
 
-        $paidDate = Carbon::parse($request->paid_date)
-                ->setTimeFromTimeString(now()->format('H:i:s'));
-        $penjualan->update([
-            'status_pembayaran' => 'Lunas',
-            'approved_at' =>now('Asia/Jakarta'),
-            'paid_date'         => $paidDate,
-            'approved_by'        => Auth::id(),
-        ]);
-        return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas per ' . Carbon::parse($paidDate)->format('d/m/Y') . '.');
+            $paidDate = Carbon::parse($request->paid_date)
+                    ->setTimeFromTimeString(now()->format('H:i:s'));
+            $penjualan->update([
+                'status_pembayaran' => 'Lunas',
+                'approved_at' =>now('Asia/Jakarta'),
+                'paid_date'         => $paidDate,
+                'approved_by'        => Auth::id(),
+            ]);
+
+            DB::commit();
+            Log::channel('penjualan')->info('Invoice dilunasi', [
+                'penjualan_id' => $penjualan->id,
+                'paid_date' => $paidDate->toDateTimeString(),
+                'approved_by' => Auth::id(),
+            ]);
+            return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas per ' . Carbon::parse($paidDate)->format('d/m/Y') . '.');
+
+        }catch (\Exception $e){
+            DB::rollBack();
+            Log::channel('penjualan')->warning('Gagal Approve Invoice', [
+                'penjualan_id' => $penjualan->id,
+                // 'paid_date' => $paidDate->toDateTimeString(),
+                'approved_by' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with('error', 'Invoice Gagal ditandai sebagai lunas');
+
+        }
+        
         
     }
     public function unapprove($id)
     {
-        $penjualan = Penjualan::findOrFail($id);
+        DB::beginTransaction();
+        try{
 
-        if ($penjualan->status_pembayaran === 'Belum Lunas') {
-            return back()->with('error', 'Invoice belum lunas.');
+            $penjualan = Penjualan::findOrFail($id);
+
+            if ($penjualan->status_pembayaran === 'Belum Lunas') {
+                return back()->with('error', 'Invoice belum lunas.');
+            }
+            if (!$penjualan->approved_at) {
+                return back()->with('error', 'Waktu persetujuan tidak ditemukan, tidak dapat dibatalkan.');
+            }
+            // Hitung selisih menit sejak approved
+            $selisihMenit = $penjualan->approved_at->diffInMinutes(now());
+            $batasMenit = 60 * 24;
+
+            if ($selisihMenit > $batasMenit) {
+                return back()->with(
+                    'error',
+                    "Batas pembatalan pelunasan sudah lewat {$batasMenit} menit, tidak bisa dibatalkan."
+                );
+            }
+
+            $penjualan->update([
+                'status_pembayaran' => 'Belum Lunas',
+                'approved_at' => null,
+                'paid_date'   => null,
+            ]);
+
+            DB::commit();
+            Log::channel('penjualan')->warning('Pelunasan dibatalkan', [
+                'penjualan_id' => $penjualan->id,
+                'user_id' => Auth::id(),
+            ]);
+            return back()->with('success', 'Pelunasan berhasil dibatalkan.');
+
+        }catch(\Exception $e){
+         DB::rollBack();
+            Log::channel('penjualan')->error('Gagal Unapprove Invoice', [
+                'penjualan_id' => $penjualan->id,
+                'approved_by' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with('error', 'Invoice Gagal dibatalkan ');
         }
-        if (!$penjualan->approved_at) {
-            return back()->with('error', 'Waktu persetujuan tidak ditemukan, tidak dapat dibatalkan.');
-        }
-        // Hitung selisih menit sejak approved
-        $selisihMenit = $penjualan->approved_at->diffInMinutes(now());
-        $batasMenit = 60 * 24;
-
-        if ($selisihMenit > $batasMenit) {
-            return back()->with(
-                'error',
-                "Batas pembatalan pelunasan sudah lewat {$batasMenit} menit, tidak bisa dibatalkan."
-            );
-        }
-
-        $penjualan->update([
-            'status_pembayaran' => 'Belum Lunas',
-            'approved_at' => null,
-            'paid_date'   => null,
-        ]);
-
-        return back()->with('success', 'Pelunasan berhasil dibatalkan.');
     }
 
     public function batal($id)
     {
-        $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
+        DB::beginTransaction();
+        try{
+            $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
 
-        if ($penjualan->status_pembayaran === 'Lunas') {
-            return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah dibayar.');
-        }
-        
-        if ($penjualan->returPenjualan && $penjualan->returPenjualan->count() > 0) {
-            return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah memiliki retur penjualan.');
-        }
-        if ($penjualan->status === 'batal') {
-            return back()->with('error', 'Faktur sudah dibatalkan sebelumnya.');
-        }
- 
-        // Rollback stok
-        foreach ($penjualan->detail as $item) {
-            $produk = $item->produk;
-            $produk->increment('stok', $item->qty);
-        }
+            if ($penjualan->status_pembayaran === 'Lunas') {
+                return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah dibayar.');
+            }
+            
+            if ($penjualan->returPenjualan && $penjualan->returPenjualan->count() > 0) {
+                return back()->with('error', 'Faktur tidak dapat dibatalkan karena sudah memiliki retur penjualan.');
+            }
+            if ($penjualan->status === 'batal') {
+                return back()->with('error', 'Faktur sudah dibatalkan sebelumnya.');
+            }
+    
+            // Rollback stok
+            foreach ($penjualan->detail as $item) {
+                $produk = $item->produk;
+                $produk->increment('stok', $item->qty);
+            }
 
-        $penjualan->update([
-            'status' => 'batal'
-        ]);
+            $penjualan->update([
+                'status' => 'batal'
+            ]);
 
-        return redirect()->route('penjualan.index')->with('success', 'Faktur berhasil dibatalkan.');
+            DB::commit();
+            Log::channel('penjualan')->warning('Faktur dibatalkan', [
+                'penjualan_id' => $penjualan->id,
+                'no_faktur' => $penjualan->no_faktur,
+                'user_id' => Auth::id(),
+            ]);
+
+            return redirect()->route('penjualan.index')->with('success', 'Faktur berhasil dibatalkan.');
+        }catch(\Exception $e){
+            DB::rollBack();
+            Log::channel('penjualan')->warning('Faktur Gagal dibatalkan', [
+                'penjualan_id' => $penjualan->id,
+                'no_faktur' => $penjualan->no_faktur,
+                'user_id' => Auth::id(),
+            ]);
+
+            return redirect()->route('penjualan.index')->with('success', 'Faktur Gagal dibatalkan.');
+        }
     }
 
 

@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use id;
+
 use App\Models\Satuan;
 use App\Models\Kategori;
 use App\Models\MasterProduk;
 use Illuminate\Http\Request;
-use App\Models\MasterKategori;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -56,9 +55,11 @@ class MasterProdukController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    {
+    {   
+        // $masterProduk= MasterProduk::all();
         $kategori = Kategori::all();
         $satuan = Satuan::all();
+        // $isLocked = $masterProduk->isUsedInTransaction();
       return view('master_produk.create', compact('satuan','kategori'));
     }
 
@@ -85,7 +86,15 @@ class MasterProdukController extends Controller
             $data['gambar'] = $request->file('gambar')->store('gambar_produk', 'public');
         }
 
-        MasterProduk::create($data);
+        $produk= MasterProduk::create($data);
+
+        Log::channel('produk')->info('Produk berhasil ditambahkan', [
+            'produk_id' => $produk->id,
+            'nama'=> $produk->nama_produk,
+            'harga_jual'=> $produk->harga_jual,
+            'user_id' => Auth::id(),
+            'ip'=> $request->ip(),
+        ]);
         return redirect('/master_produk')->with('success', 'Produk berhasil ditambahkan');
 
     }
@@ -114,14 +123,12 @@ class MasterProdukController extends Controller
     public function edit($id)
     {
         $masterProduk = MasterProduk::findOrFail($id);
-        if ($masterProduk->penjualanDetail()->exists() ||$masterProduk->pembelianDetail()->exists() || $masterProduk->returPenjualanDetail()->exists()) {
-            return redirect()->route('master_produk.index')
-                ->with('error', 'Produk tidak dapat diedit karena sudah digunakan dalam transaksi.');
-        }
-
+        
         $kategori = Kategori::all();
-        $satuan = Satuan::all();
-        return view('master_produk.edit', compact('masterProduk', 'kategori', 'satuan'));
+        $satuan   = Satuan::all();
+        $isLocked = $masterProduk->isUsedInTransaction();
+
+        return view('master_produk.edit', compact('masterProduk', 'kategori', 'satuan','isLocked'));
     }
 
     /**
@@ -151,17 +158,31 @@ class MasterProdukController extends Controller
             $data['gambar'] = $request->file('gambar')->store('gambar_produk', 'public');
         }
         
-        if ($masterProduk->harga_jual != $request->harga_jual) {
-            HistoriHargaPenjualan::create([
-                'produk_id' => $masterProduk->id,
-                'harga_lama' => $masterProduk->getOriginal('harga_jual'),
-                'harga_baru' => $request->harga_jual,
-                'sumber' => 'produk',
-                'tanggal' => now(),
-                'keterangan' => 'Update dari master produk',
-            ]);
-        }
+        // if ($masterProduk->harga_jual != $request->harga_jual) {
+        //     HistoriHargaPenjualan::create([
+        //         'produk_id' => $masterProduk->id,
+        //         'harga_lama' => $masterProduk->getOriginal('harga_jual'),
+        //         'harga_baru' => $request->harga_jual,
+        //         'sumber' => 'produk',
+        //         'tanggal' => now(),
+        //         'keterangan' => 'Update dari master produk',
+        //     ]);
+
+        //     Log::channel('produk')->info('Perubahan harga produk', [
+        //         'produk_id' => $masterProduk->id,
+        //         'nama' => $masterProduk->nama_produk,
+        //         'harga_lama' => $masterProduk->harga_jual,
+        //         'harga_baru' => $request->harga_jual,
+        //         'user_id' => Auth::id(),
+        //     ]);
+        // }
         $masterProduk->update($data);
+
+        Log::channel('produk')->info('Produk diperbarui', [
+            'produk_id' => $masterProduk->id,
+            'nama' => $masterProduk->nama_produk,
+            'user_id' => Auth::id(),
+        ]);
         return redirect('/master_produk')->with('success', 'Produk berhasil diperbarui');
     }
  
@@ -178,6 +199,12 @@ class MasterProdukController extends Controller
         //     ], 400);
         // }
         if ($produk->isUsedInTransaction()) {
+            Log::channel('produk')->warning('Hapus produk ditolak (sudah ada transaksi)', [
+                'produk_id' => $produk->id,
+                'nama' => $produk->nama_produk,
+                'user_id' => Auth::id(),
+            ]);
+
             return response()->json([
                 'message' => 'Produk tidak bisa dihapus karena sudah ada riwayat transaksi. Gunakan Nonaktif.'
             ], 400);
@@ -191,6 +218,11 @@ class MasterProdukController extends Controller
 
         $produk->delete();
 
+        Log::channel('produk')->info('Produk dihapus', [
+            'produk_id' => $produk->id,
+            'nama' => $produk->nama_produk,
+            'user_id' => Auth::id(),
+        ]);
         return response()->json(['message' => 'Produk berhasil dihapus.']);
 
     }
@@ -221,6 +253,13 @@ class MasterProdukController extends Controller
 
         $produk->update([
             'is_active' => !$produk->is_active
+        ]);
+
+        Log::channel('produk')->info('Status produk diubah', [
+            'produk_id' => $produk->id,
+            'nama' => $produk->nama_produk,
+            'status' => $produk->is_active ? 'aktif' : 'nonaktif',
+            'user_id' => Auth::id(),
         ]);
 
         return response()->json([

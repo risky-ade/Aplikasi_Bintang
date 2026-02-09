@@ -1,3 +1,7 @@
+@php
+    $isEdit   = isset($masterProduk);
+    $isLocked = $isLocked ?? false;
+@endphp
 <div class="card">
     <div class="card-body">
     <div class="row">
@@ -38,7 +42,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label>Harga Dasar</label>
-            <input type="number" name="harga_dasar" class="form-control" value="{{ old('harga_dasar', $masterProduk->harga_dasar ?? '') }}" required>
+            <input type="number" name="harga_dasar" class="form-control" value="{{ old('harga_dasar', $masterProduk->harga_dasar ?? '') }}" {{ $isLocked ? 'readonly' : '' }} required>
         </div>
     </div>
     </div>
@@ -46,15 +50,21 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="harga_jual">Harga Jual</label>
-            <input type="number" class="form-control" value="{{ old('harga_dasar', $masterProduk->harga_jual ?? '') }}" name="harga_jual" id="harga_jual" required>
+            <input type="number" class="form-control" value="{{ old('harga_dasar', $masterProduk->harga_jual ?? '') }}" {{ $isLocked ? 'readonly' : '' }} name="harga_jual" id="harga_jual" required>
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
             <label for="include_pajak">Harga Termasuk Pajak?</label>
-            <select class="form-control" name="include_pajak" id="include_pajak">
-                <option value="0">Tidak</option>
-                <option value="1">Ya</option>
+            <select class="form-control" name="include_pajak">
+                <option value="0"
+                {{ old('include_pajak', $masterProduk->include_pajak ?? '') == 0 ? 'selected' : '' }}>
+                Tidak
+            </option>
+            <option value="1"
+                {{ old('include_pajak', $masterProduk->include_pajak ?? '') == 1 ? 'selected' : '' }}>
+                Ya
+            </option>
             </select>
         </div>
     </div>
@@ -63,7 +73,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label>Stok</label>
-            <input type="number" name="stok" class="form-control" value="{{ old('stok', $masterProduk->stok ?? '') }}" required>
+            <input type="number" name="stok" class="form-control" value="{{ old('stok', $masterProduk->stok ?? '') }}" {{ $isLocked ? 'readonly' : '' }} required>
         </div>
     </div>
     <div class="col-md-6">
@@ -92,3 +102,38 @@
     </div>
     </div>
 </div>
+ <script>
+$(document).ready(function () {
+
+    $('#nama_produk').on('keyup change', function () {
+        let nama = $(this).val();
+
+        if (nama.length < 2) {
+            // Reset jika kosong
+            $(this).removeClass('is-invalid');
+            $('#namaError').text('');
+            $('#btnSubmit').prop('disabled', false);
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('produk.check-duplicate') }}",
+            type: "GET",
+            data: { nama_produk: nama },
+            success: function (res) {
+                if (res.exists) {
+                    $('#nama_produk').addClass('is-invalid');
+                    $('#namaError').text('Nama produk sudah dipakai!');
+                    $('#btnSubmit').prop('disabled', true);
+                } else {
+                    $('#nama_produk').removeClass('is-invalid');
+                    $('#namaError').text('');
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            }
+        });
+
+    });
+
+});
+</script>

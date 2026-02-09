@@ -1,5 +1,9 @@
 @extends('layouts.main')
 @section('content')
+@php
+    $isEdit = false;
+    $isLocked = $isLocked ?? false;
+@endphp
     <div class="content-wrapper">
         <div class="content-header">
             <div class="container-fluid">
@@ -31,39 +35,5 @@
         </section>
       
     </div>
-    <script>
-$(document).ready(function () {
-
-    $('#nama_produk').on('keyup change', function () {
-        let nama = $(this).val();
-
-        if (nama.length < 2) {
-            // Reset jika kosong
-            $(this).removeClass('is-invalid');
-            $('#namaError').text('');
-            $('#btnSubmit').prop('disabled', false);
-            return;
-        }
-
-        $.ajax({
-            url: "{{ route('produk.check-duplicate') }}",
-            type: "GET",
-            data: { nama_produk: nama },
-            success: function (res) {
-                if (res.exists) {
-                    $('#nama_produk').addClass('is-invalid');
-                    $('#namaError').text('Nama produk sudah dipakai!');
-                    $('#btnSubmit').prop('disabled', true);
-                } else {
-                    $('#nama_produk').removeClass('is-invalid');
-                    $('#namaError').text('');
-                    $('#btnSubmit').prop('disabled', false);
-                }
-            }
-        });
-
-    });
-
-});
-</script>
+   
 @endsection

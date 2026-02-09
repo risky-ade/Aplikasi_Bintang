@@ -44,7 +44,7 @@
             <tbody>
                 @forelse($files as $i => $file)
                 <tr>
-                    <td>{{ $i + 1 }}</td>
+                    <th scope="file">{{ $loop->iteration }}</th>
                     <td>{{ $file->getFilename() }}</td>
                     <td>{{ number_format($file->getSize() / 1024 / 1024, 2) }} MB</td>
                     <td>{{ date('d-m-Y H:i', $file->getMTime()) }}</td>

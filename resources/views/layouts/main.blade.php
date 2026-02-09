@@ -70,8 +70,9 @@
     @include('layouts.navbar')
 
     <!-- Main Sidebar Container -->
+   
     @include('layouts.sidebar')
-
+   
     <main>
         @yield('content')
     </main>

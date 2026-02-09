@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Jobs\RunBackupJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -38,12 +40,16 @@ class BackupController extends Controller
 
     public function download($file)
     {
-        // return Storage::download('LaravelApp/'.$file);
         $path = storage_path('app/backup/' . config('app.name') . '/'. $file);
 
         if (!file_exists($path)) {
             abort(404, 'File backup tidak ditemukan');
         }
+
+        Log::channel('backup')->info('File backup didownload', [
+            'file' => $file,
+            'user_id' => Auth::id(),
+        ]);
 
         return response()->download($path);
     }
@@ -59,6 +65,10 @@ class BackupController extends Controller
         }
 
         unlink($path);
+        Log::channel('backup')->info('File backup dihapus', [
+            'file' => $file,
+            'user_id' => Auth::id(),
+        ]);
 
         return back()->with('success', 'File Backup berhasil dihapus.');
     }

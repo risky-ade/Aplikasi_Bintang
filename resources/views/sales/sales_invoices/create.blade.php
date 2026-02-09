@@ -62,10 +62,11 @@
                     </div>
                     <div class="col-md-4">
                         <label>Pelanggan</label>
-                        <select name="pelanggan_id" class="form-control" required>
+                        <select name="pelanggan_id" id="pelanggan_id" class="form-control" required>
                             <option value="">-- Pilih Pelanggan --</option>
                             @foreach ($pelanggan as $p)
-                                <option value="{{ $p->id }}">{{ $p->nama }}</option>
+                                <option value="{{ $p->id }}"{{ request('pelanggan_id') == $p->id ? 'selected' : '' }}>
+                                    {{ $p->nama }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -318,5 +319,13 @@ $(document).ready(function () {
     });
 });
 </script>
-
+<script>
+$(function () {
+    $('#pelanggan_id').select2({
+        placeholder: 'Pilih Pelanggan',
+        allowClear: true,
+        width: '100%'
+    });
+});
+</script>
 @endsection

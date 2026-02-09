@@ -8,10 +8,11 @@ use App\Models\MasterProduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\PembelianDetail;
+use App\Models\ProfilePerusahaan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\HistoriHargaPembelian;
-use App\Models\ProfilePerusahaan;
 
 class PembelianController extends Controller
 {
@@ -188,9 +189,19 @@ class PembelianController extends Controller
             }
 
             DB::commit();
+            Log::channel('pembelian')->info('Pembelian berhasil disimpan', [
+                'pembelian_id' => $pembelian->id,
+                'no_faktur' => $pembelian->no_faktur,
+                'total' => $pembelian->total,
+            ]);
             return redirect()->route('pembelian.index')->with('success', 'Transaksi pembelian berhasil disimpan.');
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::channel('pembelian')->error('Gagal simpan pembelian', [
+                'no_faktur' => $request->no_faktur ?? null,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             return back()->with('error', 'Gagal simpan: '.$e->getMessage())->withInput();
         }
     }
@@ -260,6 +271,12 @@ class PembelianController extends Controller
 
 public function update(Request $request, $id)
 {
+    Log::channel('pembelian')->info('Mulai update pembelian', [
+            'pembelian_id' => $id,
+            'user_id'      => Auth::id(),
+        ]);
+
+    try {
 
     $request->validate([
         'tanggal'          => ['required','date'],
@@ -292,7 +309,10 @@ public function update(Request $request, $id)
         // Kunci header agar aman dari race condition
         $pembelian = Pembelian::lockForUpdate()->findOrFail($id);
 
- 
+        // Log::channel('pembelian')->info('Pembelian dikunci untuk update', [
+        //         'pembelian_id' => $pembelian->id,
+        //         'no_faktur'    => $pembelian->no_faktur,
+        //     ]);
         //Ambil detail lama & total qty per produk
         $oldDetails = PembelianDetail::where('pembelian_id', $pembelian->id)->get();
 
@@ -325,6 +345,13 @@ public function update(Request $request, $id)
 
             if ($delta !== 0) {
                 $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
+
+                // Log::channel('pembelian')->info('Koreksi stok produk', [
+                //     'pembelian_id' => $pembelian->id,
+                //     'produk_id'    => $produk->id,
+                //     'nama_produk'  => $produk->nama_produk,
+                //     'qty_input'    => $request->qty[$i],
+                // ]);
 
                 $stokSesudah = (int)$produk->stok + (int)$delta;
                 if ($stokSesudah < 0) {
@@ -382,21 +409,30 @@ public function update(Request $request, $id)
 
         $produkHargaBaru = []; // [produk_id => harga_baru]
         foreach ($request->produk_id as $i => $pid) {
-            $produkHargaBaru[(int)$pid] = (float)$parseMoney($request->harga_beli[$i] ?? 0);
+            $produkHargaBaru[$pid] = $parseMoney($request->harga_beli[$i] ?? 0);
         }
 
         // Tanggal histori
         $tanggalHist = $pembelian->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString();
         foreach ($produkHargaBaru as $pid => $hargaBaru) {
+
             $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
 
             // Cek perubahan harga
-            if ((float)$hargaBaru != (float)$produk->harga_dasar) {
+            if ($hargaBaru != $produk->harga_dasar) {
+                Log::channel('pembelian')->info('Perubahan harga beli produk', [
+                        'produk_id'   => $produk->id,
+                        'nama_produk' => $produk->nama_produk,
+                        'harga_lama'  => $produk->harga_dasar,
+                        'harga_baru'  => $hargaBaru,
+                        'pemasok_id'  => $request->pemasok_id,
+                    ]);
                 $lastHistori = HistoriHargaPembelian::where('produk_id', $produk->id)
+                    ->where('pemasok_id', $pembelian->pemasok_id)
                     ->latest('id')
                     ->first();
 
-                if (!$lastHistori || (float)$lastHistori->harga_baru != (float)$hargaBaru) {
+                if (!$lastHistori || $lastHistori->harga_baru != $hargaBaru) {
                     HistoriHargaPembelian::create([
                         'produk_id'   => $produk->id,
                         'pemasok_id'  => $pembelian->pemasok_id,
@@ -423,115 +459,32 @@ public function update(Request $request, $id)
             'status_pembayaran'=> $request->status_pembayaran ?? $pembelian->status_pembayaran,
             'status'           => $request->status ?? $pembelian->status,
         ]);
+        // Log::channel('pembelian')->info('Header pembelian diperbarui', [
+        //         'pembelian_id' => $pembelian->id,
+        //         'total'        => $pembelian->total,
+        //     ]);
+        Log::channel('pembelian')->info('Faktur pembelian berhasil diupdate', [
+                'pembelian_id' => $pembelian->id,
+                'no_faktur' => $pembelian->no_faktur,
+                'user_id'      => Auth::id(),
+            ]);
+    
     });
+        return redirect()
+            ->route('pembelian.index')
+            ->with('success', 'Pembelian berhasil diperbarui. Stok telah dikoreksi berdasarkan perbedaan qty.');
+    }catch(\Throwable $e){
+        Log::channel('pembelian')->error('Gagal update pembelian', [
+            'pembelian_id' => $id,
+            'user_id'      => Auth::id(),
+            'error'        => $e->getMessage(),
+            'trace'        => $e->getTraceAsString(),
+        ]);
 
-    return redirect()
-        ->route('pembelian.index')
-        ->with('success', 'Pembelian berhasil diperbarui. Stok telah dikoreksi berdasarkan perbedaan qty.');
+        throw $e;
+    }
 }
-    // public function update(Request $request, $id)
-    // {
-    //     $request->validate([
-    //         'tanggal' => 'required|date',
-    //         'pemasok_id' => 'required',
-    //         'produk_id.*' => 'required|exists:master_produk,id',
-    //         'qty.*' => 'required|integer|min:1',
-    //         'harga_beli.*' => 'required|numeric|min:0',
-    //         'pajak' => 'nullable|numeric|min:0',
-    //     ]);
-    //     $pembelian = Pembelian::with('detail')->findOrFail($id);
-        
-    //     DB::beginTransaction();
-    //     try {
-    //         // Rollback stok dari detail lama (karena pembelian sebelumnya sudah menambah stok)
-    //         foreach ($pembelian->detail as $d) {
-    //             $produk = MasterProduk::find($d->master_produk_id);
-    //             if ($produk) {
-    //                 $produk->decrement('stok', $d->qty);
-    //             }
-    //         }
-
-    //         //  Hapus detail lama
-    //         $pembelian->detail()->delete();
-
-    //         //  Update header faktur
-    //         $pembelian->update([
-    //             'tanggal'           => $request->tanggal,
-    //             'pemasok_id'        => $request->pemasok_id,
-    //             'catatan'           => $request->catatan,
-    //             'pajak'             => $request->pajak ?? 0,
-    //             'biaya_kirim'       => $request->biaya_kirim ?? 0,
-    //             'no_po'             => $request->no_po,
-    //             'status_pembayaran' => $request->status_pembayaran ?? 'Belum Lunas',
-    //         ]);
-
-    //         $total = 0;
-
-    //         foreach ($request->produk_id as $i => $produk_id) {
-    //             $qty     = $request->qty[$i];
-    //             $harga   = $request->harga_beli[$i]??0;
-    //             $diskon  = $request->diskon[$i] ?? 0;
-    //             $subtotal = ($qty * $harga) - $diskon;
-
-    //             //  Validasi stok
-    //             $produk = MasterProduk::findOrFail($produk_id);
-    //             if ($produk->stok < $qty) {
-    //                 DB::rollBack();
-    //                 return back()->with('error', 'Stok produk "' . $produk->nama_produk . '" tidak mencukupi. Tersedia: ' . $produk->stok);
-    //             }
-
-    //             //  Simpan detail baru
-    //             PembelianDetail::create([
-    //                 'pembelian_id'     => $pembelian->id,
-    //                 'master_produk_id' => $produk_id,
-    //                 'qty'              => $qty,
-    //                 'harga_beli'       => $harga,
-    //                 'diskon'           => $diskon,
-    //                 'subtotal'         => $subtotal,
-    //             ]);
-
-    //             $produk->increment('stok', $qty);
-
-    //             //Cek histori harga terakhir produk ini
-    //             // $lastHistori = HistoriHargaPenjualan::where('produk_id', $produk->id)
-    //             //     ->where('pelanggan_id', $penjualan->pelanggan_id)
-    //             //     ->latest('created_at')
-    //             //     ->first();
-
-    //             // $hargaLama = $lastHistori ? $lastHistori->harga_baru : $produk->harga_jual;
-    //             //Catat hanya jika harga BERBEDA dari histori terakhir
-    //             // if ($harga != $hargaLama) {
-    //             //     HistoriHargaPenjualan::create([
-    //             //         'produk_id' => $produk->id,
-    //             //         'pelanggan_id'     => $penjualan->pelanggan_id,
-    //             //         'harga_lama'       => $produk->harga_jual,
-    //             //         'harga_baru'       => $harga,
-    //             //         'sumber'           => 'penjualan',
-    //             //         'tanggal'          => $penjualan->tanggal,
-    //             //         'keterangan'       => 'Perubahan harga saat UPDATE Faktur ' . $penjualan->no_faktur,
-    //             //     ]);
-    //             // }
-
-    //             $total += $subtotal;
-    //         }
-
-    //         //  Hitung ulang total faktur
-    //         $pajak = $request->pajak ? ($total * $request->pajak / 100) : 0;
-    //         $total += $pajak + ($request->biaya_kirim ?? 0);
-
-    //         $pembelian->update([
-    //             'total' => $total
-    //         ]);
-
-    //         DB::commit();
-    //         return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil diperbarui.');
-
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         return back()->with('error', 'Gagal update faktur: ' . $e->getMessage());
-    //     }
-
-    // }
+  
     public function approve($id, Request $request)
     {
          $request->validate([

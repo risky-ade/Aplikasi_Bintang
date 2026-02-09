@@ -140,7 +140,7 @@ return [
         // ],
         // AUTH
         'auth' => [
-            'driver' => 'daily',
+            'driver' => 'single',
             'path' => storage_path('logs/auth.log'),
             'level' => 'info',
             'days' => 14,
@@ -148,7 +148,7 @@ return [
 
         // PRODUK
         'produk' => [
-            'driver' => 'daily',
+            'driver' => 'single',
             'path' => storage_path('logs/produk.log'),
             'level' => 'info',
             'days' => 14,
@@ -156,18 +156,35 @@ return [
 
         // PENJUALAN
         'penjualan' => [
-            'driver' => 'daily',
+            'driver' => 'single',
             'path' => storage_path('logs/penjualan.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'retur_penjualan' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/retur_penjualan.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'pembelian' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/pembelian.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'retur_pembelian' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/pembelian.log'),
             'level' => 'info',
             'days' => 30,
         ],
 
         // BACKUP
         'backup' => [
-            'driver' => 'daily',
+            'driver' => 'single',
             'path' => storage_path('logs/backup.log'),
             'level' => 'info',
-            'days' => 30,
         ],
 
         // QUEUE / JOB

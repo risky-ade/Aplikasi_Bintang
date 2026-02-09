@@ -8,13 +8,14 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-// 🔹 Backup otomatis MINGGUAN (setiap Minggu jam 02:00)
+//Backup otomatis MINGGUAN (setiap Minggu jam 02:00)
 Schedule::command('backup:run')
     ->weekly()
     ->sendOutputTo(storage_path('logs/backup.log'))
     ->sundays()
     ->at('02:00')
     // ->everyMinute()
+    // ->everyFiveMinutes()
     ->withoutOverlapping()
     ->runInBackground()
     ->onFailure(function () {

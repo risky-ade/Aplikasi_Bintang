@@ -43,10 +43,12 @@
             </div>
             <div class="col-md-3">
               <label>Pemasok</label>
-              <select name="pemasok_id" class="form-control" required>
+              <select name="pemasok_id" id="pemasok_id" class="form-control" required>
                 <option value="">-- Pilih Pemasok --</option>
                 @foreach($pemasok as $s)
-                  <option value="{{ $s->id }}">{{ $s->nama }}</option>
+                  <option value="{{ $s->id }}"{{ request('pemasok_id') == $s->id ? 'selected' : '' }}>
+                    {{ $s->nama }}
+                  </option>
                 @endforeach
               </select>
             </div>
@@ -280,5 +282,14 @@ $(document).ready(function () {
     });
 });
   
+</script>
+<script>
+$(function () {
+    $('#pemasok_id').select2({
+        placeholder: 'Pilih Pemasok',
+        allowClear: true,
+        width: '100%'
+    });
+});
 </script>
 @endsection

@@ -75,7 +75,7 @@ Route::get('/master_produk/create', [MasterProdukController::class, 'create'])->
 Route::post('/master_produk', [MasterProdukController::class, 'store'])->name('produk.store')->middleware(['auth','permission:master_produk.store']);
 Route::get('/master_produk/{id}/edit', [MasterProdukController::class, 'edit'])->name('produk.edit')->middleware(['auth','permission:master_produk.edit']);
 Route::delete('master_produk/{id}', [MasterProdukController::class, 'destroy'])->name('produk.destroy')->middleware(['auth','permission:master_produk.destroy']);
-// Route::put('/master_produk/{id}', [MasterProdukController::class, 'update'])->name('produk.update')->middleware(['auth','permission:produk.update']);
+Route::put('/master_produk/{id}', [MasterProdukController::class, 'update'])->name('produk.update')->middleware(['auth','permission:produk.update']);
 Route::put('/master_produk/{id}/toggle', [MasterProdukController::class, 'toggleActive'])->name('master_produk.toggle')->middleware(['auth','permission:master_produk.toggle']);
 
 
