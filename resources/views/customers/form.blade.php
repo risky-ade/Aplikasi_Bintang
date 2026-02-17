@@ -12,7 +12,7 @@
 
 <div class="col-md-4">
     <label for="npwp" class="form-label">NPWP</label>
-    <input type="text" name="npwp" class="form-control" value="{{ old('npwp', $pelanggan->npwp ?? '') }}">
+    <input type="text" name="npwp" class="form-control" value="{{ old('npwp', $pelanggan->npwp ?? '-') }}">
 </div>
 </div>
 <div class="row mb-3">

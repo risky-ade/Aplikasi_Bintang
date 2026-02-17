@@ -21,56 +21,20 @@
 <div class="container-fluid">
 
 <div class="card">
-    <div class="card-header d-flex justify-content-between">
+    <div class="card-header d-flex ">
         <form method="POST" action="{{ route('backup.run') }}">
             @csrf
             <button class="btn btn-primary">
                 <i class="fas fa-database"></i> Backup Sekarang
             </button>
         </form>
+        <button id="reload-table" class="btn btn-primary mb-3 mx-3">
+            <i class="fas fa-sync"></i> Reload Tabel
+        </button>
     </div>
 
-    <div class="card-body">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Nama File</th>
-                    <th>Ukuran</th>
-                    <th>Tanggal</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($files as $i => $file)
-                <tr>
-                    <th scope="file">{{ $loop->iteration }}</th>
-                    <td>{{ $file->getFilename() }}</td>
-                    <td>{{ number_format($file->getSize() / 1024 / 1024, 2) }} MB</td>
-                    <td>{{ date('d-m-Y H:i', $file->getMTime()) }}</td>
-                    <td>
-                        <a href="{{ route('backup.download', $file->getFilename()) }}"
-                        class="btn btn-sm btn-success">
-                            <i class="fas fa-download"></i>
-                        </a>
-                        <form action="{{ route('backup.destroy', $file) }}"
-                            method="POST"
-                            class="form-delete d-inline">
-                            @csrf
-                            @method('POST')
-                            <button type="button" class="btn btn-danger btn-sm btn-delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="4" class="text-center">Belum ada backup</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div id="table-container">
+        @include('backup.table')
     </div>
 </div>
 
@@ -79,27 +43,30 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const form = this.closest('form');
+$(document).on('click', '.btn-delete', function (e) {
+    e.preventDefault();
 
-            Swal.fire({
-                title: 'Yakin hapus backup?',
-                text: 'File backup akan dihapus permanen!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, hapus',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
+    let form = $(this).closest('form');
+
+    Swal.fire({
+        title: 'Yakin hapus backup?',
+        text: 'File backup akan dihapus permanen!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
     });
+});
+</script>
+<script>
+$('#reload-table').click(function(){
+    $("#table-container").load(location.href + " #table-container>*", "");
 });
 </script>
 @endsection

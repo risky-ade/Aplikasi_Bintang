@@ -62,6 +62,7 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
 });
 
 Route::get('/',[DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
+// Route::get('/dashboard',[DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
@@ -180,6 +181,8 @@ Route::middleware(['auth','permission:backup'])
         Route::get('/backup/download/{file}', [BackupController::class, 'download'])
         ->name('backup.download');
         Route::post('/backup/{file}/delete', [BackupController::class, 'destroy'])->where('file', '.*')->name('backup.destroy');
+        // Route::get('/backup/reload', [BackupController::class, 'reload'])
+        //     ->name('backup.reload');
     });
 
 Route::middleware(['auth', 'role:superadmin'])

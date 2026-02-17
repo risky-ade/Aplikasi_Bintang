@@ -175,9 +175,27 @@ return [
         ],
         'retur_pembelian' => [
             'driver' => 'single',
-            'path' => storage_path('logs/pembelian.log'),
+            'path' => storage_path('logs/retur_pembelian.log'),
             'level' => 'info',
             'days' => 30,
+        ],
+        'pelanggan' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/pelanggan.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'pemasok' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/pemasok.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'user' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/user.log'),
+            'level' => 'info',
+            'days' => 14,
         ],
 
         // BACKUP

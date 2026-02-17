@@ -111,7 +111,12 @@ class PenjualanController extends Controller
         try{
             Log::channel('penjualan')->info('Mulai proses simpan penjualan', [
                 'no_faktur' => $request->no_faktur,
-                'user_id' => Auth::id(),
+                'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
             ]);
 
              $request->validate([
@@ -200,7 +205,7 @@ class PenjualanController extends Controller
                         'keterangan'       => 'Perubahan harga saat transaksi Faktur ' . $penjualan->no_faktur,
                     ]);
                 }
-                // Kurangi stok
+               
                 $produk->decrement('stok', $qty);
             }
             DB::commit();
@@ -218,7 +223,12 @@ class PenjualanController extends Controller
 
             Log::channel('penjualan')->error('Gagal simpan penjualan', [
                 'no_faktur' => $request->no_faktur ?? null,
-                'user_id' => Auth::id(),
+                'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
                 'error' => $e->getMessage(),
             ]);
 
@@ -285,7 +295,12 @@ class PenjualanController extends Controller
         DB::beginTransaction();
         Log::channel('penjualan')->info('Mulai update faktur penjualan', [
             'penjualan_id' => $id,
-            'user_id'      => Auth::id(),
+            'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
         ]);
         try {
             // Kembalikan stok lama sebelum update
@@ -386,7 +401,12 @@ class PenjualanController extends Controller
             DB::rollBack();
             Log::channel('penjualan')->error('Gagal update faktur penjualan', [
                 'penjualan_id' => $id,
-                'user_id' => Auth::id(),
+                'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
                 'error' => $e->getMessage(),
             ]);
             return back()->with('error', 'Gagal update faktur: ' . $e->getMessage());
@@ -543,7 +563,12 @@ class PenjualanController extends Controller
             Log::channel('penjualan')->info('Invoice dilunasi', [
                 'penjualan_id' => $penjualan->id,
                 'paid_date' => $paidDate->toDateTimeString(),
-                'approved_by' => Auth::id(),
+                'approved_by'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
             ]);
             return redirect()->back()->with('success', 'Invoice berhasil ditandai sebagai lunas per ' . Carbon::parse($paidDate)->format('d/m/Y') . '.');
 
@@ -594,7 +619,12 @@ class PenjualanController extends Controller
             DB::commit();
             Log::channel('penjualan')->warning('Pelunasan dibatalkan', [
                 'penjualan_id' => $penjualan->id,
-                'user_id' => Auth::id(),
+                'unapprove_by'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
             ]);
             return back()->with('success', 'Pelunasan berhasil dibatalkan.');
 
@@ -602,7 +632,12 @@ class PenjualanController extends Controller
          DB::rollBack();
             Log::channel('penjualan')->error('Gagal Unapprove Invoice', [
                 'penjualan_id' => $penjualan->id,
-                'approved_by' => Auth::id(),
+                'approved_by'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
                 'error' => $e->getMessage(),
             ]);
             return redirect()->back()->with('error', 'Invoice Gagal dibatalkan ');
@@ -640,7 +675,12 @@ class PenjualanController extends Controller
             Log::channel('penjualan')->warning('Faktur dibatalkan', [
                 'penjualan_id' => $penjualan->id,
                 'no_faktur' => $penjualan->no_faktur,
-                'user_id' => Auth::id(),
+                'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
             ]);
 
             return redirect()->route('penjualan.index')->with('success', 'Faktur berhasil dibatalkan.');
@@ -649,7 +689,13 @@ class PenjualanController extends Controller
             Log::channel('penjualan')->warning('Faktur Gagal dibatalkan', [
                 'penjualan_id' => $penjualan->id,
                 'no_faktur' => $penjualan->no_faktur,
-                'user_id' => Auth::id(),
+                'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+                'ip_address' => request()->ip(),
+                'waktu'=> now()->toDateTimeString(),
+                'error' => $e->getMessage(),
             ]);
 
             return redirect()->route('penjualan.index')->with('success', 'Faktur Gagal dibatalkan.');

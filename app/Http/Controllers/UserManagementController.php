@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Throwable;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,32 +29,53 @@ class UserManagementController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name'      => ['required','string','max:255'],
-            'username'  => ['required','string','max:50','alpha_dash','unique:users,username'],
-            'email'     => ['required','email','max:255','unique:users,email'],
-            'role_id'   => ['required','exists:roles,id'],
-            'photo'     => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
-            'password'  => ['required','min:6','confirmed'],
-        ], [
-            'password.confirmed' => 'Konfirmasi password tidak sama.',
-            'username.alpha_dash' => 'Username hanya boleh huruf, angka, dash (-), underscore (_).',
-        ]);
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('users', 'public');
+        try{
+            $validate = $request->validate([
+                'name'      => ['required','string','max:255'],
+                'username'  => ['required','string','max:50','alpha_dash','unique:users,username'],
+                'email'     => ['required','email','max:255','unique:users,email'],
+                'role_id'   => ['required','exists:roles,id'],
+                'photo'     => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
+                'password'  => ['required','min:6','confirmed'],
+            ], [
+                'password.confirmed' => 'Konfirmasi password tidak sama.',
+                'username.alpha_dash' => 'Username hanya boleh huruf, angka, dash (-), underscore (_).',
+            ]);
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('users', 'public');
+            }
+
+            $user = User::create([
+                'name'     => $validate['name'],
+                'username' => $validate['username'],
+                'email'    => $validate['email'],
+                'role_id'  => $validate['role_id'],
+                'photo'    => $photoPath,
+                'password' => Hash::make($validate['password']),
+            ]);
+
+            Log::channel('user')->info('User berhasil ditambahkan', [
+                'user_created_id' => $user->id,
+                'username' => $user->username,
+                'role_id' => $user->role_id,
+                'created_by' => [
+                    'id' => Auth::id(),
+                    'name' => Auth::user()->name ?? '-',
+                ],
+                'ip_address' => request()->ip(),
+            ]);
+
+            return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
+        }catch(\Throwable $e){
+            Log::channel('user')->error('User gagal ditambahkan', [
+                'username' => $request->username ?? '',
+                'created_by' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error','User gagal ditambahkan.');
         }
-
-        User::create([
-            'name'     => $request->name,
-            'username' => $request->username,
-            'email'    => $request->email,
-            'role_id'  => $request->role_id,
-            'photo'    => $photoPath,
-            'password' => Hash::make($request->password),
-        ]);
-
-        return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
     }
 
 
@@ -63,6 +88,7 @@ class UserManagementController extends Controller
 
     public function update(Request $request, User $user)
     {
+        try{
         if ($user->isSuperAdmin() && $user->id === 1) {
        
             $rules = [
@@ -107,17 +133,40 @@ class UserManagementController extends Controller
             unset($data['username']); 
         }
 
+        $oldData = $user->only(['name','username','email','role_id']);
         $user->update($data);
 
+        Log::channel('user')->info('User berhasil diperbarui', [
+            'user_id' => $user->id,
+            'old_data' => $oldData,
+            'new_data' => $user->only(['name','username','email','role_id']),
+            'updated_by' => [
+                'id' => Auth::id(),
+                'name' => Auth::user()->name ?? '-',
+            ],
+            'ip_address' => request()->ip(),
+        ]);
+
         return redirect()->route('users.index')->with('success','User berhasil diperbarui.');
+
+        }catch(\Throwable $e){
+        Log::channel('user')->error('User gagal diperbarui', [
+            'user_id' => $user->id ?? null,
+            'error' => $e->getMessage(),
+            'updated_by' => Auth::id(),
+        ]);
+        return back()->with('error','User gagal diperbarui.');
+        }
     }
 
     public function destroy(User $user)
     {
-        
+        try{
         if ($user->isSuperAdmin() && (int)$user->id === 1) {
             return back()->with('error', 'Akun superadmin default tidak dapat dihapus.');
         }
+
+        $deletedUser = $user->only(['id','username','email','role_id']);
 
         if ($user->photo && Storage::disk('public')->exists($user->photo)) {
             Storage::disk('public')->delete($user->photo);
@@ -125,6 +174,26 @@ class UserManagementController extends Controller
 
         $user->delete();
 
+        Log::channel('user')->info('User berhasil dihapus', [
+            'deleted_user' => $deletedUser,
+            'deleted_by' => [
+                'id' => Auth::id(),
+                'name' => Auth::user()->name ?? '-',
+            ],
+            'ip_address' => request()->ip(),
+        ]);
+
         return back()->with('success', 'User berhasil dihapus.');
+
+        } catch (\Throwable $e) {
+
+            Log::channel('user')->error('User gagal dihapus', [
+                'user_id' => $user->id ?? null,
+                'deleted_by' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error','User gagal dihapus.');
+        }
     }
 }

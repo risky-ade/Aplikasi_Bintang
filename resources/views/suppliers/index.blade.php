@@ -1,26 +1,33 @@
 @extends('layouts.main')
 @section('content')
-  <!-- Content Wrapper. Contains page content -->
+<style>
+.nowrap th, .nowrap td { white-space: nowrap; }
+
+.alamat-col {
+    max-width: 250px;
+    -webkit-line-clamp: 1; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>
   <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
             <h1 class="m-0">Pemasok</h1>
-          </div><!-- /.col -->
+          </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="#">Home</a></li>
               <li class="breadcrumb-item active">Pemasok</li>
             </ol>
-          </div><!-- /.col -->
-        </div><!-- /.row -->
-      </div><!-- /.container-fluid -->
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
         <div class="row">
@@ -32,7 +39,8 @@
                   </div>
                 </div>
                 <div class="card-body">
-                <table class="table table-bordered table-striped" id="DataTable">
+                <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover w-100 nowrap" id="DataTable">
                   <thead class="bg-secondary text-white">
                       <tr>
                           <th>No</th>
@@ -54,15 +62,12 @@
                               <td>{{ $p->email }}</td>
                               <td>{{ $p->npwp }}</td>
                               <td>{{ $p->no_hp }}</td>
-                              <td>{{ $p->alamat }}</td>
+                              <td class="alamat-col" data-bs-toggle="tooltip" title="{{ $p->alamat }}">{{ $p->alamat }}</td>
+                              {{-- <td data-bs-toggle="tooltip" title="{{ $p->alamat }}">{{\Illuminate\Support\Str::limit( $p->alamat,16, '...')  }}</td> --}}
                               <td>{{ $p->kota }}</td>
                               <td>{{ $p->provinsi }}</td>
                               <td>
                                   <a href="{{ route('suppliers.edit', $p->id) }}" class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></a>
-                                  {{-- <form action="{{ route('customers.destroy', $p->id) }}" method="POST" style="display:inline;">
-                                      @csrf @method('DELETE')
-                                      <button onclick="return confirm('Hapus pelanggan ini?')" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                                    </form> --}}
                                     <button class="btn btn-danger btn-sm btn-delete" data-id="{{ $p->id }}" data-nama="{{ $p->nama }}"><i class="fas fa-trash"></i></button>
                               </td>
                           </tr>
@@ -70,20 +75,26 @@
                   </tbody>
               </table>
               </div>
-              {{ $pemasoks->links() }}
+              </div>
               </div>
             </div>
         </div>
       </div>
     </section>
-    <!-- /.content -->
   </div>
 </div>
 <script>
-  $(document).ready(function() {
+$(document).ready(function() {
     $('#DataTable').DataTable({
-      "pageLength": 10,
-      "lengthMenu": [10, 15, 25, 50, 100],
+      autoWidth: false,    
+      responsive: false,    
+      pageLength: 10,
+      lengthMenu: [10, 15, 25, 50, 100],
+      columnDefs: [
+        { targets: [0,1,2,3,4,6,7,8], className: 'text-nowrap' },
+        { targets: [5], width: '200px' }
+      ],
+
       "language": {
         "search": "Cari:",
         "lengthMenu": "Tampilkan _MENU_ baris per halaman",
@@ -97,6 +108,10 @@
         }
       },
     });
+  });
+
+  $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip();
   });
 </script>
 {{-- script delete --}}

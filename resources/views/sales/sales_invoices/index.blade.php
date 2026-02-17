@@ -123,7 +123,6 @@
                             <span class="badge badge-danger">Batal</span>
                           @endif
                         </td>
-                        {{-- tombol aksi --}}
                           <td>
                             <div class="dropdown ">
                               <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-toggle="dropdown">

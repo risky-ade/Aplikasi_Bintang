@@ -46,6 +46,12 @@ class DashboardController extends Controller
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'lunas')
             ->sum('total_netto_calc');
+        
+        $totalPiutangPembelian = DB::table('pembelian')
+            // ->whereYear('tanggal', $year)
+            ->where('status', '!=', 'batal')
+            ->where('status_pembayaran', 'Belum Lunas')
+            ->sum('total_netto_calc');
 
 
         $bulanIni = now()->month;
@@ -98,6 +104,7 @@ class DashboardController extends Controller
             'totalNominalPenjualan',
             'totalPiutangPenjualan',
             'totalNominalPembelian',
+            'totalPiutangPembelian',
             'penghasilanBulanIni',
             'months',
             'year',

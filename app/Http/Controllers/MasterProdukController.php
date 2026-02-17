@@ -92,8 +92,12 @@ class MasterProdukController extends Controller
             'produk_id' => $produk->id,
             'nama'=> $produk->nama_produk,
             'harga_jual'=> $produk->harga_jual,
-            'user_id' => Auth::id(),
-            'ip'=> $request->ip(),
+            'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+            'ip_address' => request()->ip(),
+            'waktu'=> now()->toDateTimeString(),
         ]);
         return redirect('/master_produk')->with('success', 'Produk berhasil ditambahkan');
 
@@ -181,7 +185,12 @@ class MasterProdukController extends Controller
         Log::channel('produk')->info('Produk diperbarui', [
             'produk_id' => $masterProduk->id,
             'nama' => $masterProduk->nama_produk,
-            'user_id' => Auth::id(),
+            'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+            'ip_address' => request()->ip(),
+            'waktu'=> now()->toDateTimeString(),
         ]);
         return redirect('/master_produk')->with('success', 'Produk berhasil diperbarui');
     }
@@ -221,7 +230,12 @@ class MasterProdukController extends Controller
         Log::channel('produk')->info('Produk dihapus', [
             'produk_id' => $produk->id,
             'nama' => $produk->nama_produk,
-            'user_id' => Auth::id(),
+            'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+            'ip_address' => request()->ip(),
+            'waktu'=> now()->toDateTimeString(),
         ]);
         return response()->json(['message' => 'Produk berhasil dihapus.']);
 
@@ -259,7 +273,12 @@ class MasterProdukController extends Controller
             'produk_id' => $produk->id,
             'nama' => $produk->nama_produk,
             'status' => $produk->is_active ? 'aktif' : 'nonaktif',
-            'user_id' => Auth::id(),
+            'user'=>[
+                    'id' => Auth::id(),
+                    'name'=> Auth::user()->name,
+                    ],
+            'ip_address' => request()->ip(),
+            'waktu'=> now()->toDateTimeString(),
         ]);
 
         return response()->json([

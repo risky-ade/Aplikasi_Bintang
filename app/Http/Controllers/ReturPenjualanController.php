@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use id;
 use App\Models\Penjualan;
 use App\Models\MasterProduk;
-use App\Models\PenjualanDetail;
 use Illuminate\Http\Request;
 use App\Models\ReturPenjualan;
+use App\Models\PenjualanDetail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\ReturPenjualanDetail;
 use Illuminate\Support\Facades\Auth;
 
@@ -86,13 +87,14 @@ class ReturPenjualanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'penjualan_id' => 'required|exists:penjualan,id',
+            'penjualan_id'  => 'required|exists:penjualan,id',
+            'no_retur'      => ['required|unique:retur_penjualan,no_retur',],
             'tanggal_retur' => 'required|date',
-            'produk_id'      => ['required','array','min:1'],
-            'produk_id.*'    => ['required','exists:master_produk,id'],
-            'qty_retur'      => ['required','array','min:1'],
-            'qty_retur.*' => 'nullable|integer|min:0',
-            'alasan'      => 'nullable|string',
+            'produk_id'     => ['required','array','min:1'],
+            'produk_id.*'   => ['required','exists:master_produk,id'],
+            'qty_retur'     => ['required','array','min:1'],
+            'qty_retur.*'   => 'nullable|integer|min:0',
+            'alasan'        => 'nullable|string',
         ]);
 
         $last = ReturPenjualan::orderBy('id', 'desc')->first();
@@ -101,6 +103,10 @@ class ReturPenjualanController extends Controller
 
         DB::beginTransaction();
         try {
+            Log::channel('retur_penjualan')->info('Mulai proses simpan retur penjualan', [
+                'no_retur' => $noRetur,
+                'user_id' => Auth::id(),
+            ]);
             $retur = ReturPenjualan::create([
                 'no_retur' => $noRetur,
                 'penjualan_id' => $request->penjualan_id,
@@ -161,10 +167,19 @@ class ReturPenjualanController extends Controller
 
             $retur->update(['total' => $total]);
             DB::commit();
-
+            Log::channel('retur_penjualan')->info('Retur penjualan berhasil disimpan', [
+                'retur_id' => $retur->id,
+                'no_retur' => $noRetur,
+                'total' => $retur->total,
+            ]);
             return redirect()->route('retur-penjualan.index')->with('success', 'Retur berhasil disimpan.');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::channel('retur_penjualan')->error('Gagal simpan retur penjualan', [
+                'no_retur' => $noRetur,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             return back()->with('error', 'Gagal menyimpan retur: ' . $e->getMessage());
         }
     }
@@ -186,12 +201,13 @@ class ReturPenjualanController extends Controller
             }
         }
 
-        // Hapus detail retur duluan
         $retur->details()->delete();
-
-        // Hapus data utama
         $retur->delete();
-
+        Log::channel('retur_penjualan')->info('Retur penjualan dihapus', [
+            'retur_id' => $retur->id,
+            'no_retur' => $retur->no_retur,
+            'user_id' => Auth::id(),
+        ]);
         return redirect()->route('retur-penjualan.index')->with('success', 'Retur penjualan berhasil dihapus.');
     }
 

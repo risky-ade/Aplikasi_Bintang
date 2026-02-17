@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\ReturPembelian;
 use App\Models\PembelianDetail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\ReturPembelianDetail;
 use Illuminate\Support\Facades\Auth;
 
@@ -85,6 +86,7 @@ class ReturPembelianController extends Controller
     {
         $request->validate([
             'pembelian_id'  => ['required','exists:pembelian,id'],
+            'no_retur'      => ['required|unique:retur_pembelian,no_retur',],
             'tanggal_retur' => ['required','date'],
             'produk_id'     => ['required','array','min:1'],
             'produk_id.*'   => ['required','exists:master_produk,id'],
@@ -99,6 +101,10 @@ class ReturPembelianController extends Controller
 
         DB::beginTransaction();
         try {
+            Log::channel('retur_pembelian')->info('Mulai proses simpan retur pembelian', [
+                'no_retur' => $noRetur,
+                'user_id' => Auth::id(),
+            ]);
             $retur = ReturPembelian::create([
                 'no_retur'      => $noRetur,
                 'pembelian_id'  => $request->pembelian_id,
@@ -121,7 +127,7 @@ class ReturPembelianController extends Controller
 
                 $qtyBaris   = max(1, (int)$pd->qty);
                 $hargaUnit  = (float) ($pd->harga_beli ?? 0);
-                $diskonUnit = (float) ($pd->diskon ?? 0); // per unit
+                $diskonUnit = (float) ($pd->diskon ?? 0);
 
                 // validasi qty retur tidak melebihi qty beli
                 $sudahRetur = DB::table('retur_pembelian as r')
@@ -160,9 +166,19 @@ class ReturPembelianController extends Controller
             $retur->update(['total' => $total]);
 
             DB::commit();
+            Log::channel('retur_pembelian')->info('Retur pembelian berhasil disimpan', [
+                'retur_id' => $retur->id,
+                'no_retur' => $noRetur,
+                'total' => $retur->total,
+            ]);
             return redirect()->route('retur-pembelian.index')->with('success', 'Retur pembelian berhasil disimpan.');
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::channel('retur_pembelian')->error('Gagal simpan retur pembelian', [
+                'no_retur' => $noRetur,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             return back()->with('error', 'Gagal menyimpan retur pembelian: '.$e->getMessage())->withInput();
         }
     }
@@ -196,7 +212,11 @@ class ReturPembelianController extends Controller
 
         // Hapus data utama
         $retur->delete();
-
+        Log::channel('retur_pembelian')->info('Retur pembelian dihapus', [
+            'retur_id' => $retur->id,
+            'no_retur' => $retur->no_retur,
+            'user_id' => Auth::id(),
+        ]);
         return redirect()->route('retur-pembelian.index')->with('success', 'Retur penjualan berhasil dihapus.');
     }
 }

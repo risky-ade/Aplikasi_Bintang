@@ -73,4 +73,16 @@ class BackupController extends Controller
         return back()->with('success', 'File Backup berhasil dihapus.');
     }
 
+    public function reload()
+    {
+        // $backups = $this->getBackupData(); // method ambil data backup
+        $path = storage_path('app/backup/Laravel');
+
+        $files = File::exists($path)
+            ? collect(File::files($path))->sortByDesc(fn ($f) => $f->getMTime())
+            : collect();
+
+        return view('backup.table', compact('files'));
+    }
+
 }
