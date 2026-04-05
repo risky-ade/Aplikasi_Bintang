@@ -64,9 +64,6 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
 Route::get('/',[DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 // Route::get('/dashboard',[DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware('auth');
 
 // Route::resource('/master_produk', MasterProdukController::class)->middleware(['auth']);
 Route::get('/master_produk', [MasterProdukController::class, 'index'])->name('master_produk.index')->middleware(['auth']);

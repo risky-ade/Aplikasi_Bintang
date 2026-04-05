@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
+// use Illuminate\Support\Facades\File;
 use App\Models\HistoriHargaPenjualan;
 use Illuminate\Support\Facades\Storage;
 use function PHPUnit\Framework\returnSelf;
@@ -162,29 +162,30 @@ class MasterProdukController extends Controller
             $data['gambar'] = $request->file('gambar')->store('gambar_produk', 'public');
         }
         
-        // if ($masterProduk->harga_jual != $request->harga_jual) {
-        //     HistoriHargaPenjualan::create([
-        //         'produk_id' => $masterProduk->id,
-        //         'harga_lama' => $masterProduk->getOriginal('harga_jual'),
-        //         'harga_baru' => $request->harga_jual,
-        //         'sumber' => 'produk',
-        //         'tanggal' => now(),
-        //         'keterangan' => 'Update dari master produk',
-        //     ]);
+        if ($masterProduk->harga_jual != $request->harga_jual) {
+            HistoriHargaPenjualan::create([
+                'produk_id' => $masterProduk->id,
+                'harga_lama' => $masterProduk->getOriginal('harga_jual'),
+                'harga_baru' => $request->harga_jual,
+                'sumber' => 'produk',
+                'tanggal' => now(),
+                'keterangan' => 'Update dari master produk',
+            ]);
 
-        //     Log::channel('produk')->info('Perubahan harga produk', [
-        //         'produk_id' => $masterProduk->id,
-        //         'nama' => $masterProduk->nama_produk,
-        //         'harga_lama' => $masterProduk->harga_jual,
-        //         'harga_baru' => $request->harga_jual,
-        //         'user_id' => Auth::id(),
-        //     ]);
-        // }
+            Log::channel('produk')->info('Perubahan harga produk', [
+                'produk_id' => $masterProduk->id,
+                'nama' => $masterProduk->nama_produk,
+                'harga_lama' => $masterProduk->harga_jual,
+                'harga_baru' => $request->harga_jual,
+                'user_id' => Auth::id(),
+            ]);
+        }
         $masterProduk->update($data);
 
         Log::channel('produk')->info('Produk diperbarui', [
             'produk_id' => $masterProduk->id,
             'nama' => $masterProduk->nama_produk,
+            'harga_jual'=> $masterProduk->harga_jual,
             'user'=>[
                     'id' => Auth::id(),
                     'name'=> Auth::user()->name,

@@ -118,15 +118,15 @@
       },
     });
 
-    // SweetAlert flash
-    const ok = document.getElementById('swal-success');
-    if (ok) {
-      Swal.fire({ icon:'success', title:'Berhasil', text: ok.dataset.msg });
-    }
-    const err = document.getElementById('swal-error');
-    if (err) {
-      Swal.fire({ icon:'error', title:'Gagal', text: err.dataset.msg });
-    }
+    // // SweetAlert flash
+    // const ok = document.getElementById('swal-success');
+    // if (ok) {
+    //   Swal.fire({ icon:'success', title:'Berhasil', text: ok.dataset.msg });
+    // }
+    // const err = document.getElementById('swal-error');
+    // if (err) {
+    //   Swal.fire({ icon:'error', title:'Gagal', text: err.dataset.msg });
+    // }
 
     // SweetAlert delete
     $(document).on('click', '.btn-delete-user', function () {

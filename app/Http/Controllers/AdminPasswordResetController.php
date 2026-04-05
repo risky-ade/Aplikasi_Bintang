@@ -69,16 +69,8 @@ class AdminPasswordResetController extends Controller
         return response()->json(['message' => 'Request berhasil dihapus.']);
     }
 
-    /**
-     * Hapus semua request yang sudah diproses agar tidak menumpuk
-     * Sesuaikan kondisi "sudah diproses" dengan kolom di tabel kamu.
-     */
     public function destroyProcessed()
     {
-        // contoh A: pakai kolom processed_at
-        // $deleted = PasswordResetRequest::whereNotNull('processed_at')->delete();
-
-        // contoh B: pakai kolom status
         $deleted = PasswordResetRequest::where('status', 'done')->delete();
 
         return response()->json([

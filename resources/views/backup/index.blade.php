@@ -29,7 +29,7 @@
             </button>
         </form>
         <button id="reload-table" class="btn btn-primary mb-3 mx-3">
-            <i class="fas fa-sync"></i> Reload Tabel
+            <i class="fas fa-sync"></i> Reload
         </button>
     </div>
 

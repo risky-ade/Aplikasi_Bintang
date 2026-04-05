@@ -55,6 +55,11 @@
             padding: 8px;
             margin-top: 8px;
         }
+        .catatan-box {
+            /* border: 1px solid #000; */
+            padding-top: 4px;
+            margin-top: 2px;
+        }
 
         .ttd-table td {
             text-align: center;
@@ -166,6 +171,10 @@
                 {{ $profil->nama_bank }}<br>
                 No Rek: {{ $profil->no_rekening }}
             </div>
+            <div class="catatan-box">
+                <strong>Catatan:</strong><br>
+                <em>{{ $penjualan->catatan ?? '-'  }}</em>
+            </div>
         </td>
         <td width="45%">
             <table class="summary-table">
@@ -189,6 +198,16 @@
         </td>
     </tr>
 </table>
+{{-- <table>
+    <tr>
+        <td width="55%" valign="top">
+            <div class="catatan-box">
+                <strong>Catatan:</strong><br>
+                <em>{{ $penjualan->catatan ?? '-'  }}</em>
+            </div>
+        </td>
+    </tr>
+</table> --}}
 
 <br><br>
 
