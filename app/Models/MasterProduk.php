@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 
 class MasterProduk extends Model
 {
@@ -53,6 +53,11 @@ class MasterProduk extends Model
     public function returPembelianDetail()
     {
         return $this->hasMany(ReturPembelianDetail::class, 'produk_id');
+    }
+
+    public function stokOpnameDetail()
+    {
+        return $this->hasMany(StokOpnameDetail::class, 'master_produk_id');
     }
 
     public function isUsedInTransaction(): bool

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use id;
+
 use App\Models\Penjualan;
 use App\Models\MasterProduk;
 use Illuminate\Http\Request;
@@ -97,90 +97,119 @@ class ReturPenjualanController extends Controller
             'alasan'        => 'nullable|string',
         ]);
 
-        $last = ReturPenjualan::orderBy('id', 'desc')->first();
-        $nextId = $last ? $last->id + 1 : 1;
-        $noRetur = 'RT-' . date('Ymd') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
-
         DB::beginTransaction();
         try {
-            Log::channel('retur_penjualan')->info('Mulai proses simpan retur penjualan', [
+            
+            $penjualan = Penjualan::lockForUpdate()->findOrFail($request->penjualan_id);
+
+            // Generate nomor retur (lebih aman pakai waktu)
+            $lastId = ReturPenjualan::where('tanggal_retur',now()->format('Y-m-d'))->count();
+            // dd($lastId);
+            // $no_faktur = 'FPJ-' . date('Ymd') . '/' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
+            // $noRetur = 'RT-' . now()->format('YmdHi');
+            $noRetur = 'RT-' . date('Ymd') . '/' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
+
+            Log::channel('retur_penjualan')->info('Mulai proses retur penjualan', [
                 'no_retur' => $noRetur,
-                'user_id' => Auth::id(),
+                'penjualan_id' => $penjualan->id,
+                'user' => Auth::user()->name ?? null,
             ]);
+
+            // Ambil semua detail penjualan sekali query
+            $details = PenjualanDetail::where('penjualan_id', $penjualan->id)
+                ->get()
+                ->keyBy('master_produk_id');
+
+            // Ambil total retur sebelumnya
+            $returSebelumnya = DB::table('retur_penjualan as r')
+                ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id', '=', 'r.id')
+                ->where('r.penjualan_id', $penjualan->id)
+                ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total'))
+                ->groupBy('rd.produk_id')
+                ->pluck('total', 'rd.produk_id')
+                ->toArray();
+
+            // Simpan header
             $retur = ReturPenjualan::create([
-                'no_retur' => $noRetur,
-                'penjualan_id' => $request->penjualan_id,
-                'tanggal_retur' => $request->tanggal_retur,
-                'alasan' => $request->alasan,
-                'total' => 0,
-                'created_by' => Auth::id(),
+                'no_retur'       => $noRetur,
+                'penjualan_id'   => $penjualan->id,
+                'tanggal_retur'  => $request->tanggal_retur,
+                'alasan'         => $request->alasan,
+                'total'          => 0,
+                'created_by'     => Auth::id(),
             ]);
 
-            
             $total = 0;
+            $detailInsert = [];
+
             foreach ($request->produk_id as $i => $produkId) {
+
                 $qtyRetur = (int) ($request->qty_retur[$i] ?? 0);
-                // $harga = (int) $request->harga_jual[$i];
-                // $diskon = (int) $request->diskon[$i];
-                if($qtyRetur <= 0)continue;
-                // if ($qtyRetur > 0) {
-                //     $subtotal = ($qtyRetur * $harga - $qtyRetur * $diskon);
-                $pd = PenjualanDetail::where('penjualan_id', $request->penjualan_id)
-                ->where('master_produk_id', $produkId)
-                ->firstOrFail();
+                if ($qtyRetur <= 0) continue;
 
-                $sudahRetur = DB::table('retur_penjualan as r')
-                ->join('retur_penjualan_detail as rd', 'rd.retur_penjualan_id','=', 'r.id')
-                ->where('r.penjualan_id', $request->penjualan_id)
-                ->where('rd.produk_id', $produkId) // (kolom di retur detail)
-                ->sum('rd.qty_retur');
+                $pd = $details[$produkId] ?? null;
+                if (!$pd) {
+                    throw new \Exception("Produk tidak ditemukan pada faktur.");
+                }
 
-                $sisaBoleh = max(0, (int)$pd->qty - (int)$sudahRetur);
+                $qtyJual   = (int) $pd->qty;
+                $qtyReturLama = (int) ($returSebelumnya[$produkId] ?? 0);
+                $sisaBoleh = max(0, $qtyJual - $qtyReturLama);
+
                 if ($qtyRetur > $sisaBoleh) {
-                    throw new \RuntimeException('Qty retur ' . $qtyRetur . ' melebihi sisa boleh retur ' . $sisaBoleh . ' untuk produk tersebut.');
+                    throw new \Exception("Qty retur melebihi sisa ($sisaBoleh) untuk produk ID $produkId");
                 }
 
-                // Hitung per unit
-                $hargaUnit   = (float) ($pd->harga_jual ?? 0);
-                // $qtyBaris    = max(1, (int) $pd->qty);
-                // $diskonTotal = (float)($pd->diskon ?? 0); 
-                // $diskonTotal = (float)($pd->diskon ?? 0); 
-                // $diskonUnit  = $diskonTotal / $qtyBaris;
-                $diskonUnit  = (float)($pd->diskon ?? 0);
+                $harga   = (float) $pd->harga_jual;
+                $diskon  = (float) $pd->diskon;
+                $net     = max(0, $harga - $diskon);
+                $subtotal = $qtyRetur * $net;
 
-                $netPerUnit  = max(0, $hargaUnit - $diskonUnit);
-                $subRetur    = $qtyRetur * $netPerUnit;
+                // 🔒 Lock produk sebelum update stok
+                $produk = MasterProduk::lockForUpdate()->findOrFail($produkId);
+                $produk->increment('stok', $qtyRetur);
 
-                    ReturPenjualanDetail::create([
-                        'retur_penjualan_id' => $retur->id,
-                        'produk_id' => $produkId,
-                        'qty_retur' => $qtyRetur,
-                        'harga_jual' => $hargaUnit, //dibekukan
-                        'diskon_unit' => $diskonUnit, //simpan jejak
-                        'subtotal' => $subRetur,
-                    ]);
+                $detailInsert[] = [
+                    'retur_penjualan_id' => $retur->id,
+                    'produk_id' => $produkId,
+                    'qty_retur' => $qtyRetur,
+                    'harga_jual' => $harga,
+                    'diskon_unit' => $diskon,
+                    'subtotal' => $subtotal,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
 
-                    MasterProduk::where('id', $produkId)->increment('stok', $qtyRetur);
-                    $total += $subRetur;
-                }
-            
+                $total += $subtotal;
+            }
+
+            if (!empty($detailInsert)) {
+                ReturPenjualanDetail::insert($detailInsert);
+            }
 
             $retur->update(['total' => $total]);
+
             DB::commit();
-            Log::channel('retur_penjualan')->info('Retur penjualan berhasil disimpan', [
+
+            Log::channel('retur_penjualan')->info('Retur berhasil', [
                 'retur_id' => $retur->id,
-                'no_retur' => $noRetur,
-                'total' => $retur->total,
-            ]);
-            return redirect()->route('retur-penjualan.index')->with('success', 'Retur berhasil disimpan.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::channel('retur_penjualan')->error('Gagal simpan retur penjualan', [
-                'no_retur' => $noRetur,
+                'total' => $total,
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
             ]);
-            return back()->with('error', 'Gagal menyimpan retur: ' . $e->getMessage());
+
+            return redirect()->route('retur-penjualan.index')
+                ->with('success', 'Retur berhasil disimpan.');
+
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+            Log::channel('retur_penjualan')->error('Retur gagal', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id(),
+            ]);
+
+            return back()->with('error', $e->getMessage());
         }
     }
     public function destroy($id)

@@ -74,6 +74,12 @@
                                 <p>Satuan</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="/stock_opname" class="nav-link">
+                                <i class="nav-icon fas fa-copy"></i>
+                                <p>Stok Opname</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

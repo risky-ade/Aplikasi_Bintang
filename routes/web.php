@@ -1,31 +1,29 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
-use Rap2hpoutre\LaravelLogViewer\LogViewerController;
-
-use App\Http\Controllers\LoginController;
-use App\Http\Controllers\BackupController;
-use App\Http\Controllers\SatuanController;
-use App\Http\Controllers\PemasokController;
-use App\Http\Controllers\KategoriController;
-use App\Http\Controllers\DashboardController;
-// use App\Http\Controllers\LogViewerController;
-use App\Http\Controllers\PelangganController;
-use App\Http\Controllers\PembelianController;
-use App\Http\Controllers\PenjualanController;
-use App\Http\Controllers\MasterProdukController;
-use App\Http\Controllers\ReturPembelianController;
-use App\Http\Controllers\ReturPenjualanController;
-use App\Http\Controllers\UserManagementController;
-use App\Http\Controllers\LaporanPembelianController;
-use App\Http\Controllers\LaporanPenjualanController;
-use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\AdminPasswordResetController;
+use App\Http\Controllers\BackupController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForgotPasswordRequestController;
 use App\Http\Controllers\HistoriHargaPembelianController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LaporanPembelianController;
+use App\Http\Controllers\LaporanPenjualanController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PemasokController;
+use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\ProfilePerusahaanController;
+use App\Http\Controllers\ReturPembelianController;
+use App\Http\Controllers\ReturPenjualanController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SatuanController;
+use App\Http\Controllers\StokOpnameController;
+use App\Http\Controllers\UserManagementController;
+use Illuminate\Support\Facades\Route;
+use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     // Manajemen Role & Permission
@@ -185,3 +183,10 @@ Route::middleware(['auth','permission:backup'])
 Route::middleware(['auth', 'role:superadmin'])
 ->get('/logs', [LogViewerController::class, 'index'])
 ->name('logs.index');
+
+Route::resource('stock_opname', StokOpnameController::class);
+// Route::get('/stock_opname', [StokOpnameController::class,'index'])->name('stock_opname.index');
+// Route::get('/stock_opname/create', [StokOpnameController::class,'create'])->name('stock_opname.create');
+// Route::post('/stock_opname/store', [StokOpnameController::class,'store'])->name('stock_opname.store');
+Route::post('stock_opname/{id}/approve', [StokOpnameController::class,'approve'])
+    ->name('stock_opname.approve');

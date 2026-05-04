@@ -228,6 +228,7 @@ $(document).on('click', '.btn-delete', function () {
     });
   });
 });
+
 </script>
 
 @endsection

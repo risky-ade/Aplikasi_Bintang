@@ -83,7 +83,7 @@
                         <th>No PO</th>
                         {{-- <th>Total</th> --}} 
                         <th>Total Retur</th>
-                        <th>Total Netto</th>
+                        <th>Total</th>
                         <th>Status Pembayaran</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -189,7 +189,7 @@
                               </div>
                               <div class="modal-body">
                                 Pembatalan pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
-                                dengan total <strong>{{ rupiah(max(0, ($jual->total ?? 0) - ($jual->total_retur ?? 0)), 0, ',', '.') }}</strong><br><br>
+                                dengan total <strong>{{ rupiah(max(0, ($jual->total ?? 0) )) }}</strong><br><br>
                                 <small class="text-muted">
                                     *Batas pembatalan hanya 24 jam sejak approve.
                                 </small>
@@ -217,7 +217,7 @@
                             </div>
                             <div class="modal-body">
                               Konfirmasi pembayaran invoice <strong>{{ $jual->no_faktur }}</strong> <br>
-                              dengan total <strong>{{ rupiah(max(0, ($jual->total ?? 0) - ($jual->total_retur ?? 0)), 0, ',', '.') }}</strong>
+                              dengan total <strong>{{ rupiah(max(0, ($jual->total ?? 0) )) }}</strong>
                               <hr>
                               <div class="form-group">
                               <label for="paid_date_{{ $jual->id }}">Tanggal Pelunasan</label>

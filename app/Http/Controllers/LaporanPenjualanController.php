@@ -44,7 +44,8 @@ class LaporanPenjualanController extends Controller
             $den = 1 + ($pajak / 100);
             $subtotalBruto = $den != 0 ? (($p->total - $ongkir) / $den) : ($p->total - $ongkir);
 
-            $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+            // $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+            $subtotalNet = max(0, $subtotalBruto);
             $pajakNet = $subtotalNet * ($pajak / 100);
 
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
