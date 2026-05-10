@@ -21,6 +21,7 @@ class PembelianController extends Controller
          $request->validate([
             'tanggal_awal' => 'nullable|date',
             'tanggal_akhir' => 'nullable|date|after_or_equal:tanggal_awal',
+            'status' => 'nullable|in:aktif,batal',
         ]);
         // $query = Pembelian::with('pemasok');
         $query = Pembelian::query()
@@ -41,7 +42,7 @@ class PembelianController extends Controller
                 // ->withSum(['returPenjualan as total_retur' => fn($q)=>$q/*->where('status','!=','batal')*/], 'total')
                 // ->selectRaw('GREATEST(0, total - IFNULL((select SUM(total) from retur_penjualan r where r.penjualan_id = penjualan.id),0)) as total_netto');
             }, 'total_netto');
-
+ 
 
         if ($request->filled('no_faktur')) {
             $query->where('no_faktur', 'like', '%' . $request->no_faktur . '%');
@@ -63,6 +64,12 @@ class PembelianController extends Controller
         $query->where('status_pembayaran', $request->status_pembayaran);
         }
 
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            $query->where('status', 'aktif');
+        }
+
         $pembelians = $query->latest()->get();
         // Recompute Total Netto yang benar (pajak dihitung dari subtotal net)
         foreach ($pembelians as $p) {
@@ -75,7 +82,8 @@ class PembelianController extends Controller
             $subtotalBruto = $den != 0 ? (($p->total - $ongkir) / $den) : ($p->total - $ongkir);
 
             // subtotal_net = max(0, subtotal_bruto - total_retur)
-            $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+            // $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+            $subtotalNet = max(0, $subtotalBruto);
 
             // pajak_net = subtotal_net * pajak%
             $pajakNet = $subtotalNet * ($pajak / 100);
@@ -102,6 +110,34 @@ class PembelianController extends Controller
         $prefix = 'FPB-'.now()->format('Ymd').'/';
         $urut = (Pembelian::whereDate('created_at', now()->toDateString())->count() + 1);
         return $prefix . str_pad($urut, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function hargaModalPembelian(float $hargaBeli, float $diskon = 0): float
+    {
+        return max(0, $hargaBeli - $diskon);
+    }
+
+    private function applyMovingAveragePurchase(MasterProduk $produk, int $qty, float $hargaBeli, float $diskon = 0): float
+    {
+        if ($qty <= 0) {
+            return (float) ($produk->harga_dasar ?? 0);
+        }
+
+        $stokLama = max(0, (int) ($produk->stok ?? 0));
+        $modalLama = (float) ($produk->harga_dasar ?? 0);
+        $modalPembelian = $this->hargaModalPembelian($hargaBeli, $diskon);
+        $stokBaru = $stokLama + $qty;
+
+        $modalBaru = $stokBaru > 0
+            ? (($stokLama * $modalLama) + ($qty * $modalPembelian)) / $stokBaru
+            : $modalPembelian;
+
+        $produk->update([
+            'stok' => $stokBaru,
+            'harga_dasar' => round($modalBaru, 2),
+        ]);
+
+        return round($modalBaru, 2);
     }
 
     public function store(Request $request)
@@ -157,7 +193,8 @@ class PembelianController extends Controller
                 $diskon = ($request->diskon[$i] ?? 0);
                 $sub = ($qty * $harga - $qty *$diskon);
 
-                $produk = MasterProduk::find($pid);
+                $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
+                $hargaLama = (float) ($produk->harga_dasar ?? 0);
 
                 PembelianDetail::create([
                     'pembelian_id'     => $pembelian->id,
@@ -171,12 +208,12 @@ class PembelianController extends Controller
                 $lastHistori = HistoriHargaPembelian::where('produk_id', $produk->id)
                     ->latest('id')
                     ->first();
-                if ($harga != $produk->harga_dasar && (!$lastHistori || $lastHistori->harga_baru != $harga)) {
+                if ($harga != $hargaLama && (!$lastHistori || $lastHistori->harga_baru != $harga)) {
                     $tanggalHist = $pembelian->getRawOriginal('tanggal');
                     HistoriHargaPembelian::create([
                         'produk_id' => $produk->id,
                         'pemasok_id'     => $pembelian->pemasok_id,
-                        'harga_lama'       => $produk->harga_dasar,
+                        'harga_lama'       => $hargaLama,
                         'harga_baru'       => $harga,
                         'sumber'           => 'pembelian',
                         'tanggal'          => $tanggalHist,
@@ -184,8 +221,18 @@ class PembelianController extends Controller
                     ]);
                 }
 
-                //Tambah stok
-                MasterProduk::where('id', $pid)->increment('stok', $qty);
+                $modalBaru = $this->applyMovingAveragePurchase($produk, $qty, (float) $harga, (float) $diskon);
+
+                Log::channel('pembelian')->info('Harga modal produk dihitung ulang dengan moving average', [
+                    'produk_id' => $produk->id,
+                    'nama_produk' => $produk->nama_produk,
+                    'stok_masuk' => $qty,
+                    'harga_beli' => $harga,
+                    'diskon_unit' => $diskon,
+                    'harga_modal_lama' => $hargaLama,
+                    'harga_modal_baru' => $modalBaru,
+                    'pembelian_id' => $pembelian->id,
+                ]);
             }
 
             DB::commit();
@@ -209,43 +256,43 @@ class PembelianController extends Controller
     public function show($id)
     {
         $pembelian = Pembelian::with(['pemasok', 'detail.produk'])
-        -> withSum('returPembelian as total_retur', 'total')
+        // -> withSum('returPembelian as total_retur', 'total')
         ->findOrFail($id);
 
-        $produkDiretur = DB::table('retur_pembelian as rb')
-        ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
-        ->where('rb.pembelian_id', $pembelian->id)
-        ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
-        ->groupBy('rd.produk_id')
-        ->pluck('total_qty_retur', 'rd.produk_id')
-        ->map(fn($v) => $v)
-        ->toArray();
+        // $produkDiretur = DB::table('retur_pembelian as rb')
+        // ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
+        // ->where('rb.pembelian_id', $pembelian->id)
+        // ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+        // ->groupBy('rd.produk_id')
+        // ->pluck('total_qty_retur', 'rd.produk_id')
+        // ->map(fn($v) => $v)
+        // ->toArray();
 
-        $totalRetur = ($pembelian->total_retur ?? 0);
-        $totalNetto = max(0,($pembelian->total ?? 0) - $totalRetur);
+        // $totalRetur = ($pembelian->total_retur ?? 0);
+        $totalNetto = max(0,($pembelian->total ?? 0));
 
-        return view('purchases.purchase_inv.show', compact('pembelian','produkDiretur','totalRetur'));
+        return view('purchases.purchase_inv.show', compact('pembelian','totalNetto'));
     }
 
     public function print($id)
     {
         $profil = ProfilePerusahaan::first();
         $pembelian = Pembelian::with(['pemasok', 'detail.produk'])
-        -> withSum('returPembelian as total_retur', 'total')
+        // -> withSum('returPembelian as total_retur', 'total')
         ->findOrFail($id);
 
-        $produkDiretur = DB::table('retur_pembelian as rb')
-        ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
-        ->where('rb.pembelian_id', $pembelian->id)
-        ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
-        ->groupBy('rd.produk_id')
-        ->pluck('total_qty_retur', 'rd.produk_id')
-        ->map(fn($v) => $v)
-        ->toArray();
+        // $produkDiretur = DB::table('retur_pembelian as rb')
+        // ->join('retur_pembelian_detail as rd', 'rd.retur_pembelian_id', '=', 'rb.id')
+        // ->where('rb.pembelian_id', $pembelian->id)
+        // ->select('rd.produk_id', DB::raw('SUM(rd.qty_retur) as total_qty_retur'))
+        // ->groupBy('rd.produk_id')
+        // ->pluck('total_qty_retur', 'rd.produk_id')
+        // ->map(fn($v) => $v)
+        // ->toArray();
 
-        $totalRetur = ($pembelian->total_retur ?? 0);
-        $totalNetto = max(0,($pembelian->total ?? 0) - $totalRetur);
-        return view('purchases.purchase_inv.print', compact('pembelian','produkDiretur','totalRetur','profil'));
+        // $totalRetur = ($pembelian->total_retur ?? 0);
+        $totalNetto = max(0,($pembelian->total ?? 0));
+        return view('purchases.purchase_inv.print', compact('pembelian','totalNetto','profil'));
 
         // $pdf = PDF::loadView('penjualan.print', compact('penjualan'));
         // return $pdf->download('invoice-'.$penjualan->no_faktur.'.pdf');
@@ -317,9 +364,12 @@ public function update(Request $request, $id)
         $oldDetails = PembelianDetail::where('pembelian_id', $pembelian->id)->get();
 
         $oldQtyMap = []; // [produk_id => total_qty_lama]
+        $oldValueMap = []; // [produk_id => total_modal_lama]
         foreach ($oldDetails as $d) {
             $pid = $d->master_produk_id;
             $oldQtyMap[$pid] = ($oldQtyMap[$pid] ?? 0) + $d->qty;
+            $oldValueMap[$pid] = ($oldValueMap[$pid] ?? 0)
+                + ($d->qty * $this->hargaModalPembelian((float) $d->harga_beli, (float) ($d->diskon ?? 0)));
         }
         // Hitung total qty baru per produk dari request
         //    (antisipasi baris produk dobel)
@@ -335,7 +385,16 @@ public function update(Request $request, $id)
             $newQtyMap[$pid] = ($newQtyMap[$pid] ?? 0) + $q;
         }
 
-        // Terapkan DELTA stok per produk
+        $newValueMap = [];
+        foreach ($produkIds as $i => $pid) {
+            $qty = (int) ($qtys[$i] ?? 0);
+            $harga = $parseMoney($hargas[$i] ?? 0);
+            $diskon = $parseMoney($diskons[$i] ?? 0);
+            $newValueMap[$pid] = ($newValueMap[$pid] ?? 0)
+                + ($qty * $this->hargaModalPembelian($harga, $diskon));
+        }
+
+        // Terapkan koreksi stok sekaligus koreksi harga modal moving average.
         $allProductIds = array_unique(array_merge(array_keys($oldQtyMap), array_keys($newQtyMap)));
 
         foreach ($allProductIds as $pid) {
@@ -343,27 +402,24 @@ public function update(Request $request, $id)
             $new   = ($newQtyMap[$pid] ?? 0);
             $delta = $new - $old; // + tambah stok, - kurangi stok
 
-            if ($delta !== 0) {
-                $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
+            $produk = MasterProduk::lockForUpdate()->findOrFail($pid);
+            $stokLama = (int) ($produk->stok ?? 0);
+            $modalLama = (float) ($produk->harga_dasar ?? 0);
+            $stokSesudah = $stokLama + (int) $delta;
 
-                // Log::channel('pembelian')->info('Koreksi stok produk', [
-                //     'pembelian_id' => $pembelian->id,
-                //     'produk_id'    => $produk->id,
-                //     'nama_produk'  => $produk->nama_produk,
-                //     'qty_input'    => $request->qty[$i],
-                // ]);
-
-                $stokSesudah = (int)$produk->stok + (int)$delta;
-                if ($stokSesudah < 0) {
-                    abort(422, 'Stok produk "'.$produk->nama_produk.'" tidak mencukupi untuk koreksi. (Stok: '.$produk->stok.', delta: '.$delta.')');
-                }
-
-                if ($delta > 0) {
-                    $produk->increment('stok', $delta);
-                } else {
-                    $produk->decrement('stok', abs($delta));
-                }
+            if ($stokSesudah < 0) {
+                abort(422, 'Stok produk "'.$produk->nama_produk.'" tidak mencukupi untuk koreksi. (Stok: '.$produk->stok.', delta: '.$delta.')');
             }
+
+            $nilaiStokLama = $stokLama * $modalLama;
+            $nilaiDasar = max(0, $nilaiStokLama - (float) ($oldValueMap[$pid] ?? 0));
+            $nilaiBaru = $nilaiDasar + (float) ($newValueMap[$pid] ?? 0);
+            $modalSesudah = $stokSesudah > 0 ? round($nilaiBaru / $stokSesudah, 2) : $modalLama;
+
+            $produk->update([
+                'stok' => $stokSesudah,
+                'harga_dasar' => $modalSesudah,
+            ]);
         }
 
         // Sinkronisasi detail:
@@ -551,10 +607,27 @@ public function update(Request $request, $id)
             return back()->with('error', 'Faktur sudah dibatalkan sebelumnya.');
         }
  
-        // Rollback stok
-        foreach ($pembelian->detail as $item) {
-            $produk = $item->produk;
-            $produk->decrement('stok', $item->qty);
+        // Rollback stok dan harga modal pembelian dari moving average.
+        $detailsByProduct = $pembelian->detail->groupBy('master_produk_id');
+        foreach ($detailsByProduct as $produkId => $details) {
+            $produk = MasterProduk::lockForUpdate()->findOrFail($produkId);
+            $qtyBatal = (int) $details->sum('qty');
+            $nilaiBatal = $details->sum(function ($item) {
+                return $item->qty * $this->hargaModalPembelian((float) $item->harga_beli, (float) ($item->diskon ?? 0));
+            });
+
+            $stokSesudah = (int) $produk->stok - $qtyBatal;
+            if ($stokSesudah < 0) {
+                return back()->with('error', 'Stok produk "'.$produk->nama_produk.'" tidak mencukupi untuk membatalkan pembelian.');
+            }
+
+            $nilaiSesudah = max(0, ((int) $produk->stok * (float) $produk->harga_dasar) - $nilaiBatal);
+            $modalSesudah = $stokSesudah > 0 ? round($nilaiSesudah / $stokSesudah, 2) : (float) $produk->harga_dasar;
+
+            $produk->update([
+                'stok' => $stokSesudah,
+                'harga_dasar' => $modalSesudah,
+            ]);
         }
 
         $pembelian->update([

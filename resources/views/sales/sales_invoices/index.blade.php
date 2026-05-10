@@ -61,9 +61,16 @@
                 </div>
                 <div class=" col-md-2">
                   <select name="status_pembayaran" class="form-control">
-                    <option value="">- Status -</option>
+                    <option value="">- Pembayaran -</option>
                     <option value="Lunas" {{ request('status_pembayaran') == 'Lunas' ? 'selected' : '' }}>Lunas</option>
                     <option value="Belum Lunas" {{ request('status_pembayaran') == 'Belum Lunas' ? 'selected' : '' }}>Belum Lunas</option>
+                  </select>
+                </div>
+                <div class=" col-md-2">
+                  <select name="status" class="form-control">
+                    <option value="">- Status Faktur-</option>
+                    <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="batal" {{ request('status') == 'batal' ? 'selected' : '' }}>Batal</option>
                   </select>
                 </div>
                   <div class=" col-auto">

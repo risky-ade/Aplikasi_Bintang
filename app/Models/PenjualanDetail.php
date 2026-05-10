@@ -14,6 +14,7 @@ class PenjualanDetail extends Model
         'qty',
         'diskon',
         'harga_jual',
+        'harga_modal',
         'subtotal'
     ];
     public function produk()

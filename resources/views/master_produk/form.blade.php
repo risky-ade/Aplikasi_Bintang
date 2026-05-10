@@ -42,6 +42,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label>Harga Dasar</label>
+            {{-- <input type="number" name="harga_dasar" class="form-control" value="{{ old('harga_dasar', $masterProduk->harga_dasar ?? '') }}"  required> --}}
             <input type="number" name="harga_dasar" class="form-control" value="{{ old('harga_dasar', $masterProduk->harga_dasar ?? '') }}" {{ $isLocked ? 'readonly' : '' }} required>
         </div>
     </div>

@@ -57,6 +57,11 @@ class PermissionSeeder extends Seeder
             // Laporan
             ['name' => 'sales_report.index', 'label' => 'Lihat Laporan Penjualan'],
             ['name' => 'purchases_report.index', 'label' => 'Lihat Laporan Pembelian'],
+            ['name' => 'profit_loss.index', 'label' => 'Lihat Laporan Laba Kotor'],
+            ['name' => 'operational_expenses.index', 'label' => 'Lihat Biaya Operasional'],
+            ['name' => 'operational_expenses.create', 'label' => 'Tambah Biaya Operasional'],
+            ['name' => 'operational_expenses.edit', 'label' => 'Edit Biaya Operasional'],
+            ['name' => 'operational_expenses.destroy', 'label' => 'Hapus Biaya Operasional'],
 
             // Daftar pihak
             ['name' => 'customers.show',   'label' => 'Lihat Pelanggan'],
@@ -115,6 +120,8 @@ class PermissionSeeder extends Seeder
 
                 'sales_report.index',
                 'purchases_report.index',
+                'profit_loss.index',
+                'operational_expenses.index',
             ])->pluck('id');
 
             $staf->permissions()->sync($stafPerms);

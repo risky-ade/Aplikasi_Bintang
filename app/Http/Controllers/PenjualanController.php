@@ -25,6 +25,7 @@ class PenjualanController extends Controller
          $request->validate([
             'tanggal_awal' => 'nullable|date',
             'tanggal_akhir' => 'nullable|date|after_or_equal:tanggal_awal',
+            'status' => 'nullable|in:aktif,batal',
         ]);
         $query = Penjualan::query()
             ->with(['pelanggan'])
@@ -66,6 +67,12 @@ class PenjualanController extends Controller
     }
     if ($request->filled('status_pembayaran')) {
     $query->where('status_pembayaran', $request->status_pembayaran);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    } else {
+        $query->where('status', 'aktif');
     }
 
     $penjualans = $query->latest()->get();
@@ -188,6 +195,7 @@ class PenjualanController extends Controller
                     'master_produk_id'  => $produk_id,
                     'qty'               => $qty,
                     'harga_jual'        => $harga,
+                    'harga_modal'       => $produk->harga_dasar ?? 0,
                     'diskon'            => $diskon,
                     'subtotal'          => $sub,
                 ]);
@@ -351,6 +359,7 @@ class PenjualanController extends Controller
                     'master_produk_id' => $produk_id,
                     'qty'              => $qty,
                     'harga_jual'       => $harga,
+                    'harga_modal'      => $produk->harga_dasar ?? 0,
                     'diskon'           => $diskon,
                     'subtotal'         => $subtotal,
                 ]);

@@ -160,6 +160,18 @@
                                 <p>Laporan Pembelian</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('profit_loss.index') }}" class="nav-link">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Laporan Laba Rugi</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('operational_expenses.index') }}" class="nav-link">
+                                <i class="nav-icon fas fa-money-bill-wave"></i>
+                                <p>Biaya Operasional</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">

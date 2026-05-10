@@ -172,9 +172,9 @@ class StokOpnameController extends Controller
     {
         $opname = StokOpname::findOrFail($id);
 
-        if ($opname->status === 'selesai') {
-            return back()->with('error', 'Stock opname yang sudah selesai tidak dapat dihapus.');
-        }
+        // if ($opname->status === 'selesai') {
+        //     return back()->with('error', 'Stock opname yang sudah selesai tidak dapat dihapus.');
+        // }
 
         $opname->delete();
 

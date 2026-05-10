@@ -62,6 +62,13 @@
                     <option value="Belum Lunas" {{ request('status_pembayaran') == 'Belum Lunas' ? 'selected' : '' }}>Belum Lunas</option>
                   </select>
                 </div>
+                <div class=" col-md-2">
+                  <select name="status" class="form-control">
+                    <option value="">- Status Faktur -</option>
+                    <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="batal" {{ request('status') == 'batal' ? 'selected' : '' }}>Batal</option>
+                  </select>
+                </div>
                   <div class=" col-auto">
                     <button type="submit" class="btn btn-primary">Filter</button>
                     <a href="{{ route('pembelian.index') }}" class="btn btn-secondary">Reset</a>
@@ -78,7 +85,7 @@
                         <th>Pemasok</th>
                         <th>No PO/Nota</th>
                         <th>Total Retur</th>
-                        <th>Total Netto</th>
+                        <th>Total</th>
                         <th>Status Pembayaran</th>
                         <th>Status</th>
                         <th>Aksi</th>

@@ -7,10 +7,12 @@ use App\Http\Controllers\ForgotPasswordRequestController;
 use App\Http\Controllers\HistoriHargaPembelianController;
 use App\Http\Controllers\HistoriHargaPenjualanController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LaporanLabaRugiController;
 use App\Http\Controllers\LaporanPembelianController;
 use App\Http\Controllers\LaporanPenjualanController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\OperationalExpenseController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\PembelianController;
@@ -105,6 +107,8 @@ Route::prefix('sales')->group(function () {
 Route::get('/ajax/faktur-search', [ReturPenjualanController::class, 'searchFaktur'])->name('ajax.faktur-search')->middleware('auth');
     
 Route::get('/sales/sales_histories', [HistoriHargaPenjualanController::class, 'index'])->middleware('auth')->name('histori-harga-jual.index');
+Route::delete('/sales/sales_histories/delete-selected', [HistoriHargaPenjualanController::class, 'destroySelected'])->middleware('auth')->name('histori-harga-jual.destroy-selected');
+Route::delete('/sales/sales_histories/delete-by-date', [HistoriHargaPenjualanController::class, 'destroyByDate'])->middleware('auth')->name('histori-harga-jual.destroy-by-date');
 
 Route::prefix('purchases')->group(function () {
     Route::get('purchase_inv', [PembelianController::class,'index'])->name('pembelian.index')->middleware('auth');
@@ -135,6 +139,8 @@ Route::prefix('purchases/purchases_retur')->group(function () {
 });
 
 Route::get('/purchases/purchases_histories', [HistoriHargaPembelianController::class, 'index'])->middleware('auth')->name('histori-harga-beli.index');
+Route::delete('/purchases/purchases_histories/delete-selected', [HistoriHargaPembelianController::class, 'destroySelected'])->middleware('auth')->name('histori-harga-beli.destroy-selected');
+Route::delete('/purchases/purchases_histories/delete-by-date', [HistoriHargaPembelianController::class, 'destroyByDate'])->middleware('auth')->name('histori-harga-beli.destroy-by-date');
 
 
 Route::resource('categories', KategoriController::class)->except(['create','show','edit'])->middleware('auth');
@@ -155,8 +161,17 @@ Route::get('/reports/sales_pdf', [LaporanPenjualanController::class, 'pdf'])->na
 
 Route::get('/reports/purchases_pdf', [LaporanPembelianController::class, 'beliPdf'])->name('purchase_report.purchases_pdf')->middleware('auth');
 Route::get('/reports/purchases_report', [LaporanPembelianController::class, 'index'])->name('purchases_report.index')->middleware(['auth','permission:purchases_report.index']);
+Route::get('/reports/profit_loss', [LaporanLabaRugiController::class, 'index'])->name('profit_loss.index')->middleware(['auth','permission:profit_loss.index']);
 
-Route::resource('customers', PelangganController::class)->middleware('auth');
+Route::resource('operational_expenses', OperationalExpenseController::class)->except(['show'])->middleware('auth');
+
+Route::resource('customers', PelangganController::class)->middleware('auth')
+    ->middlewareFor('index', 'permission:customers.index')
+    ->middlewareFor('create', 'permission:customers.create')
+    ->middlewareFor('store', 'permission:customers.create')
+    ->middlewareFor('edit', 'permission:customers.edit')
+    ->middlewareFor('update', 'permission:customers.edit')
+    ->middlewareFor('destroy', 'permission:customers.destroy');
 
 Route::resource('suppliers', PemasokController::class)->middleware('auth');
 // Route::resource('users', UserManagementController::class)->middleware('auth');
@@ -184,9 +199,9 @@ Route::middleware(['auth', 'role:superadmin'])
 ->get('/logs', [LogViewerController::class, 'index'])
 ->name('logs.index');
 
-Route::resource('stock_opname', StokOpnameController::class);
+Route::resource('stock_opname', StokOpnameController::class)->middleware('auth');
 // Route::get('/stock_opname', [StokOpnameController::class,'index'])->name('stock_opname.index');
 // Route::get('/stock_opname/create', [StokOpnameController::class,'create'])->name('stock_opname.create');
 // Route::post('/stock_opname/store', [StokOpnameController::class,'store'])->name('stock_opname.store');
 Route::post('stock_opname/{id}/approve', [StokOpnameController::class,'approve'])
-    ->name('stock_opname.approve');
+    ->name('stock_opname.approve')->middleware('auth');

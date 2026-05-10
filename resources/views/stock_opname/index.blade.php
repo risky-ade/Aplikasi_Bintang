@@ -60,7 +60,7 @@
                             <a href="{{ route('stock_opname.edit', $d->id) }}" class="btn btn-warning btn-sm">
                                 <i class="fa fa-edit"></i>
                             </a>
-                            @if($d->status == 'draft')
+                            {{-- @if($d->status == 'draft') --}}
                             <form action="{{ route('stock_opname.destroy', $d->id) }}" method="POST" class="d-inline form-delete-opname">
                                 @csrf
                                 @method('DELETE')
@@ -68,7 +68,7 @@
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
-                            @endif
+                            {{-- @endif --}}
                         </td>
                         <td>
                             @if($d->status == 'draft')
