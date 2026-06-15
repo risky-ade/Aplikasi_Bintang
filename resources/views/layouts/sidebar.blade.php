@@ -80,6 +80,12 @@
                                 <p>Stok Opname</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('product_losses.index') }}" class="nav-link">
+                                <i class="nav-icon fas fa-exclamation-triangle"></i>
+                                <p>Produk Hilang</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
@@ -164,6 +170,12 @@
                             <a href="{{ route('profit_loss.index') }}" class="nav-link">
                                 <i class="nav-icon fas fa-chart-line"></i>
                                 <p>Laporan Laba Rugi</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('stock_movements.index') }}" class="nav-link">
+                                <i class="nav-icon fas fa-exchange-alt"></i>
+                                <p>Mutasi Stok Produk</p>
                             </a>
                         </li>
                         <li class="nav-item">

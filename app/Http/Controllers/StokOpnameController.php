@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MasterProduk;
 use App\Models\StokOpname;
 use App\Models\StokOpnameDetail;
+use App\Support\StockMovementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -172,9 +173,9 @@ class StokOpnameController extends Controller
     {
         $opname = StokOpname::findOrFail($id);
 
-        // if ($opname->status === 'selesai') {
-        //     return back()->with('error', 'Stock opname yang sudah selesai tidak dapat dihapus.');
-        // }
+        if ($opname->status === 'selesai') {
+            return back()->with('error', 'Stock opname yang sudah selesai tidak dapat dihapus.');
+        }
 
         $opname->delete();
 
@@ -195,12 +196,32 @@ class StokOpnameController extends Controller
 
             foreach ($opname->details as $d) {
 
-                $produk = MasterProduk::lockForUpdate()->find($d->master_produk_id);
+                $produk = MasterProduk::lockForUpdate()->findOrFail($d->master_produk_id);
 
                 if ($d->selisih > 0) {
-                    $produk->increment('stok', $d->selisih);
+                    StockMovementService::record(
+                        $produk->id,
+                        $opname->tanggal,
+                        'Stok Opname ' . $opname->no_opname,
+                        (int) $d->selisih,
+                        0,
+                        StokOpname::class,
+                        $opname->id,
+                        $opname->catatan,
+                        Auth::id()
+                    );
                 } elseif ($d->selisih < 0) {
-                    $produk->decrement('stok', abs($d->selisih));
+                    StockMovementService::record(
+                        $produk->id,
+                        $opname->tanggal,
+                        'Stok Opname ' . $opname->no_opname,
+                        0,
+                        abs((int) $d->selisih),
+                        StokOpname::class,
+                        $opname->id,
+                        $opname->catatan,
+                        Auth::id()
+                    );
                 }
             }
 

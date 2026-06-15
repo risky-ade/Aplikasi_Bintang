@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -195,5 +196,18 @@ class LaporanLabaRugiController extends Controller
         })->sortBy('nama_produk')->values();
 
         return view('reports.profit_loss', compact('ringkasan', 'details'));
+    }
+
+    public function pdf(Request $request)
+    {
+        $view = $this->index($request);
+        $data = $view->getData();
+        $data['from'] = $request->from;
+        $data['to'] = $request->to;
+
+        $pdf = Pdf::loadView('reports.profit_loss_pdf', $data)
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('profit_loss_report.pdf');
     }
 }

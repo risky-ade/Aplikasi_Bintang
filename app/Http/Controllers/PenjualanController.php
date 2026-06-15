@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use App\Models\PenjualanDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ProfilePerusahaan;
+use App\Support\StockMovementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -217,7 +218,17 @@ class PenjualanController extends Controller
                     ]);
                 }
                
-                $produk->decrement('stok', $qty);
+                StockMovementService::record(
+                    $produk->id,
+                    $penjualan->getRawOriginal('tanggal'),
+                    'Penjualan ' . $penjualan->no_faktur,
+                    0,
+                    (int) $qty,
+                    Penjualan::class,
+                    $penjualan->id,
+                    $penjualan->catatan,
+                    Auth::id()
+                );
             }
             DB::commit();
 
@@ -319,7 +330,17 @@ class PenjualanController extends Controller
             foreach ($penjualan->detail as $d) {
                 $produk = MasterProduk::find($d->master_produk_id);
                 if ($produk) {
-                    $produk->increment('stok', $d->qty);
+                    StockMovementService::record(
+                        $produk->id,
+                        $penjualan->getRawOriginal('tanggal'),
+                        'Koreksi Edit Penjualan ' . $penjualan->no_faktur,
+                        (int) $d->qty,
+                        0,
+                        Penjualan::class,
+                        $penjualan->id,
+                        'Mengembalikan stok detail lama sebelum update',
+                        Auth::id()
+                    );
                 }
             }
 
@@ -365,7 +386,17 @@ class PenjualanController extends Controller
                 ]);
 
                 //  Kurangi stok sesuai qty baru
-                $produk->decrement('stok', $qty);
+                StockMovementService::record(
+                    $produk->id,
+                    $penjualan->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString(),
+                    'Penjualan ' . $penjualan->no_faktur,
+                    0,
+                    (int) $qty,
+                    Penjualan::class,
+                    $penjualan->id,
+                    $penjualan->catatan,
+                    Auth::id()
+                );
                 $tanggalHist = $penjualan->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString();
                 //Cek histori harga terakhir produk ini
                 $lastHistori = HistoriHargaPenjualan::where('produk_id', $produk->id)
@@ -442,7 +473,17 @@ class PenjualanController extends Controller
 
         // Proses hapus detail & stok jika belum ada retur
         foreach ($penjualan->detail as $detail) {
-            MasterProduk::where('id', $detail->master_produk_id)->increment('stok', $detail->qty);
+            StockMovementService::record(
+                $detail->master_produk_id,
+                now()->toDateString(),
+                'Hapus Penjualan ' . $penjualan->no_faktur,
+                (int) $detail->qty,
+                0,
+                Penjualan::class,
+                $penjualan->id,
+                'Mengembalikan stok karena faktur dihapus',
+                Auth::id()
+            );
             $detail->delete();
         }
 
@@ -678,7 +719,17 @@ class PenjualanController extends Controller
             // Rollback stok
             foreach ($penjualan->detail as $item) {
                 $produk = $item->produk;
-                $produk->increment('stok', $item->qty);
+                StockMovementService::record(
+                    $produk->id,
+                    now()->toDateString(),
+                    'Batal Penjualan ' . $penjualan->no_faktur,
+                    (int) $item->qty,
+                    0,
+                    Penjualan::class,
+                    $penjualan->id,
+                    'Mengembalikan stok karena faktur dibatalkan',
+                    Auth::id()
+                );
             }
 
             $penjualan->update([

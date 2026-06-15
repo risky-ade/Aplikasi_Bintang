@@ -11,6 +11,7 @@ use App\Models\PenjualanDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ReturPenjualanDetail;
+use App\Support\StockMovementService;
 use Illuminate\Support\Facades\Auth;
 
 class ReturPenjualanController extends Controller
@@ -107,7 +108,7 @@ class ReturPenjualanController extends Controller
             // dd($lastId);
             // $no_faktur = 'FPJ-' . date('Ymd') . '/' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
             // $noRetur = 'RT-' . now()->format('YmdHi');
-            $noRetur = 'RT-' . date('Ymd') . '/' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
+            $noRetur = 'RTJ-' . date('Ymd') . '/' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
 
             Log::channel('retur_penjualan')->info('Mulai proses retur penjualan', [
                 'no_retur' => $noRetur,
@@ -165,9 +166,19 @@ class ReturPenjualanController extends Controller
                 $net     = max(0, $harga - $diskon);
                 $subtotal = $qtyRetur * $net;
 
-                // 🔒 Lock produk sebelum update stok
-                $produk = MasterProduk::lockForUpdate()->findOrFail($produkId);
-                $produk->increment('stok', $qtyRetur);
+                // Lock produk sebelum update stok
+                MasterProduk::lockForUpdate()->findOrFail($produkId);
+                StockMovementService::record(
+                    $produkId,
+                    $retur->tanggal_retur,
+                    'Retur Penjualan ' . $retur->no_retur,
+                    $qtyRetur,
+                    0,
+                    ReturPenjualan::class,
+                    $retur->id,
+                    $retur->alasan,
+                    Auth::id()
+                );
 
                 $detailInsert[] = [
                     'retur_penjualan_id' => $retur->id,
@@ -226,7 +237,17 @@ class ReturPenjualanController extends Controller
             $qty = (int) $detail->qty_retur ?? 0;
 
             if ($produk && $qty > 0) {
-                $produk->decrement('stok', $qty);
+                StockMovementService::record(
+                    $produk->id,
+                    now()->toDateString(),
+                    'Hapus Retur Penjualan ' . $retur->no_retur,
+                    0,
+                    $qty,
+                    ReturPenjualan::class,
+                    $retur->id,
+                    'Rollback hapus retur penjualan',
+                    Auth::id()
+                );
             }
         }
 

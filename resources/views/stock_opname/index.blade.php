@@ -60,15 +60,15 @@
                             <a href="{{ route('stock_opname.edit', $d->id) }}" class="btn btn-warning btn-sm">
                                 <i class="fa fa-edit"></i>
                             </a>
-                            {{-- @if($d->status == 'draft') --}}
-                            <form action="{{ route('stock_opname.destroy', $d->id) }}" method="POST" class="d-inline form-delete-opname">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
-                            {{-- @endif --}}
+                            @if($d->status == 'draft')
+                                <form action="{{ route('stock_opname.destroy', $d->id) }}" method="POST" class="d-inline form-delete-opname">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                         <td>
                             @if($d->status == 'draft')
@@ -125,7 +125,7 @@
 
         Swal.fire({
             title: 'Hapus stock opname?',
-            text: 'Data draft yang dihapus tidak dapat dikembalikan.',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',

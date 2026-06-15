@@ -45,6 +45,9 @@
               <div class="col-md-5 d-flex align-items-end justify-content-end">
                 <button type="submit" class="btn btn-primary mr-2">Filter</button>
                 <a href="{{ route('operational_expenses.index') }}" class="btn btn-secondary mr-2">Reset</a>
+                <a href="{{ route('operational_expenses.pdf', request()->query()) }}" class="btn btn-danger mr-2">
+                  <i class="fas fa-file-pdf"></i> Export PDF
+                </a>
                 <a href="{{ route('operational_expenses.create') }}" class="btn btn-primary"><i
                     class="fas fa-solid fa-plus"></i> Tambah</a>
               </div>

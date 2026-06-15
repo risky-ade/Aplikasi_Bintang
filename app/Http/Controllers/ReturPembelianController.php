@@ -10,6 +10,7 @@ use App\Models\PembelianDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ReturPembelianDetail;
+use App\Support\StockMovementService;
 use Illuminate\Support\Facades\Auth;
 
 class ReturPembelianController extends Controller
@@ -158,7 +159,17 @@ class ReturPembelianController extends Controller
                 if ($produk->stok < $qtyRetur) {
                     throw new \RuntimeException('Stok produk "'.$produk->nama_produk.'" tidak mencukupi untuk retur pembelian. Stok: '.$produk->stok);
                 }
-                $produk->decrement('stok', $qtyRetur);
+                StockMovementService::record(
+                    $produk->id,
+                    $retur->tanggal_retur,
+                    'Retur Pembelian ' . $retur->no_retur,
+                    0,
+                    $qtyRetur,
+                    ReturPembelian::class,
+                    $retur->id,
+                    $retur->alasan,
+                    Auth::id()
+                );
 
                 $total += $subRetur;
             }
@@ -203,7 +214,17 @@ class ReturPembelianController extends Controller
             $qty = $detail->qty_retur ?? 0;
 
             if ($produk && $qty > 0) {
-                $produk->increment('stok', $qty);
+                StockMovementService::record(
+                    $produk->id,
+                    now()->toDateString(),
+                    'Hapus Retur Pembelian ' . $retur->no_retur,
+                    $qty,
+                    0,
+                    ReturPembelian::class,
+                    $retur->id,
+                    'Rollback hapus retur pembelian',
+                    Auth::id()
+                );
             }
         }
 

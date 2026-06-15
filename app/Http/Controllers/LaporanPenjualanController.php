@@ -48,6 +48,8 @@ class LaporanPenjualanController extends Controller
             $subtotalNet = max(0, $subtotalBruto);
             $pajakNet = $subtotalNet * ($pajak / 100);
 
+            $p->pajak_nominal = $pajakNet;
+            $p->ongkir_nominal = $ongkir;
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
         $pelanggans = Pelanggan::all();
@@ -93,14 +95,20 @@ class LaporanPenjualanController extends Controller
             $subtotalNet = max(0, $subtotalBruto - $totalRetur);
             $pajakNet    = $subtotalNet * $pajak / 100;
 
+            $p->pajak_nominal = $pajakNet;
+            $p->ongkir_nominal = $ongkir;
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
         $totalRetur     = $penjualans->sum('total_retur');
+        $totalPajak     = $penjualans->sum('pajak_nominal');
+        $totalOngkir    = $penjualans->sum('ongkir_nominal');
         $totalNetto     = $penjualans->sum('total_netto_calc');
 
         $pdf = Pdf::loadView('reports.sales_pdf', [
         'penjualans' => $penjualans,
         'totalRetur' => $totalRetur,
+        'totalPajak' => $totalPajak,
+        'totalOngkir' => $totalOngkir,
         'totalNetto' => $totalNetto,
         ])->setPaper('a4', 'landscape');
 

@@ -44,6 +44,8 @@ class LaporanPembelianController extends Controller
             $subtotalNet = max(0, $subtotalBruto - $totalRetur);
             $pajakNet = $subtotalNet * ($pajak / 100);
 
+            $p->pajak_nominal = $pajakNet;
+            $p->ongkir_nominal = $ongkir;
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
         $pemasoks = Pemasok::all();
@@ -88,14 +90,20 @@ class LaporanPembelianController extends Controller
             $subtotalNet = max(0, $subtotalBruto - $totalRetur);
             $pajakNet    = $subtotalNet * $pajak / 100;
 
+            $p->pajak_nominal = $pajakNet;
+            $p->ongkir_nominal = $ongkir;
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
         $totalRetur     = $pembelians->sum('total_retur');
+        $totalPajak     = $pembelians->sum('pajak_nominal');
+        $totalOngkir    = $pembelians->sum('ongkir_nominal');
         $totalNetto     = $pembelians->sum('total_netto_calc');
 
         $pdf = Pdf::loadView('reports.purchases_pdf', [
         'pembelians' => $pembelians,
         'totalRetur' => $totalRetur,
+        'totalPajak' => $totalPajak,
+        'totalOngkir' => $totalOngkir,
         'totalNetto' => $totalNetto,
         ])->setPaper('a4', 'landscape');
 

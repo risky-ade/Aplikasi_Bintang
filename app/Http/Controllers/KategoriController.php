@@ -6,6 +6,8 @@ use App\Models\Kategori;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\KategoriRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class KategoriController extends Controller
 {
@@ -27,6 +29,15 @@ class KategoriController extends Controller
             'nama_kategori' => $request->nama_kategori,
         ]);
 
+        Log::channel('kategori')->info('Kategori berhasil ditambahkan', [
+            'kategori_id' => $kategori->id,
+            'kode_kategori' => $kategori->kode_kategori,
+            'nama_kategori' => $kategori->nama_kategori,
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
+
         return response()->json(['message' => 'Kategori berhasil ditambahkan.']);
     }
     public function update(KategoriRequest $request, $id)
@@ -35,6 +46,14 @@ class KategoriController extends Controller
 
         $kategori->update([
             'nama_kategori' => $request->nama_kategori,
+        ]);
+
+        Log::channel('kategori')->info('Kategori berhasil diperbarui', [
+            'kategori_id' => $kategori->id,
+            'nama_kategori' => $kategori->nama_kategori,
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
         ]);
 
         return response()->json(['message' => 'Kategori berhasil diperbarui.']);
@@ -49,12 +68,27 @@ class KategoriController extends Controller
         ], 404);
         }
         if ($kategori->produk()->exists()) {
+        Log::channel('kategori')->warning('Hapus kategori ditolak karena masih digunakan produk', [
+            'kategori_id' => $kategori->id,
+            'nama_kategori' => $kategori->nama_kategori,
+            'user_id' => Auth::id(),
+            'ip_address' => request()->ip(),
+        ]);
+
         return response()->json([
             'status' => 'error',
             'message' => 'Kategori tidak dapat dihapus karena masih digunakan dalam data produk.'
         ], 400);
         }
+        $kategoriData = $kategori->only(['id', 'kode_kategori', 'nama_kategori']);
         $kategori->delete();
+
+        Log::channel('kategori')->warning('Kategori dihapus', [
+            'kategori' => $kategoriData,
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
 
         return response()->json([
             'status' => 'success',

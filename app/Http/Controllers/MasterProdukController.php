@@ -6,10 +6,12 @@ namespace App\Http\Controllers;
 use App\Models\Satuan;
 use App\Models\Kategori;
 use App\Models\MasterProduk;
+use App\Support\StockMovementService;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\File;
 use App\Models\HistoriHargaPenjualan;
 use Illuminate\Support\Facades\Storage;
@@ -75,7 +77,7 @@ class MasterProdukController extends Controller
             'harga_dasar' =>'required|numeric',
             'harga_jual' =>'required|numeric',
             'include_pajak' =>'required',
-            'stok' =>'required|integer',
+            'stok' =>'required|integer|min:0',
             'gambar'=>'nullable|image|max:2048'
         ], [
             'nama_produk.unique' => 'Nama produk sudah digunakan. Silakan gunakan nama lain.',
@@ -86,7 +88,28 @@ class MasterProdukController extends Controller
             $data['gambar'] = $request->file('gambar')->store('gambar_produk', 'public');
         }
 
-        $produk= MasterProduk::create($data);
+        $stokAwal = (int) $data['stok'];
+        $data['stok'] = 0;
+
+        $produk = DB::transaction(function () use ($data, $stokAwal) {
+            $produk = MasterProduk::create($data);
+
+            if ($stokAwal > 0) {
+                StockMovementService::record(
+                    $produk->id,
+                    now()->toDateString(),
+                    'Saldo Awal Input Produk',
+                    $stokAwal,
+                    0,
+                    MasterProduk::class,
+                    $produk->id,
+                    'Input produk baru',
+                    Auth::id()
+                );
+            }
+
+            return $produk;
+        });
 
         Log::channel('produk')->info('Produk berhasil ditambahkan', [
             'produk_id' => $produk->id,
@@ -148,10 +171,12 @@ class MasterProdukController extends Controller
             'harga_dasar' =>'required|numeric',
             'harga_jual' =>'required|numeric',
             'include_pajak' =>'required',
-            'stok' =>'required|integer',
+            'stok' =>'required|integer|min:0',
             'gambar'=>'nullable|image|max:2048'
         ]);
         $data = $request->all();
+        $stokDiminta = (int) $request->stok;
+        $stokSebelum = (int) $masterProduk->stok;
 
         if ($request->hasFile('gambar')) {
         // Hapus gambar lama jika ada
@@ -180,7 +205,38 @@ class MasterProdukController extends Controller
                 'user_id' => Auth::id(),
             ]);
         }
-        $masterProduk->update($data);
+        unset($data['stok']);
+
+        DB::transaction(function () use ($masterProduk, $data, $stokDiminta, $stokSebelum) {
+            $masterProduk->update($data);
+
+            $selisihStok = $stokDiminta - $stokSebelum;
+            if ($selisihStok > 0) {
+                StockMovementService::record(
+                    $masterProduk->id,
+                    now()->toDateString(),
+                    'Koreksi Master Produk',
+                    $selisihStok,
+                    0,
+                    MasterProduk::class,
+                    $masterProduk->id,
+                    'Update stok dari master produk',
+                    Auth::id()
+                );
+            } elseif ($selisihStok < 0) {
+                StockMovementService::record(
+                    $masterProduk->id,
+                    now()->toDateString(),
+                    'Koreksi Master Produk',
+                    0,
+                    abs($selisihStok),
+                    MasterProduk::class,
+                    $masterProduk->id,
+                    'Update stok dari master produk',
+                    Auth::id()
+                );
+            }
+        });
 
         Log::channel('produk')->info('Produk diperbarui', [
             'produk_id' => $masterProduk->id,

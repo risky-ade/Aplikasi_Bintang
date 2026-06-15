@@ -17,12 +17,14 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\ProductLossController;
 use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\StokOpnameController;
+use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 use Rap2hpoutre\LaravelLogViewer\LogViewerController;
@@ -162,18 +164,44 @@ Route::get('/reports/sales_pdf', [LaporanPenjualanController::class, 'pdf'])->na
 Route::get('/reports/purchases_pdf', [LaporanPembelianController::class, 'beliPdf'])->name('purchase_report.purchases_pdf')->middleware('auth');
 Route::get('/reports/purchases_report', [LaporanPembelianController::class, 'index'])->name('purchases_report.index')->middleware(['auth','permission:purchases_report.index']);
 Route::get('/reports/profit_loss', [LaporanLabaRugiController::class, 'index'])->name('profit_loss.index')->middleware(['auth','permission:profit_loss.index']);
+Route::get('/reports/profit_loss_pdf', [LaporanLabaRugiController::class, 'pdf'])->name('profit_loss.pdf')->middleware(['auth','permission:profit_loss.index']);
+Route::get('/reports/stock_movements', [StockMovementController::class, 'index'])->name('stock_movements.index')->middleware('auth');
+Route::get('/reports/stock_movements_pdf', [StockMovementController::class, 'pdf'])->name('stock_movements.pdf')->middleware('auth');
 
+Route::get('/operational_expenses/pdf', [OperationalExpenseController::class, 'pdf'])->name('operational_expenses.pdf')->middleware('auth');
 Route::resource('operational_expenses', OperationalExpenseController::class)->except(['show'])->middleware('auth');
 
-Route::resource('customers', PelangganController::class)->middleware('auth')
-    ->middlewareFor('index', 'permission:customers.index')
-    ->middlewareFor('create', 'permission:customers.create')
-    ->middlewareFor('store', 'permission:customers.create')
-    ->middlewareFor('edit', 'permission:customers.edit')
-    ->middlewareFor('update', 'permission:customers.edit')
-    ->middlewareFor('destroy', 'permission:customers.destroy');
+Route::middleware('auth')->group(function () {
+    Route::get('/customers', [PelangganController::class, 'index'])->name('customers.index')
+        ->middleware('permission:customers.index');
+    Route::get('/customers/create', [PelangganController::class, 'create'])->name('customers.create')
+        ->middleware('permission:customers.create');
+    Route::post('/customers', [PelangganController::class, 'store'])->name('customers.store')
+        ->middleware('permission:customers.create');
+    Route::get('/customers/{customer}', [PelangganController::class, 'show'])->name('customers.show')
+        ->middleware('permission:customers.index');
+    Route::get('/customers/{customer}/edit', [PelangganController::class, 'edit'])->name('customers.edit')
+        ->middleware('permission:customers.edit');
+    Route::put('/customers/{customer}', [PelangganController::class, 'update'])->name('customers.update')
+        ->middleware('permission:customers.edit');
+    Route::delete('/customers/{customer}', [PelangganController::class, 'destroy'])->name('customers.destroy')
+        ->middleware('permission:customers.destroy');
+});
 
-Route::resource('suppliers', PemasokController::class)->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::get('/suppliers', [PemasokController::class,'index'])->name('suppliers.index');
+    // ->middleware('permission:suppliers.index');
+    Route::get('/suppliers/create', [PemasokController::class,'create'])->name('suppliers.create')
+    ->middleware('permission:suppliers.create');
+    Route::post('/suppliers', [PemasokController::class,'store'])->name('suppliers.store')
+    ->middleware('permission:suppliers.create');
+    Route::get('/suppliers/{supplier}', [PemasokController::class,'edit'])->name('suppliers.edit')
+    ->middleware('permission:suppliers.edit');
+    Route::put('/suppliers/{supplier}/edit', [PemasokController::class,'update'])->name('suppliers.update')
+    ->middleware('permission:suppliers.edit');
+    Route::delete('/suppliers/{supplier}', [PemasokController::class,'destroy'])->name('suppliers.destroy')
+    ->middleware('permission:suppliers.destroy');
+});
 // Route::resource('users', UserManagementController::class)->middleware('auth');
 // Route::get('users',[UserManagementController::class, 'index'])->name('users.index')->middleware('auth');
 // Route::get('users/{id}/edit',[UserManagementController::class, 'edit'])->name('users.edit')->middleware('auth');
@@ -199,9 +227,31 @@ Route::middleware(['auth', 'role:superadmin'])
 ->get('/logs', [LogViewerController::class, 'index'])
 ->name('logs.index');
 
-Route::resource('stock_opname', StokOpnameController::class)->middleware('auth');
-// Route::get('/stock_opname', [StokOpnameController::class,'index'])->name('stock_opname.index');
-// Route::get('/stock_opname/create', [StokOpnameController::class,'create'])->name('stock_opname.create');
-// Route::post('/stock_opname/store', [StokOpnameController::class,'store'])->name('stock_opname.store');
-Route::post('stock_opname/{id}/approve', [StokOpnameController::class,'approve'])
-    ->name('stock_opname.approve')->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::get('/stock_opname', [StokOpnameController::class, 'index'])->name('stock_opname.index');
+
+    Route::get('/stock_opname/create', [StokOpnameController::class, 'create'])->name('stock_opname.create')
+    ->middleware('permission:stock_opname.create');
+    Route::post('/stock_opname', [StokOpnameController::class, 'store'])->name('stock_opname.store')
+    ->middleware('permission:stock_opname.create');
+    Route::get('/stock_opname/{id}/edit', [StokOpnameController::class, 'edit'])->name('stock_opname.edit')
+    ->middleware('permission:stock_opname.edit');
+    Route::put('/stock_opname/{id}', [StokOpnameController::class, 'update'])->name('stock_opname.update')
+    ->middleware('permission:stock_opname.edit');
+    Route::get('/stock_opname/{id}', [StokOpnameController::class, 'show'])->name('stock_opname.show');
+    Route::delete('/stock_opname/{id}', [StokOpnameController::class, 'destroy'])->name('stock_opname.destroy')
+    ->middleware('permission:stock_opname.destroy');
+    Route::post('/stock_opname/{id}/approve', [StokOpnameController::class,'approve'])->name('stock_opname.approve')
+    ->middleware('permission:stock_opname.approve');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/product_losses', [ProductLossController::class, 'index'])->name('product_losses.index');
+    Route::get('/product_losses/create', [ProductLossController::class, 'create'])->name('product_losses.create');
+    Route::post('/product_losses', [ProductLossController::class, 'store'])->name('product_losses.store');
+    Route::get('/product_losses/{productLoss}', [ProductLossController::class, 'show'])->name('product_losses.show');
+    Route::get('/product_losses/{productLoss}/edit', [ProductLossController::class, 'edit'])->name('product_losses.edit');
+    Route::put('/product_losses/{productLoss}', [ProductLossController::class, 'update'])->name('product_losses.update');
+    Route::delete('/product_losses/{productLoss}', [ProductLossController::class, 'destroy'])->name('product_losses.destroy');
+});
+ 

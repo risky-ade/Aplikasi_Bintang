@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\MasterProduk;
 use Illuminate\Http\Request;
 use App\Models\HistoriHargaPenjualan;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class HistoriHargaPenjualanController extends Controller
 {
@@ -70,6 +72,14 @@ class HistoriHargaPenjualanController extends Controller
 
         $deleted = HistoriHargaPenjualan::whereIn('id', $request->histori_ids)->delete();
 
+        Log::channel('histori_harga')->warning('Histori harga penjualan terpilih dihapus', [
+            'total_deleted' => $deleted,
+            'histori_ids' => $request->histori_ids,
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
+
         return back()->with('success', $deleted . ' histori harga penjualan berhasil dihapus.');
     }
 
@@ -84,6 +94,14 @@ class HistoriHargaPenjualanController extends Controller
         ]);
 
         $deleted = $this->filteredQuery($request)->delete();
+
+        Log::channel('histori_harga')->warning('Histori harga penjualan dihapus berdasarkan filter tanggal', [
+            'total_deleted' => $deleted,
+            'filter' => $request->only(['tanggal_awal', 'tanggal_akhir', 'produk_id', 'sumber', 'pelanggan']),
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
 
         return back()->with('success', $deleted . ' histori harga penjualan berhasil dihapus sesuai rentang tanggal.');
     }

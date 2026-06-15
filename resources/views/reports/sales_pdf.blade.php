@@ -22,6 +22,8 @@
         <th>Pelanggan</th>
         <th>No PO</th>
         <th>Total Retur</th>
+        <th>Pajak</th>
+        <th>Ongkir</th>
         <th>Total Netto</th>
         <th>Status</th>
       </tr>
@@ -35,6 +37,8 @@
           <td>{{ $jual->pelanggan->nama ?? '-' }}</td>
           <td>{{ $jual->no_po ?? '-' }}</td>
           <td class="text-right">Rp {{ number_format($jual->total_retur ?? 0, 0, ',', '.') }}</td>
+          <td class="text-right">Rp {{ number_format($jual->pajak_nominal ?? 0, 0, ',', '.') }}</td>
+          <td class="text-right">Rp {{ number_format($jual->ongkir_nominal ?? 0, 0, ',', '.') }}</td>
           <td class="text-right">Rp {{ number_format(($jual->total_netto_calc ?? $jual->total ?? 0), 0, ',', '.') }}</td>
           <td>{{ $jual->status_pembayaran }}</td>
         </tr>
@@ -44,6 +48,8 @@
       <tr class="total-row">
         <td colspan="5" class="text-right tfoot">Total Penjualan:</td>
         <td class="text-right tfoot">Rp {{ number_format($totalRetur, 0, ',', '.') }}</td>
+        <td class="text-right tfoot">Rp {{ number_format($totalPajak, 0, ',', '.') }}</td>
+        <td class="text-right tfoot">Rp {{ number_format($totalOngkir, 0, ',', '.') }}</td>
         <td class="text-right tfoot">Rp {{ number_format($totalNetto, 0, ',', '.') }}</td>
         <td></td>
       </tr>

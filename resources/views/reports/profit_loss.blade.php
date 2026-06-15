@@ -13,12 +13,12 @@
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1 class="m-0">Laporan Laba Kotor</h1>
+          <h1 class="m-0">Laporan Laba Rugi</h1>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item active">Laporan Laba Kotor</li>
+            <li class="breadcrumb-item active">Laporan Laba Rugi</li>
           </ol>
         </div>
       </div>
@@ -39,7 +39,8 @@
           </div>
           <div class="col-md-3 d-flex align-items-end">
             <button type="submit" class="btn btn-primary mr-2">Filter</button>
-            <a href="{{ route('profit_loss.index') }}" class="btn btn-secondary">Reset</a>
+            <a href="{{ route('profit_loss.index') }}" class="btn btn-secondary mr-2">Reset</a>
+            <a href="{{ route('profit_loss.pdf', request()->query()) }}" class="btn btn-danger">Simpan PDF</a>
           </div>
         </div>
       </form>

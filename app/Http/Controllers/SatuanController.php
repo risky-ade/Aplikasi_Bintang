@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Satuan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SatuanController extends Controller
 {
@@ -34,7 +36,16 @@ class SatuanController extends Controller
             'keterangan_satuan' => 'nullable|string',
         ]);
 
-        Satuan::create($request->all());
+        $satuan = Satuan::create($request->all());
+
+        Log::channel('satuan')->info('Satuan berhasil ditambahkan', [
+            'satuan_id' => $satuan->id,
+            'jenis_satuan' => $satuan->jenis_satuan,
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
+
         return redirect()->back()->with('success_add', 'Satuan berhasil ditambahkan.');
     }
 
@@ -58,7 +69,18 @@ class SatuanController extends Controller
             'keterangan_satuan' => 'nullable|string',
         ]);
 
+        $before = $satuan->only(['jenis_satuan', 'keterangan_satuan']);
         $satuan->update($request->all());
+
+        Log::channel('satuan')->info('Satuan berhasil diperbarui', [
+            'satuan_id' => $satuan->id,
+            'before' => $before,
+            'after' => $satuan->only(['jenis_satuan', 'keterangan_satuan']),
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
+
         return redirect()->back()->with('success_update', 'Satuan berhasil diperbarui.');
     }
 
@@ -75,12 +97,27 @@ class SatuanController extends Controller
         ], 404);
         }
         if ($unit->produk()->exists()) {
+        Log::channel('satuan')->warning('Hapus satuan ditolak karena masih digunakan produk', [
+            'satuan_id' => $unit->id,
+            'jenis_satuan' => $unit->jenis_satuan,
+            'user_id' => Auth::id(),
+            'ip_address' => request()->ip(),
+        ]);
+
         return response()->json([
             'status' => 'error',
             'message' => 'Satuan tidak dapat dihapus karena masih digunakan dalam data produk.'
         ], 400);
         }
+        $unitData = $unit->only(['id', 'jenis_satuan', 'keterangan_satuan']);
         $unit->delete();
+
+        Log::channel('satuan')->warning('Satuan dihapus', [
+            'satuan' => $unitData,
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
 
         return response()->json([
             'status' => 'success',

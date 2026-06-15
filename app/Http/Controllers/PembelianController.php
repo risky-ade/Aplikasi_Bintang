@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\HistoriHargaPembelian;
+use App\Support\StockMovementService;
 
 class PembelianController extends Controller
 {
@@ -223,6 +224,18 @@ class PembelianController extends Controller
 
                 $modalBaru = $this->applyMovingAveragePurchase($produk, $qty, (float) $harga, (float) $diskon);
 
+                StockMovementService::record(
+                    $produk->id,
+                    $pembelian->getRawOriginal('tanggal'),
+                    'Pembelian ' . $pembelian->no_faktur,
+                    (int) $qty,
+                    0,
+                    Pembelian::class,
+                    $pembelian->id,
+                    $pembelian->catatan,
+                    Auth::id()
+                );
+
                 Log::channel('pembelian')->info('Harga modal produk dihitung ulang dengan moving average', [
                     'produk_id' => $produk->id,
                     'nama_produk' => $produk->nama_produk,
@@ -420,6 +433,32 @@ public function update(Request $request, $id)
                 'stok' => $stokSesudah,
                 'harga_dasar' => $modalSesudah,
             ]);
+
+            if ($delta > 0) {
+                StockMovementService::record(
+                    $produk->id,
+                    $pembelian->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString(),
+                    'Koreksi Edit Pembelian ' . $pembelian->no_faktur,
+                    (int) $delta,
+                    0,
+                    Pembelian::class,
+                    $pembelian->id,
+                    'Penambahan stok dari update pembelian',
+                    Auth::id()
+                );
+            } elseif ($delta < 0) {
+                StockMovementService::record(
+                    $produk->id,
+                    $pembelian->getRawOriginal('tanggal') ?: \Carbon\Carbon::parse($request->tanggal)->toDateString(),
+                    'Koreksi Edit Pembelian ' . $pembelian->no_faktur,
+                    0,
+                    abs((int) $delta),
+                    Pembelian::class,
+                    $pembelian->id,
+                    'Pengurangan stok dari update pembelian',
+                    Auth::id()
+                );
+            }
         }
 
         // Sinkronisasi detail:
@@ -628,6 +667,18 @@ public function update(Request $request, $id)
                 'stok' => $stokSesudah,
                 'harga_dasar' => $modalSesudah,
             ]);
+
+            StockMovementService::record(
+                $produk->id,
+                now()->toDateString(),
+                'Batal Pembelian ' . $pembelian->no_faktur,
+                0,
+                $qtyBatal,
+                Pembelian::class,
+                $pembelian->id,
+                'Mengurangi stok karena faktur pembelian dibatalkan',
+                Auth::id()
+            );
         }
 
         $pembelian->update([

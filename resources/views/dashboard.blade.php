@@ -140,8 +140,18 @@
                         <div class="info-box">
                         <span class="info-box-icon bg-info"><i class="fas fa-wallet"></i></span>
                         <div class="info-box-content">
-                            <span class="info-box-text">Penghasilan</span>
-                            <span class="info-box-number">{{ rupiah($penghasilanBulanIni) }}</span>
+                            <span class="info-box-text">Penghasilan Net / Pembayaran Net</span>
+                            <span class="info-box-number">{{ rupiah($penghasilanNet) }}</span>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="info-box">
+                        <span class="info-box-icon bg-secondary"><i class="fas fa-file-invoice-dollar"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Biaya Operasional</span>
+                            <span class="info-box-number">{{ rupiah($totalBiayaOperasional) }}</span>
                         </div>
                         </div>
                     </div>

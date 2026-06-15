@@ -60,6 +60,16 @@ class MasterProduk extends Model
         return $this->hasMany(StokOpnameDetail::class, 'master_produk_id');
     }
 
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'master_produk_id');
+    }
+
+    public function productLosses()
+    {
+        return $this->hasMany(ProductLoss::class, 'master_produk_id');
+    }
+
     public function isUsedInTransaction(): bool
     {
         return $this->penjualanDetail()->exists()

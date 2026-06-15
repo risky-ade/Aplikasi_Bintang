@@ -68,6 +68,8 @@
                 <th>Pemasok</th>
                 <th>Nomor PO</th>
                 <th>Total Retur</th>
+                <th>Pajak</th>
+                <th>Ongkir</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
               </tr>
@@ -81,6 +83,8 @@
                   <td>{{ $pembelian->pemasok->nama ?? '-' }}</td>
                   <td>{{ $pembelian->no_po ?? '-' }}</td>
                   <td>Rp {{ number_format($pembelian->total_retur ?? 0, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format($pembelian->pajak_nominal ?? 0, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format($pembelian->ongkir_nominal ?? 0, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format(($pembelian->total_netto_calc ?? $pembelian->total ?? 0), 0, ',', '.') }}</td>
                   <td>{{ ucfirst($pembelian->status_pembayaran) }}</td>
                 </tr>
@@ -94,6 +98,8 @@
                 <th>Pemasok</th>
                 <th>Nomor PO</th>
                 <th>Total Retur</th>
+                <th>Pajak</th>
+                <th>Ongkir</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
               </tr>
@@ -103,6 +109,8 @@
                 <th colspan="5" class="text-right">Total:</th>
                 <th class="tot-col-5"></th>
                 <th class="tot-col-6"></th>
+                <th class="tot-col-7"></th>
+                <th class="tot-col-8"></th>
                 <th></th>
               </tr>
             </tfoot>
@@ -122,7 +130,7 @@
       pageLength: 10,
       lengthMenu: [10, 15, 25, 50, 100],
       columnDefs: [
-        { targets: [0,1,2,4,5,6,7], className: 'text-nowrap' },
+        { targets: [0,1,2,4,5,6,7,8,9], className: 'text-nowrap' },
         { targets: [3], width: '220px' }
       ],
       language: {
@@ -149,10 +157,14 @@
         }
 
         const totalRetur = sumCol(5);
-        const totalNetto = sumCol(6);
+        const totalPajak = sumCol(6);
+        const totalOngkir = sumCol(7);
+        const totalNetto = sumCol(8);
 
         $(api.column(5).footer()).html(fmtIDR(totalRetur));
-        $(api.column(6).footer()).html(fmtIDR(totalNetto));
+        $(api.column(6).footer()).html(fmtIDR(totalPajak));
+        $(api.column(7).footer()).html(fmtIDR(totalOngkir));
+        $(api.column(8).footer()).html(fmtIDR(totalNetto));
       }
     });
   });

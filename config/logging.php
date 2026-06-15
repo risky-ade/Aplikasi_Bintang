@@ -197,6 +197,54 @@ return [
             'level' => 'info',
             'days' => 14,
         ],
+        'kategori' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/kategori.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'satuan' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/satuan.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'role' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/role.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'profil' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/profil.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'biaya_operasional' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/biaya_operasional.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'produk_hilang' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/produk_hilang.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'mutasi_stok' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/mutasi_stok.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+        'histori_harga' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/histori_harga.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
 
         // BACKUP
         'backup' => [

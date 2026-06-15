@@ -15,13 +15,11 @@ class DashboardController extends Controller
 
 
         $totalPenjualan = DB::table('penjualan')
-            // ->whereYear('tanggal', $year)
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'lunas')
             ->count();
 
         $totalPembelian = DB::table('pembelian')
-            // ->whereYear('tanggal', $year)
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'lunas')
             ->count();
@@ -31,24 +29,20 @@ class DashboardController extends Controller
 
 
         $totalNominalPenjualan = DB::table('penjualan')
-            // ->whereYear('tanggal', $year)
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'lunas')
             ->sum('total_netto_calc');
         $totalPiutangPenjualan = DB::table('penjualan')
-            // ->whereYear('tanggal', $year)
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'Belum Lunas')
             ->sum('total_netto_calc');
 
         $totalNominalPembelian = DB::table('pembelian')
-            // ->whereYear('tanggal', $year)
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'lunas')
             ->sum('total_netto_calc');
         
         $totalPiutangPembelian = DB::table('pembelian')
-            // ->whereYear('tanggal', $year)
             ->where('status', '!=', 'batal')
             ->where('status_pembayaran', 'Belum Lunas')
             ->sum('total_netto_calc');
@@ -56,21 +50,37 @@ class DashboardController extends Controller
 
         $bulanIni = now()->month;
 
-        $penjualanBulanIni = DB::table('penjualan')
-            // ->whereYear('tanggal', $year)
-            // ->whereMonth('tanggal', $bulanIni)
+        $pembayaranMasuk = DB::table('penjualan')
             ->where('status', '!=', 'batal')
-            ->where('status_pembayaran', 'lunas')
-            ->sum('total_netto_calc');
+            ->whereRaw('LOWER(status_pembayaran) = ?', ['lunas'])
+            ->selectRaw('COALESCE(SUM(total), 0) as total')
+            ->first();
 
-        $pembelianBulanIni = DB::table('pembelian')
-            // ->whereYear('tanggal', $year)
-            // ->whereMonth('tanggal', $bulanIni)
+        $returPenjualanLunas = DB::table('retur_penjualan as r')
+            ->join('penjualan as p', 'p.id', '=', 'r.penjualan_id')
+            ->where('p.status', '!=', 'batal')
+            ->whereRaw('LOWER(p.status_pembayaran) = ?', ['lunas'])
+            ->selectRaw('COALESCE(SUM(r.total), 0) as total')
+            ->first();
+
+        $pembayaranKeluar = DB::table('pembelian')
             ->where('status', '!=', 'batal')
-            ->where('status_pembayaran', 'lunas')
-            ->sum('total_netto_calc');
+            ->whereRaw('LOWER(status_pembayaran) = ?', ['lunas'])
+            ->selectRaw('COALESCE(SUM(total), 0) as total')
+            ->first();
 
-        $penghasilanBulanIni = $penjualanBulanIni - $pembelianBulanIni;
+        $returPembelianLunas = DB::table('retur_pembelian as r')
+            ->join('pembelian as p', 'p.id', '=', 'r.pembelian_id')
+            ->where('p.status', '!=', 'batal')
+            ->whereRaw('LOWER(p.status_pembayaran) = ?', ['lunas'])
+            ->selectRaw('COALESCE(SUM(r.total), 0) as total')
+            ->first();
+
+        $totalBiayaOperasional = DB::table('operational_expenses')->sum('nominal');
+
+        $totalPembayaranMasuk = (float) ($pembayaranMasuk->total ?? 0) - (float) ($returPenjualanLunas->total ?? 0);
+        $totalPembayaranKeluar = (float) ($pembayaranKeluar->total ?? 0) - (float) ($returPembelianLunas->total ?? 0);
+        $penghasilanNet = $totalPembayaranMasuk - $totalPembayaranKeluar - (float) $totalBiayaOperasional;
 
         $grafikPenjualan = DB::table('penjualan')
             ->selectRaw('MONTH(tanggal) as bulan, SUM(total_netto_calc) as total')
@@ -105,7 +115,8 @@ class DashboardController extends Controller
             'totalPiutangPenjualan',
             'totalNominalPembelian',
             'totalPiutangPembelian',
-            'penghasilanBulanIni',
+            'penghasilanNet',
+            'totalBiayaOperasional',
             'months',
             'year',
         ));

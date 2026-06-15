@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ProfilePerusahaan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProfilePerusahaanController extends Controller
 {
@@ -24,7 +26,18 @@ class ProfilePerusahaanController extends Controller
             'no_rekening'     => 'nullable|string|max:100',
         ]);
 
-        ProfilePerusahaan::updateOrCreate(['id' => 1], $data);
+        $profil = ProfilePerusahaan::firstOrCreate(['id' => 1]);
+        $before = $profil->only(['nama_perusahaan', 'email', 'telepon', 'alamat', 'nama_bank', 'no_rekening']);
+        $profil->update($data);
+
+        Log::channel('profil')->info('Profil perusahaan berhasil diperbarui', [
+            'profil_id' => $profil->id,
+            'before' => $before,
+            'after' => $profil->only(['nama_perusahaan', 'email', 'telepon', 'alamat', 'nama_bank', 'no_rekening']),
+            'user' => ['id' => Auth::id(), 'name' => Auth::user()->name ?? null],
+            'ip_address' => request()->ip(),
+            'waktu' => now()->toDateTimeString(),
+        ]);
 
         return back()->with('success', 'Profil perusahaan berhasil diperbarui.');
     }
