@@ -44,12 +44,13 @@ class LaporanPenjualanController extends Controller
             $den = 1 + ($pajak / 100);
             $subtotalBruto = $den != 0 ? (($p->total - $ongkir) / $den) : ($p->total - $ongkir);
 
-            // $subtotalNet = max(0, $subtotalBruto - $totalRetur);
-            $subtotalNet = max(0, $subtotalBruto);
+            $subtotalNet = max(0, $subtotalBruto - $totalRetur);
+            $subtotal = max(0, $subtotalBruto);
             $pajakNet = $subtotalNet * ($pajak / 100);
 
             $p->pajak_nominal = $pajakNet;
             $p->ongkir_nominal = $ongkir;
+            $p->total_netto = $subtotal + $pajakNet + $ongkir;
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
         $pelanggans = Pelanggan::all();
@@ -97,12 +98,14 @@ class LaporanPenjualanController extends Controller
 
             $p->pajak_nominal = $pajakNet;
             $p->ongkir_nominal = $ongkir;
+            $p->total_netto = $subtotalBruto + $pajakNet + $ongkir;
             $p->total_netto_calc = $subtotalNet + $pajakNet + $ongkir;
         }
         $totalRetur     = $penjualans->sum('total_retur');
         $totalPajak     = $penjualans->sum('pajak_nominal');
         $totalOngkir    = $penjualans->sum('ongkir_nominal');
-        $totalNetto     = $penjualans->sum('total_netto_calc');
+        $totalNetto     = $penjualans->sum('total_netto');
+        $totalNettoCal     = $penjualans->sum('total_netto_calc');
 
         $pdf = Pdf::loadView('reports.sales_pdf', [
         'penjualans' => $penjualans,
@@ -110,6 +113,7 @@ class LaporanPenjualanController extends Controller
         'totalPajak' => $totalPajak,
         'totalOngkir' => $totalOngkir,
         'totalNetto' => $totalNetto,
+        'totalNettoCal' => $totalNettoCal,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('sales_reports.pdf');

@@ -88,7 +88,6 @@
                         <th>Tanggal</th>
                         <th>Pelanggan</th>
                         <th>No PO</th>
-                        {{-- <th>Total</th> --}} 
                         <th>Total Retur</th>
                         <th>Total</th>
                         <th>Status Pembayaran</th>

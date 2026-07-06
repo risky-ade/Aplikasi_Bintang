@@ -24,6 +24,7 @@
         <th>Total Retur</th>
         <th>Pajak</th>
         <th>Ongkir</th>
+        <th>Total</th>
         <th>Total Netto</th>
         <th>Status</th>
       </tr>
@@ -39,6 +40,7 @@
           <td class="text-right">Rp {{ number_format($beli->total_retur ?? 0, 0, ',', '.') }}</td>
           <td class="text-right">Rp {{ number_format($beli->pajak_nominal ?? 0, 0, ',', '.') }}</td>
           <td class="text-right">Rp {{ number_format($beli->ongkir_nominal ?? 0, 0, ',', '.') }}</td>
+          <td class="text-right">Rp {{ number_format(($beli->total_netto ?? $beli->total ?? 0), 0, ',', '.') }}</td>
           <td class="text-right">Rp {{ number_format(($beli->total_netto_calc ?? $beli->total ?? 0), 0, ',', '.') }}</td>
           <td>{{ $beli->status_pembayaran }}</td>
         </tr>
@@ -51,6 +53,7 @@
         <td class="text-right tfoot">Rp {{ number_format($totalPajak, 0, ',', '.') }}</td>
         <td class="text-right tfoot">Rp {{ number_format($totalOngkir, 0, ',', '.') }}</td>
         <td class="text-right tfoot">Rp {{ number_format($totalNetto, 0, ',', '.') }}</td>
+        <td class="text-right tfoot">Rp {{ number_format($totalNettoCal, 0, ',', '.') }}</td>
         <td></td>
       </tr>
     </tfoot>

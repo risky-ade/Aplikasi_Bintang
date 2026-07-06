@@ -31,7 +31,7 @@
           </div>
           <div class="col-md-3">
             <label>Pemasok</label>
-            <select name="pemasok_id" class="form-control">
+            <select name="pemasok_id" id="pemasok_id" class="form-control select2-pemasok">
               <option value="">-- Semua Pemasok --</option>
               @foreach ($pemasoks as $pemasok)
                 <option value="{{ $pemasok->id }}" {{ request('pemasok_id') == $pemasok->id ? 'selected' : '' }}>
@@ -70,6 +70,7 @@
                 <th>Total Retur</th>
                 <th>Pajak</th>
                 <th>Ongkir</th>
+                <th>Total</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
               </tr>
@@ -85,6 +86,7 @@
                   <td>Rp {{ number_format($pembelian->total_retur ?? 0, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format($pembelian->pajak_nominal ?? 0, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format($pembelian->ongkir_nominal ?? 0, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format(($pembelian->total_netto ?? $pembelian->total ?? 0), 0, ',', '.') }}</td>
                   <td>Rp {{ number_format(($pembelian->total_netto_calc ?? $pembelian->total ?? 0), 0, ',', '.') }}</td>
                   <td>{{ ucfirst($pembelian->status_pembayaran) }}</td>
                 </tr>
@@ -100,6 +102,7 @@
                 <th>Total Retur</th>
                 <th>Pajak</th>
                 <th>Ongkir</th>
+                <th>Total</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
               </tr>
@@ -111,6 +114,7 @@
                 <th class="tot-col-6"></th>
                 <th class="tot-col-7"></th>
                 <th class="tot-col-8"></th>
+                <th class="tot-col-9"></th>
                 <th></th>
               </tr>
             </tfoot>
@@ -124,6 +128,11 @@
 </div>
 <script>
   $(document).ready(function() {
+    $('#pemasok_id').select2({
+      placeholder: '-- Semua Pemasok --',
+      allowClear: true,
+      width: '100%'
+    });
     $('#laporanTable').DataTable({
       autoWidth: false,    
       responsive: false,    
@@ -160,11 +169,13 @@
         const totalPajak = sumCol(6);
         const totalOngkir = sumCol(7);
         const totalNetto = sumCol(8);
+        const totalNettoCal = sumCol(9);
 
         $(api.column(5).footer()).html(fmtIDR(totalRetur));
         $(api.column(6).footer()).html(fmtIDR(totalPajak));
         $(api.column(7).footer()).html(fmtIDR(totalOngkir));
         $(api.column(8).footer()).html(fmtIDR(totalNetto));
+        $(api.column(9).footer()).html(fmtIDR(totalNettoCal));
       }
     });
   });

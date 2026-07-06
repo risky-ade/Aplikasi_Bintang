@@ -34,7 +34,7 @@
           </div>
           <div class="col-md-3">
             <label>Pelanggan</label>
-            <select name="pelanggan_id" class="form-control">
+            <select name="pelanggan_id" id="pelanggan_id" class="form-control select2-pelanggan">
               <option value="">-- Semua Pelanggan --</option>
               @foreach ($pelanggans as $pelanggan)
                 <option value="{{ $pelanggan->id }}" {{ request('pelanggan_id') == $pelanggan->id ? 'selected' : '' }}>
@@ -73,6 +73,7 @@
                 <th>Total Retur</th>
                 <th>Pajak</th>
                 <th>Ongkir</th>
+                <th>Total</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
               </tr>
@@ -85,10 +86,11 @@
                   <td>{{ $penjualan->no_faktur }}</td>
                   <td>{{ $penjualan->pelanggan->nama ?? '-' }}</td>
                   <td>{{ $penjualan->no_po ?? '-' }}</td>
-                  <td>Rp {{ number_format($penjualan->total_retur ?? 0, 0, ',', '.') }}</td>
-                  <td>Rp {{ number_format($penjualan->pajak_nominal ?? 0, 0, ',', '.') }}</td>
-                  <td>Rp {{ number_format($penjualan->ongkir_nominal ?? 0, 0, ',', '.') }}</td>
-                  <td>Rp {{ number_format(($penjualan->total_netto_calc ?? $penjualan->total ?? 0), 0, ',', '.') }}</td>
+                  <td>{{ rupiah($penjualan->total_retur ??"-") }}</td>
+                  <td>{{ rupiah($penjualan->pajak_nominal ?? 0, 0, ',', '.') }}</td>
+                  <td>{{ rupiah($penjualan->ongkir_nominal ?? 0, 0, ',', '.') }}</td>
+                  <td>{{ rupiah(($penjualan->total_netto ?? $penjualan->total ?? 0), 0, ',', '.') }}</td>
+                  <td>{{ rupiah(($penjualan->total_netto_calc ?? $penjualan->total ?? 0), 0, ',', '.') }}</td>
                   <td>{{ ucfirst($penjualan->status_pembayaran) }}</td>
                 </tr>
               @endforeach
@@ -103,6 +105,7 @@
                 <th>Total Retur</th>
                 <th>Pajak</th>
                 <th>Ongkir</th>
+                <th>Total</th>
                 <th>Total Netto</th>
                 <th>Status Pembayaran</th>
               </tr>
@@ -114,6 +117,7 @@
                 <th class="tot-col-6"></th>
                 <th class="tot-col-7"></th>
                 <th class="tot-col-8"></th>
+                <th class="tot-col-9"></th>
                 <th></th>
               </tr>
             </tfoot>
@@ -128,6 +132,12 @@
 
 <script>
   $(document).ready(function() {
+    $('#pelanggan_id').select2({
+      placeholder: '-- Semua Pelanggan --',
+      allowClear: true,
+      width: '100%'
+    });
+
     $('#laporanTable').DataTable({
       autoWidth: false,    
       responsive: false,    
@@ -164,11 +174,13 @@
         const totalPajak = sumCol(6);
         const totalOngkir = sumCol(7);
         const totalNetto = sumCol(8);
+        const totalNettoCal = sumCol(9);
 
         $(api.column(5).footer()).html(fmtIDR(totalRetur));
         $(api.column(6).footer()).html(fmtIDR(totalPajak));
         $(api.column(7).footer()).html(fmtIDR(totalOngkir));
         $(api.column(8).footer()).html(fmtIDR(totalNetto));
+        $(api.column(9).footer()).html(fmtIDR(totalNettoCal));
       }
     });
   });

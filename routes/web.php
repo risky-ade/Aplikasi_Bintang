@@ -103,6 +103,8 @@ Route::prefix('sales')->group(function () {
     Route::get('sales_retur/create', [ReturPenjualanController::class, 'create'])->name('retur-penjualan.create')->middleware('auth');
     Route::post('sales_retur/store', [ReturPenjualanController::class, 'store'])->name('retur-penjualan.store')->middleware('auth');
     Route::get('sales_retur/get-detail/{id}', [ReturPenjualanController::class, 'getDetailPenjualan'])->name('retur-penjualan.get-detail')->middleware('auth');
+    Route::get('sales_retur/{id}/edit', [ReturPenjualanController::class, 'edit'])->name('retur-penjualan.edit')->middleware('auth');
+    Route::put('sales_retur/{id}', [ReturPenjualanController::class, 'update'])->name('retur-penjualan.update')->middleware('auth');
     Route::delete('/sales_retur/{id}', [ReturPenjualanController::class, 'destroy'])->name('retur-penjualan.destroy')->middleware(['auth','permission:retur-penjualan.destroy']);
     Route::get('sales_retur/{id}', [ReturPenjualanController::class, 'show'])->name('retur-penjualan.show')->middleware('auth');
 });
@@ -136,6 +138,8 @@ Route::prefix('purchases/purchases_retur')->group(function () {
 
     Route::get('/search-faktur', [ReturPembelianController::class, 'searchFaktur'])
         ->name('ajax.pembelian-search')->middleware('auth');
+    Route::get('/{id}/edit', [ReturPembelianController::class, 'edit'])->name('retur-pembelian.edit')->middleware('auth');
+    Route::put('/{id}', [ReturPembelianController::class, 'update'])->name('retur-pembelian.update')->middleware('auth');
     Route::get('/{id}', [ReturPembelianController::class, 'show'])->name('retur-pembelian.show')->middleware('auth');
     Route::delete('/{id}', [ReturPembelianController::class, 'destroy'])->name('retur-pembelian.destroy')->middleware(['auth','permission:retur-pembelian.destroy']);
 });

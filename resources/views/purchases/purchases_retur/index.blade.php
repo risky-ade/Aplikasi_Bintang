@@ -1,9 +1,5 @@
 @extends('layouts.main')
 @section('content')
-@php
-    use App\Helpers\Helper;
-    use Illuminate\Support\Str;
-@endphp
   <div class="content-wrapper">
     <div class="content-header">
       <div class="container-fluid">
@@ -21,63 +17,105 @@
       </div>
     </div>
 
-    <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
+        <div class="card">
+          <div class="card-header">
+            <form method="GET" action="{{ route('retur-pembelian.index') }}" class="mb-3">
+              <div class="row">
+                <div class="col-md-2 mb-2">
+                  <label>Tanggal Awal</label>
+                  <input type="date" name="tanggal_awal" class="form-control" value="{{ request('tanggal_awal') }}">
+                </div>
+                <div class="col-md-2 mb-2">
+                  <label>Tanggal Akhir</label>
+                  <input type="date" name="tanggal_akhir" class="form-control" value="{{ request('tanggal_akhir') }}">
+                </div>
+                <div class="col-md-3 mb-2">
+                  <label>No Faktur</label>
+                  <input type="text" name="no_faktur" class="form-control" placeholder="Cari no faktur" value="{{ request('no_faktur') }}">
+                </div>
+                <div class="col-md-3 mb-2">
+                  <label>Nama Pemasok</label>
+                  <input type="text" name="pemasok" class="form-control" placeholder="Cari pemasok" value="{{ request('pemasok') }}">
+                </div>
+                <div class="col-md-2 mb-2 d-flex align-items-end">
+                  <button type="submit" class="btn btn-primary mr-2">
+                    <i class="fas fa-search"></i> Filter
+                  </button>
+                  <a href="{{ route('retur-pembelian.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-sync"></i>
+                  </a>
+                </div>
+              </div>
+            </form>
+            <div class="d-flex justify-content-end">
+              <a href="{{ route('retur-pembelian.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Tambah Retur
+              </a>
+            </div>
+          </div>
 
-      <div class="card">
-        <div class="card-header d-flex justify-content-end">
-          <a href="{{ route('retur-pembelian.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Tambah Retur
-          </a>
-        </div>
+          <div class="card-body">
+            <table class="table table-bordered table-striped" id="DataTable">
+              <thead class="bg-dark text-white">
+                <tr>
+                  <th>No</th>
+                  <th>No Retur</th>
+                  <th>No Faktur</th>
+                  <th>Tanggal</th>
+                  <th>Pemasok</th>
+                  <th>Total Retur</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse ($returns as $index => $retur)
+                  @php
+                    $locked = $retur->pembelian && ($retur->pembelian->approved_at || $retur->pembelian->status_pembayaran === 'Lunas');
+                  @endphp
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $retur->no_retur }}</td>
+                    <td>{{ $retur->pembelian->no_faktur ?? '-' }}</td>
+                    <td>{{ $retur->tanggal_retur->format('d-m-Y') }}</td>
+                    <td>{{ $retur->pembelian->pemasok->nama ?? '-' }}</td>
+                    <td>Rp {{ number_format($retur->total, 0, ',', '.') }}</td>
+                    <td class="text-nowrap">
+                      <a href="{{ route('retur-pembelian.show', $retur->id) }}" class="btn btn-sm btn-info" title="Lihat">
+                        <i class="fas fa-eye"></i>
+                      </a>
 
-        <div class="card-body">
-          <table class="table table-bordered table-striped">
-            <thead class="bg-dark text-white">
-              <tr>
-                <th>No</th>
-                <th>No Retur</th>
-                <th>No Faktur</th>
-                <th>Tanggal</th>
-                <th>Pemasok</th>
-                <th>Total Retur</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse ($returns as $index => $retur)
-                <tr>
-                  <td>{{ $index + 1 }}</td>
-                  <td>{{ $retur->no_retur }}</td>
-                  <td>{{ $retur->pembelian->no_faktur ?? '-' }}</td>
-                  <td>{{ $retur->tanggal_retur->format('d-m-Y') }}</td>
-                  <td>{{ $retur->pembelian->pemasok->nama ?? '-' }}</td>
-                  <td>Rp {{ number_format($retur->total, 0, ',', '.') }}</td>
-                  <td>
-                    <a href="{{ route('retur-pembelian.show', $retur->id) }}" class="btn btn-sm btn-info">
-                      <i class="fas fa-eye"></i>
-                    </a>
-                    
-                    <button class="btn btn-danger btn-sm btn-delete" data-id="{{ $retur->id }}" data-no_retur="{{ $retur->no_retur }}">
-                        <i class="fas fa-trash"></i>
-                    </button>                                        
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="7" class="text-center">Belum ada data retur penjualan.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
+                      @if ($locked)
+                        <button class="btn btn-sm btn-warning" disabled title="Faktur sudah lunas/approve">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" disabled title="Faktur sudah lunas/approve">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      @else
+                        <a href="{{ route('retur-pembelian.edit', $retur->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="{{ $retur->id }}" data-no_retur="{{ $retur->no_retur }}" title="Hapus">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      @endif
+                    </td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="7" class="text-center">Belum ada data retur pembelian.</td>
+                  </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
     </section>
   </div>
-</div>
-{{-- script delete --}}
+
 <script>
   $(document).on('click', '.btn-delete', function (e) {
     e.preventDefault();
@@ -100,22 +138,20 @@
           url: `/purchases/purchases_retur/${id}`,
           type: 'POST',
           data: {
-             _method: 'DELETE',
+            _method: 'DELETE',
             _token: '{{ csrf_token() }}'
           },
           success: function (res) {
             Swal.fire({
               icon: 'success',
               title: 'Berhasil',
-              text: res.message,
+              text: res.message || 'Retur berhasil dihapus.',
               timer: 1500,
               showConfirmButton: false
-            }).then(() => {
-              location.reload();
-            });
+            }).then(() => location.reload());
           },
           error: function (xhr) {
-            let res = xhr.responseJSON;
+            let res = xhr.responseJSON || {};
             Swal.fire({
               icon: 'error',
               title: 'Gagal',
@@ -124,6 +160,29 @@
           }
         });
       }
+    });
+  });
+</script>
+<script>
+  $(document).ready(function() {
+    $('#DataTable').DataTable({
+      autoWidth: false,
+      responsive: false,
+      pageLength: 10,
+      lengthMenu: [10, 15, 25, 50, 100],
+      columnDefs: [
+        { targets: [0,1,2,4,5,6], className: 'text-nowrap' },
+        { targets: [3], width: '220px' }
+      ],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ baris per halaman",
+        zeroRecords: "Data tidak ditemukan",
+        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        infoEmpty: "Tidak ada data",
+        infoFiltered: "(disaring dari total _MAX_ data)",
+        paginate: { next: "Berikutnya", previous: "Sebelumnya" }
+      },
     });
   });
 </script>
