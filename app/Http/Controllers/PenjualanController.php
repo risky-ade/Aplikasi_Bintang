@@ -701,6 +701,7 @@ class PenjualanController extends Controller
 
     public function batal($id)
     {
+        $penjualan = null;
         DB::beginTransaction();
         try{
             $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
@@ -752,8 +753,8 @@ class PenjualanController extends Controller
         }catch(\Exception $e){
             DB::rollBack();
             Log::channel('penjualan')->warning('Faktur Gagal dibatalkan', [
-                'penjualan_id' => $penjualan->id,
-                'no_faktur' => $penjualan->no_faktur,
+                'penjualan_id' => $penjualan->id ?? $id,
+                'no_faktur' => $penjualan->no_faktur ?? null,
                 'user'=>[
                     'id' => Auth::id(),
                     'name'=> Auth::user()->name,
