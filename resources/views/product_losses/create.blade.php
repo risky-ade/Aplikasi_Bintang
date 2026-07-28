@@ -60,6 +60,7 @@
                   <tr>
                     <th style="min-width: 320px">Produk</th>
                     <th style="min-width: 140px">Qty Hilang</th>
+                    <th style="min-width: 140px">Satuan</th>
                     <th style="min-width: 260px">Keterangan</th>
                     <th style="width: 70px">Aksi</th>
                   </tr>
@@ -70,13 +71,18 @@
                       <select name="master_produk_id[]" class="form-control produk-select" required>
                         <option value="">-- Pilih Produk --</option>
                         @foreach($produk as $item)
-                          <option value="{{ $item->id }}" data-stok="{{ $item->stok }}">
-                            {{ $item->nama_produk }} (Stok: {{ $item->stok }})
-                          </option>
+                       <option
+                          value="{{ $item->id }}"
+                          data-stok="{{ $item->stok }}"
+                          data-satuan="{{ $item->satuan->jenis_satuan }}">
+                          {{ $item->nama_produk }} (Stok: {{ $item->stok }})
+                      </option>
+                        
                         @endforeach
                       </select>
                     </td>
                     <td><input type="number" name="qty[]" class="form-control qty-input" min="1" value="1" required></td>
+                    <td><input type="text" name="satuan[]" class="form-control" readonly></td>
                     <td><input type="text" name="keterangan[]" class="form-control"></td>
                     <td class="text-center">
                       <button type="button" class="btn btn-sm btn-danger" onclick="hapusBaris(this)">x</button>
@@ -103,13 +109,17 @@
       <select name="master_produk_id[]" class="form-control produk-select" required>
         <option value="">-- Pilih Produk --</option>
         @foreach($produk as $item)
-          <option value="{{ $item->id }}" data-stok="{{ $item->stok }}">
-            {{ $item->nama_produk }} (Stok: {{ $item->stok }})
+          <option
+              value="{{ $item->id }}"
+              data-stok="{{ $item->stok }}"
+              data-satuan="{{ $item->satuan->jenis_satuan }}">
+              {{ $item->nama_produk }} (Stok: {{ $item->stok }})
           </option>
         @endforeach
       </select>
     </td>
     <td><input type="number" name="qty[]" class="form-control qty-input" min="1" value="1" required></td>
+    <td><input type="text" name="satuan[]" class="form-control" readonly></td>
     <td><input type="text" name="keterangan[]" class="form-control"></td>
     <td class="text-center">
       <button type="button" class="btn btn-sm btn-danger" onclick="hapusBaris(this)">x</button>
@@ -118,12 +128,25 @@
 </template>
 
 <script>
-function initSelect2(context = document) {
-  $(context).find('.produk-select').select2({
-    placeholder: 'Pilih produk',
-    allowClear: true,
-    width: '100%'
-  });
+  
+  function initSelect2(context = document) {
+
+    $(context).find('.produk-select').select2({
+        placeholder: 'Pilih produk',
+        allowClear: true,
+        width: '100%'
+    }).on('select2:select', function (e) {
+
+        let data = e.params.data;
+
+        let option = $(data.element);
+
+        let row = $(this).closest('tr');
+
+        row.find('input[name="satuan[]"]').val(option.attr('data-satuan'));
+
+    });
+
 }
 
 function tambahBaris() {

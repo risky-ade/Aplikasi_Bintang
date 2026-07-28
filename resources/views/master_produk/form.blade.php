@@ -56,7 +56,7 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            <label for="include_pajak">Harga Termasuk Pajak?</label>
+            <label for="include_pajak">Produk PPN?</label>
             <select class="form-control" name="include_pajak">
                 <option value="0"
                 {{ old('include_pajak', $masterProduk->include_pajak ?? '') == 0 ? 'selected' : '' }}>

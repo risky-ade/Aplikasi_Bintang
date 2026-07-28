@@ -42,6 +42,7 @@
                   <tr>
                     <th>Produk</th>
                     <th>Qty Beli</th>
+                    <th>Satuan</th>
                     <th>Harga Beli</th>
                     <th>Diskon / Unit</th>
                     <th>Qty Retur</th>
@@ -104,6 +105,7 @@ $(function () {
           const nama  = item.produk?.nama_produk ?? '-';
           const pid   = item.produk?.id ?? '';
           const qty   = Number(item.qty || 0);
+          const satuan = item.satuan ?? '-';
           const harga = Number(item.harga_beli || 0);
           const discU = Number(item.diskon_unit || 0);
 
@@ -114,6 +116,7 @@ $(function () {
                 <input type="hidden" name="produk_id[]" value="${pid}">
               </td>
               <td>${qty}</td>
+              <td>${satuan}</td>
               <td>Rp ${Math.round(harga).toLocaleString('id-ID')}</td>
               <td>Rp ${Math.round(discU).toLocaleString('id-ID')}</td>
               <td>

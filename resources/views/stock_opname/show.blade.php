@@ -70,6 +70,7 @@
                                 <th>Produk</th>
                                 <th>Stok Sistem</th>
                                 <th>Stok Fisik</th>
+                                <th>Satuan</th>
                                 <th>Selisih</th>
                             </tr>
                         </thead>
@@ -80,6 +81,7 @@
                                 <td>{{ $d->produk->nama_produk }}</td>
                                 <td>{{ $d->stok_sistem }}</td>
                                 <td>{{ $d->stok_fisik }}</td>
+                                <td>{{ $d->produk->satuan->jenis_satuan }}</td>
                                 <td>
                                     <span class="badge badge-{{ $d->selisih < 0 ? 'danger' : 'success' }}">
                                         {{ $d->selisih }}

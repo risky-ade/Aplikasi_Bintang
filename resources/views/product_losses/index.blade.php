@@ -19,14 +19,17 @@
 
   <section class="content">
     <div class="container-fluid">
-      {{-- @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
-      @if(session('error')) <div class="alert alert-danger">{{ session('error') }}</div> @endif --}}
       <div class="card">
         <div class="card-header text-right">
           <a href="{{ route('product_losses.create') }}" class="btn btn-primary btn-sm">Tambah Produk Hilang</a>
         </div>
         <div class="card-body">
           <div class="table-responsive">
+            @if(session('success'))
+            <script>
+            Swal.fire({icon: 'success',title: 'Berhasil',text: '{{ session('success') }}',timer: 2000,showConfirmButton: false});
+            </script>
+            @endif
             <table class="table table-bordered table-striped table-hover" id="DataTable">
               <thead class="bg-secondary text-white">
                 <tr>
@@ -77,13 +80,32 @@
 $(function () {
   $('#DataTable').DataTable();
 
-  $(document).on('submit', '.form-delete-loss', function(e) {
-    e.preventDefault();
+  $(function () {
+    $('#DataTable').DataTable();
 
-    if (confirm('Hapus data produk hilang ini? Stok produk akan dikoreksi ulang.')) {
-      this.submit();
-    }
-  });
+    $(document).on('submit', '.form-delete-loss', function (e) {
+        e.preventDefault();
+
+        let form = this;
+
+        Swal.fire({
+            title: 'Yakin ingin menghapus?',
+            text: 'Data produk hilang akan dihapus dan stok produk akan dikembalikan seperti semula.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
 });
 </script>
 @endsection
+ 

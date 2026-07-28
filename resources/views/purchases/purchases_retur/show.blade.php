@@ -31,6 +31,7 @@
                 <th>#</th>
                 <th>Produk</th>
                 <th>Qty Retur</th>
+                <th>Satuan</th>
                 <th>Harga</th>
                 <th>diskon / produk</th>
                 <th>Subtotal</th>
@@ -42,13 +43,14 @@
                 <td>{{ $i + 1 }}</td>
                 <td>{{ $detail->produk->nama_produk ?? '-' }}</td>
                 <td>{{ $detail->qty_retur }}</td>
+                <td>{{ $detail->produk->satuan->jenis_satuan ?? '-' }}</td>
                 <td>Rp {{ number_format($detail->harga_beli, 0, ',', '.') }}</td>
                 <td>Rp {{ number_format($detail->diskon, 0, ',', '.') }}</td>
                 <td>Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
               </tr>
               @endforeach
               <tr>
-                <th colspan="5" class="text-right">Total</th>
+                <th colspan="6" class="text-right">Total</th>
                 <th>Rp {{ number_format($retur->total, 0, ',', '.') }}</th>
               </tr>
             </tbody>

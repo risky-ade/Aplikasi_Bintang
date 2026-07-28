@@ -79,6 +79,7 @@
                                 <th>Produk</th>
                                 <th>Stok Sistem</th>
                                 <th>Stok Fisik</th>
+                                <th>Satuan</th>
                                 <th>Selisih</th>
                             </tr>
                         </thead>
@@ -91,6 +92,7 @@
                                     <input type="number" name="stok_fisik[]" 
                                     value="{{ $d->stok_fisik }}" class="form-control">
                                 </td>
+                                <td>{{ $d->produk->satuan->jenis_satuan }}</td>
                                 <td>{{ $d->selisih }}</td>
                             </tr>
                             @endforeach

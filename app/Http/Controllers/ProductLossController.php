@@ -22,7 +22,7 @@ class ProductLossController extends Controller
 
     public function create()
     {
-        $produk = MasterProduk::where('is_active', true)->orderBy('nama_produk')->get();
+        $produk = MasterProduk::with('satuan')->where('is_active', true)->orderBy('nama_produk')->get();
 
         return view('product_losses.create', compact('produk'));
     }
@@ -98,7 +98,7 @@ class ProductLossController extends Controller
 
     public function edit(ProductLoss $productLoss)
     {
-        $produk = MasterProduk::where('is_active', true)
+        $produk = MasterProduk::with('satuan')->where('is_active', true)
             ->orWhere('id', $productLoss->master_produk_id)
             ->orderBy('nama_produk')
             ->get();

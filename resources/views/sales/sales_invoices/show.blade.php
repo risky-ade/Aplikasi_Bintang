@@ -61,6 +61,7 @@
                 <th>No</th>
                 <th>Nama Produk</th>
                 <th>Qty</th>
+                <th>Satuan</th>
                 <th>Harga</th>
                 <th>Diskon</th>
                 <th>Subtotal</th>
@@ -90,6 +91,9 @@
                 </td>
                 <td class="text-center">
                   {{ $netQty }}
+                </td>
+                <td class="text-center">
+                  {{ $item->produk->satuan->jenis_satuan ?? '-' }}
                 </td>
                 <td class="text-right">{{ rupiah($item->harga_jual) }}</td>
                 <td class="text-right">{{ rupiah($discTot) }}</td>

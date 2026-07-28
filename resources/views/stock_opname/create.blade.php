@@ -84,6 +84,7 @@
                                     <th class="produk-column">Produk</th>
                                     <th>Stok Sistem</th>
                                     <th>Stok Fisik</th>
+                                    <th>Satuan</th>
                                     <th>Selisih</th>
                                     <th>
                                         <button type="button" class="btn btn-sm btn-success" onclick="tambahBaris()">+</button>
@@ -100,6 +101,9 @@
                                     </td>
                                     <td>
                                         <input type="number" name="stok_fisik[]" class="form-control number-input stok-fisik" min="0" required>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="satuan[]" class="form-control" readonly>
                                     </td>
                                     <td>
                                         <input type="number" name="selisih[]" class="form-control number-input selisih" readonly value="0">
@@ -134,6 +138,9 @@
         </td>
         <td>
             <input type="number" name="stok_fisik[]" class="form-control number-input stok-fisik" min="0" required>
+        </td>
+        <td>
+            <input type="text" name="satuan[]" class="form-control" readonly>
         </td>
         <td>
             <input type="number" name="selisih[]" class="form-control number-input selisih" readonly value="0">
@@ -181,6 +188,7 @@ function initSelect2() {
         const row = $(this).closest('tr');
         row.find('.stok-sistem').val(data.stok || 0);
         row.find('.stok-fisik').val(data.stok || 0).trigger('input');
+        row.find('input[name="satuan[]"]').val(data.satuan || '-');
     });
 }
 

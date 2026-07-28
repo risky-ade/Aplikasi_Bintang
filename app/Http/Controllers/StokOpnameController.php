@@ -116,7 +116,7 @@ class StokOpnameController extends Controller
 
     public function edit($id)
     {
-        $opname = StokOpname::with('details.produk')->findOrFail($id);
+        $opname = StokOpname::with('details.produk.satuan')->findOrFail($id);
 
         if ($opname->status === 'selesai') {
             return redirect()->route('stock_opname.index')
@@ -173,9 +173,9 @@ class StokOpnameController extends Controller
     {
         $opname = StokOpname::findOrFail($id);
 
-        if ($opname->status === 'selesai') {
-            return back()->with('error', 'Stock opname yang sudah selesai tidak dapat dihapus.');
-        }
+        // if ($opname->status === 'selesai') {
+        //     return back()->with('error', 'Stock opname yang sudah selesai tidak dapat dihapus.');
+        // }
 
         $opname->delete();
 

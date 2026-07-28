@@ -42,9 +42,13 @@
                 </select>
               </div>
               <div class="col-md-2">
-                <label>Qty Hilang</label>
+                <label>Qty</label>
                 <input type="number" name="qty" class="form-control" min="1" value="{{ old('qty', $productLoss->qty) }}" required>
               </div>
+              {{-- <div class="col-md-2">
+                <label>Satuan</label>
+                <input type="text" name="satuan" class="form-control" value="{{ old('satuan', $productLoss->satuan->jenis_satuan ?? '-') }}" readonly>
+              </div> --}}
               <div class="col-md-3">
                 <label>Keterangan</label>
                 <input type="text" name="keterangan" class="form-control" value="{{ old('keterangan', $productLoss->keterangan) }}">

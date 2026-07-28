@@ -75,7 +75,7 @@ class ReturPembelianController extends Controller
 
     public function getDetailPembelian($id)
     {
-        $pembelian = Pembelian::with('detail.produk')->findOrFail($id);
+        $pembelian = Pembelian::with('detail.produk.satuan')->findOrFail($id);
 
         $details = $pembelian->detail->map(function ($d) {
             $diskonUnit = (float) ($d->diskon ?? 0);
@@ -86,6 +86,7 @@ class ReturPembelianController extends Controller
                     'nama_produk' => $d->produk?->nama_produk,
                 ],
                 'qty' => (int) $d->qty,
+                'satuan' => $d->produk?->satuan?->jenis_satuan,
                 'harga_beli' => (float) $d->harga_beli,
                 'diskon_unit' => $diskonUnit,
                 'subtotal' => (float) $d->subtotal,

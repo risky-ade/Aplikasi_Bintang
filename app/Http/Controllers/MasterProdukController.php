@@ -131,7 +131,11 @@ class MasterProdukController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $masterProduk = MasterProduk::findOrFail($id);
+        $kategori = Kategori::all();
+        $satuan = Satuan::all();
+
+        return view('master_produk.show', compact('masterProduk', 'kategori', 'satuan'));
     }
     public function checkDuplicate(Request $request)
     {
@@ -311,6 +315,7 @@ class MasterProdukController extends Controller
                 'id' => $item->id,
                 'text' => $item->nama_produk,
                 'stok' =>$item->stok,
+                'satuan' => $item->satuan->jenis_satuan ?? '',
                 'harga_jual' => $item->harga_jual,
                 'harga_dasar'=> $item->harga_dasar,
             ];

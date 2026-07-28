@@ -46,6 +46,7 @@
                   <th>Produk</th>
                   <th>Qty Beli</th>
                   <th>Sisa Bisa Retur</th>
+                  <th>Satuan</th>
                   <th>Harga Beli</th>
                   <th>Diskon / Unit</th>
                   <th>Qty Retur</th>
@@ -71,6 +72,7 @@
                     </td>
                     <td>{{ $qtyBeli }}</td>
                     <td>{{ $maxRetur }}</td>
+                    <td>{{ $detail->produk->satuan->jenis_satuan ?? '-' }}</td>
                     <td>Rp {{ number_format($detail->harga_beli, 0, ',', '.') }}</td>
                     <td>Rp {{ number_format($diskonUnit, 0, ',', '.') }}</td>
                     <td>

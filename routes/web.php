@@ -72,6 +72,7 @@ Route::get('/master_produk', [MasterProdukController::class, 'index'])->name('ma
 Route::get('/master_produk/search', [MasterProdukController::class, 'search'])->name('produk.search')->middleware('auth');
 Route::get('/master_produk/check-duplicate', [MasterProdukController::class, 'checkDuplicate'])->name('produk.check-duplicate')->middleware('auth');
 Route::get('/master_produk/create', [MasterProdukController::class, 'create'])->name('produk.create')->middleware(['auth','permission:master_produk.create']);
+Route::get('/master_produk/{id}', [MasterProdukController::class, 'show'])->name('master_produk.show')->middleware(['auth']);
 Route::post('/master_produk', [MasterProdukController::class, 'store'])->name('produk.store')->middleware(['auth','permission:master_produk.store']);
 Route::get('/master_produk/{id}/edit', [MasterProdukController::class, 'edit'])->name('produk.edit')->middleware(['auth','permission:master_produk.edit']);
 Route::delete('master_produk/{id}', [MasterProdukController::class, 'destroy'])->name('produk.destroy')->middleware(['auth','permission:master_produk.destroy']);
@@ -251,11 +252,15 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/product_losses', [ProductLossController::class, 'index'])->name('product_losses.index');
-    Route::get('/product_losses/create', [ProductLossController::class, 'create'])->name('product_losses.create');
+    Route::get('/product_losses/create', [ProductLossController::class, 'create'])->name('product_losses.create')
+    ->middleware('permission:product_losses.create');
     Route::post('/product_losses', [ProductLossController::class, 'store'])->name('product_losses.store');
-    Route::get('/product_losses/{productLoss}', [ProductLossController::class, 'show'])->name('product_losses.show');
-    Route::get('/product_losses/{productLoss}/edit', [ProductLossController::class, 'edit'])->name('product_losses.edit');
+    Route::get('/product_losses/{productLoss}', [ProductLossController::class, 'show'])->name('product_losses.show')
+    ->middleware('permission:product_losses.show');
+    Route::get('/product_losses/{productLoss}/edit', [ProductLossController::class, 'edit'])->name('product_losses.edit')
+    ->middleware('permission:product_losses.edit');
     Route::put('/product_losses/{productLoss}', [ProductLossController::class, 'update'])->name('product_losses.update');
-    Route::delete('/product_losses/{productLoss}', [ProductLossController::class, 'destroy'])->name('product_losses.destroy');
+    Route::delete('/product_losses/{productLoss}', [ProductLossController::class, 'destroy'])->name('product_losses.destroy')
+    ->middleware('permission:product_losses.destroy');
 });
  

@@ -104,6 +104,7 @@
                     <tr>
                         <th class="produk-column">Produk</th>
                         <th>Qty</th>
+                        <th>Satuan</th>
                         <th>Harga</th>
                         <th>Diskon</th>
                         <th>Subtotal</th>
@@ -116,6 +117,9 @@
                             <select name="produk_id[]" class="form-control produk-select w-100" required></select>
                         </td>
                         <td><input type="number" name="qty[]" class="form-control number-input qty" required></td>
+                        <td>
+                            <input type="text" class="form-control satuan" readonly>
+                        </td>
                         <td>
                             <input type="hidden" name="harga_jual[]" class="harga">
                             <input type="text"class="form-control harga_display number-input" required>
@@ -195,6 +199,9 @@
     </td>
     <td><input type="number" name="qty[]" class="form-control number-input qty" required></td>
     <td>
+        <input type="text" class="form-control satuan" readonly>
+    </td>
+    <td>
         <input type="hidden" name="harga_jual[]" class="harga">
         <input type="text"class="form-control harga_display number-input" required>
     </td>
@@ -233,6 +240,7 @@
             row.find('.harga').val(data.harga_jual);
             row.find('.harga_display').val('Rp ' + data.harga_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
             row.find('.qty').val(1).trigger('input');
+            row.find('.satuan').val(data.satuan ?? '');
         });
     }
 

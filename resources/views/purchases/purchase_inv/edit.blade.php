@@ -72,6 +72,7 @@
               <tr>
                 <th style="min-width:220px">Produk</th>
                 <th>Qty</th>
+                <th>Satuan</th>
                 <th>Harga Beli</th>
                 <th>Diskon</th>
                 <th>Subtotal</th>
@@ -90,6 +91,9 @@
                     </td>
                     <td>
                       <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control qty" required>
+                    </td>
+                    <td>
+                      <input type="text" name="satuan[]" value="{{ $detail->produk->satuan->jenis_satuan }}" class="form-control satuan" readonly>
                     </td>
                     <td>
                       <input type="hidden" name="harga_beli[]" value="{{ $detail->harga_beli }}" class="harga" >
@@ -168,6 +172,9 @@
   <td><select name="produk_id[]" class="form-control produk-select" required></select></td>
   <td><input type="number" name="qty[]" class="form-control qty number-input" min="1" required></td>
   <td>
+    <input type="text" name="satuan[]" class="form-control satuan" readonly>
+  </td>
+  <td>
     <input type="hidden" name="harga_beli[]" class="harga" required>
     <input type="text" class="form-control harga_display number-input" required>
   </td>
@@ -201,6 +208,7 @@
       row.find('.harga').val(data.harga_dasar ?? 0);
       row.find('.harga_display').val('Rp ' + data.harga_dasar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
       row.find('.qty').val(1).trigger('input');
+      row.find('.satuan').val(data.satuan ?? '');
     });
   }
   function tambahBaris(){

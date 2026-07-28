@@ -14,10 +14,6 @@
         @csrf
         <div class="card">
           <div class="card-body">
-            {{-- @if(session('error'))
-              <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif --}}
-
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="penjualan_id">Pilih Faktur</label>
@@ -43,6 +39,7 @@
                   <tr>
                     <th>Produk</th>
                     <th>Qty Jual</th>
+                    <th>Satuan</th>
                     <th>Harga Jual</th>
                     <th>diskon</th>
                     <th>Qty Retur</th>
@@ -105,6 +102,7 @@ $(document).ready(function () {
           const nama  = (item.produk && item.produk.nama_produk) ? item.produk.nama_produk : '-';
           const pid   = (item.produk && item.produk.id) ? item.produk.id : '';
           const qty   = Number(item.qty || 0);
+          const satuan = item.satuan ?? '-';
           const harga = Number(item.harga_jual || 0);
           const discU = Number(item.diskon_unit || 0);
           const discT = Number(item.diskon || 0);
@@ -116,6 +114,7 @@ $(document).ready(function () {
                 <input type="hidden" name="produk_id[]" value="${pid}">
               </td>
               <td>${qty}</td>
+              <td>${satuan}</td>
               <td>Rp ${Math.round(harga).toLocaleString('id-ID')}</td>
               <td>Rp ${Math.round(discT).toLocaleString('id-ID')}</td>
               <td>

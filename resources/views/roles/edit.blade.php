@@ -40,6 +40,10 @@
                 'stock_opname.update',
                 'stock_opname.destroy',
                 'stock_opname.approve',
+                'product_losses.create',
+                'product_losses.show',
+                'product_losses.edit',
+                'product_losses.destroy',
             ],
         ],
         'Penjualan Produk' => [

@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HistoriHargaPenjualan;
+use App\Models\MasterProduk;
 use App\Models\Pelanggan;
 use App\Models\Penjualan;
-use App\Models\MasterProduk;
-use Illuminate\Http\Request;
-use App\Models\ReturPenjualan;
-use Illuminate\Support\Carbon;
 use App\Models\PenjualanDetail;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ProfilePerusahaan;
+use App\Models\ReturPenjualan;
 use App\Support\StockMovementService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-use App\Models\HistoriHargaPenjualan;
-use Exception;
 
 
 class PenjualanController extends Controller
@@ -105,6 +105,7 @@ class PenjualanController extends Controller
     public function create()
     {
         $produk = MasterProduk::all();
+        // $satuan = Satuan::all();
         $pelanggan = Pelanggan::all();
         $lastId = Penjualan::where('tanggal',now()->format('Y-m-d'))->count();
         // dd($lastId);

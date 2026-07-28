@@ -22,7 +22,7 @@
 
 <div class="card">
     <div class="card-header d-flex ">
-        <form method="POST" action="{{ route('backup.run') }}">
+        <form id="form-backup" method="POST" action="{{ route('backup.run') }}">
             @csrf
             <button class="btn btn-primary">
                 <i class="fas fa-database"></i> Backup Sekarang
@@ -32,7 +32,27 @@
             <i class="fas fa-sync"></i> Reload
         </button>
     </div>
+    @if(session('success'))
+    <script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: "{{ session('success') }}",
+        timer: 2000,
+        showConfirmButton: false
+    });
+    </script>
+    @endif
 
+    @if(session('error'))
+    <script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: "{{ session('error') }}"
+    });
+    </script>
+    @endif
     <div id="table-container">
         @include('backup.table')
     </div>
@@ -43,6 +63,26 @@
 </div>
 
 <script>
+$(document).on('submit', '#form-backup', function(e){
+    e.preventDefault();
+
+    let form = this;
+
+    Swal.fire({
+        title: 'Jalankan Backup?',
+        text: 'Sistem akan membuat backup database terbaru.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Backup',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#6c757d'
+    }).then((result) => {
+        if(result.isConfirmed){
+            form.submit();
+        }
+    });
+});
 $(document).on('click', '.btn-delete', function (e) {
     e.preventDefault();
 

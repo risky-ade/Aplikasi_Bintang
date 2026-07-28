@@ -104,6 +104,7 @@
                   <tr>
                     <th class="produk-column">Produk</th>
                     <th>Qty</th>
+                    <th>Satuan</th>
                     <th>Harga</th>
                     <th>Diskon</th>
                     <th>Subtotal</th>
@@ -122,6 +123,9 @@
                       <td>
                         {{-- <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control qty" required {{ $isReturExists ? 'readonly' : '' }}> --}}
                         <input type="number" name="qty[]" value="{{ $detail->qty }}" class="form-control number-input qty" required>
+                      </td>
+                      <td>
+                          <input type="text" value="{{$detail->produk->satuan->jenis_satuan}}" class="form-control satuan" readonly>
                       </td>
                       <td>
                         <input type="hidden" name="harga_jual[]" value="{{ $detail->harga_jual }}" class="harga" required {{ $isReturExists ? 'readonly' : '' }}>
@@ -200,6 +204,7 @@
 <tr>
   <td><select name="produk_id[]" class="form-control produk-select" required></select></td>
   <td><input type="number" name="qty[]" class="form-control number-input qty" required></td>
+  <td><input type="text" class="form-control satuan" readonly></td>
   <td>
     <input type="hidden" name="harga_jual[]" class="harga">
     <input type="text"class="form-control harga_display number-input" required>
@@ -236,6 +241,7 @@
             row.find('.harga').val(data.harga_jual);
             row.find('.harga_display').val('Rp ' + data.harga_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
             row.find('.qty').val(1).trigger('input');
+            row.find('.satuan').val(data.satuan ?? '');
         });
     }
 

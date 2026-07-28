@@ -22,7 +22,7 @@ Schedule::command('backup:run')
         logger()->error('Backup mingguan gagal');
     });
 
-// Backup otomatis BULANAN (tanggal 1 jam 03:00)
+// Backup otomatis BULANAN  (tanggal 1 jam 03:00)
 Schedule::command('backup:run')
     ->monthlyOn(1, '03:00')
     ->withoutOverlapping()

@@ -230,12 +230,12 @@
                                 <p>Profil Perusahaan</p>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="{{ route('backup.index') }}" class="nav-link">
                                 <i class="nav-icon fas fa-database"></i>
                                 <p>Backup Database</p>
                             </a>
-                        </li>
+                        </li> --}}
 
                         <li class="nav-item">
                             <a href="{{ route('logs.index') }}" class="nav-link">

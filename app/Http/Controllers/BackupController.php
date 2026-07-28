@@ -3,20 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\RunBackupJob;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class BackupController extends Controller
 {
 
     public function index()
     {
-        // $files = collect(Storage::files('LaravelApp'))
-        //     ->sortDesc();
         $path = storage_path('app/backup/Laravel');
 
         $files = File::exists($path)
@@ -28,14 +24,25 @@ class BackupController extends Controller
 
     public function run()
     {
+        try {
+            Artisan::call('backup:run');
+
+            return redirect()
+                ->route('backup.index')
+                ->with('success', 'Backup database berhasil dibuat.');
+                // ->with('success', Artisan::output());
+
+        } catch (\Exception $e) {
+
+            return redirect()
+                ->route('backup.index')
+                ->with('error', 'Backup gagal: ' . $e->getMessage());
+        }
         // Artisan::call('backup:run');
 
         // return redirect()
         //     ->route('backup.index')
         //     ->with('success', 'Backup berhasil dijalankan.');
-        RunBackupJob::dispatch();
-
-        return back()->with('success', 'Backup sedang diproses di background.');
     }
 
     public function download($file)
@@ -75,7 +82,7 @@ class BackupController extends Controller
 
     public function reload()
     {
-        // $backups = $this->getBackupData(); // method ambil data backup
+        
         $path = storage_path('app/backup/Laravel');
 
         $files = File::exists($path)

@@ -48,10 +48,10 @@ class ReturPenjualanController extends Controller
 
     public function getDetailPenjualan($id)
     {
-        $penjualan = Penjualan::with('detail.produk')->findOrFail($id);
+        $penjualan = Penjualan::with('detail.produk.satuan')->findOrFail($id);
         $details = $penjualan->detail->map(function ($d) {
             $qtyBaris = max(1, (int) $d->qty);
-            $diskonUnit = (float) ($d->diskon ?? 0) / $qtyBaris;
+            $diskonUnit = (float) ($d->diskon ?? 0);
 
             return [
                 'produk' => [
@@ -59,6 +59,7 @@ class ReturPenjualanController extends Controller
                     'nama_produk' => $d->produk?->nama_produk,
                 ],
                 'qty' => (int) $d->qty,
+                'satuan' => (string) ($d->produk?->satuan?->jenis_satuan ?? '-'),
                 'harga_jual' => (float) $d->harga_jual,
                 'diskon' => (float) ($d->diskon ?? 0),
                 'diskon_unit' => $diskonUnit,
@@ -328,7 +329,9 @@ class ReturPenjualanController extends Controller
             }
 
             $harga = (float) $pd->harga_jual;
-            $diskonUnit = (float) ($pd->diskon ?? 0) / max(1, $qtyJual);
+            // Diskon pada tabel penjualan_detail adalah diskon per unit
+            $diskonUnit = (float) ($pd->diskon ?? 0);
+            // $diskonUnit = (float) ($pd->diskon ?? 0) / max(1, $qtyJual);
             $net = max(0, $harga - $diskonUnit);
             $subtotal = $qtyRetur * $net;
 

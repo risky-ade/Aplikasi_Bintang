@@ -126,6 +126,9 @@
                                     <i class="fas fa-bars"></i>
                                   </button>
                                   <div class="dropdown-menu dropdown-menu-right">
+                                    <a href="{{ route('master_produk.show', $row->id) }}" class="dropdown-item text-secondary">
+                                      <i class="fa fa-eye"></i> Lihat 
+                                    </a>
                                     <a href="{{ url('/master_produk/'.$row->id.'/edit') }}" class="dropdown-item text-info"
                                       ><i class="fa fa-edit"> Edit</i> </a>
                                     <button class="dropdown-item text-danger btn-delete" data-id="{{ $row->id }}" data-nama="{{ $row->nama_produk }}">
